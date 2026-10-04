@@ -1,3 +1,25 @@
+# ── Loop files ignored for now (committed intentionally) ──
+# .gitignore note: .env files are covered by GitHub's Node template below (.env, .env.*)
+# with an exception for .env.example. fixtures/ and data/ are committed — do not gitignore them.
+
+# Freebuff client metadata (local only)
+.freebuff/
+
+# Vercel
+.vercel/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Demo cache (committed intentionally; this is just a reminder not to auto-ignore)
+
+# ── Original GitHub Node .gitignore (initial commit) ──
 # Logs
 logs
 *.log
@@ -34,7 +56,7 @@ bower_components
 # node-waf configuration
 .lock-wscript
 
-# Compiled binary addons (https://nodejs.org/api/addons.html)
+# Compiled binary addons (https://nodejs.org/api/addons)
 build/Release
 
 # Dependency directories
@@ -85,9 +107,6 @@ dist
 
 # Gatsby files
 .cache/
-# Comment in the public line in if your project uses Gatsby and not Next.js
-# https://nextjs.org/blog/next-9-1#public-directory-support
-# public
 
 # vuepress build output
 .vuepress/dist
