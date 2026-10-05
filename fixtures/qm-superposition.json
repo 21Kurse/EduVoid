@@ -1,0 +1,421 @@
+{
+  "topic": "Quantum superposition and measurement",
+  "level": "beginner",
+  "concepts": [
+    {
+      "id": "states-and-superposition",
+      "title": "States and superposition",
+      "summary": "A quantum state is a vector; a single qubit can sit in a weighted combination of its two basis states at once.",
+      "claims": [
+        {
+          "id": "claim-qubit-basis",
+          "text": "A single qubit has two computational basis states, conventionally written |0⟩ and |1⟩.",
+          "passageIds": ["p1-def-superposition", "p1-dirac-notation"],
+          "sourceIds": ["src-fixture-1"],
+          "status": "supported"
+        },
+        {
+          "id": "claim-superposition-linear-combo",
+          "text": "A general qubit state is a weighted combination α|0⟩ + β|1⟩ of the basis states, with complex weights.",
+          "passageIds": ["p1-def-superposition"],
+          "sourceIds": ["src-fixture-1"],
+          "status": "supported"
+        },
+        {
+          "id": "claim-normalization",
+          "text": "The squared magnitudes |α|² and |β|² must sum to 1, which is why the state is called normalized.",
+          "passageIds": ["p1-normalization"],
+          "sourceIds": ["src-fixture-1"],
+          "status": "supported"
+        }
+      ],
+      "components": [
+        {
+          "type": "explainer",
+          "markdown": "A **qubit** is the quantum version of a bit. Where a classical bit is either 0 or 1, a qubit's state is a vector written in **Dirac notation** as α|0⟩ + β|1⟩ — a weighted combination of the two basis states. The weights α and β are complex numbers called amplitudes.\n\nSquaring an amplitude gives a probability, and the two probabilities must add up to 1:\n\n$$|\\alpha|^2 + |\\beta|^2 = 1$$\n\nA superposition is not a bit secretly flipped to one side and unknown to us — the weights themselves are physical, and different weights lead to different measurement statistics. That is what \"being in both states at once\" operationally means.\n\n*This is fixture content (labeled placeholder passages), not live-generated text.*"
+        },
+        {
+          "type": "quiz",
+          "questions": [
+            {
+              "id": "q-superposition-1",
+              "prompt": "A qubit is in the state α|0⟩ + β|1⟩. What must be true about α and β?",
+              "options": [
+                "They are both real numbers between 0 and 1",
+                "Squaring their magnitudes gives probabilities that sum to 1",
+                "One of them must be exactly zero",
+                "They must be equal"
+              ],
+              "answer": 1,
+              "explanation": "Amplitudes are complex; what is physical is |α|² and |β|², the probabilities of the measurement outcomes, and these must total 1.",
+              "passageIds": ["p1-normalization"]
+            },
+            {
+              "id": "q-superposition-2",
+              "prompt": "What does the notation |0⟩ and |1⟩ refer to?",
+              "options": [
+                "The two computational basis states of one qubit",
+                "Two separate qubits",
+                "The measurement results before normalization",
+                "The two beams of an interferometer"
+              ],
+              "answer": 0,
+              "explanation": "Dirac 'ket' notation labels the basis vectors; for a single qubit the standard computational basis is |0⟩ and |1⟩.",
+              "passageIds": ["p1-dirac-notation"]
+            }
+          ]
+        },
+        {
+          "type": "flashcards",
+          "cards": [
+            {
+              "front": "What is a qubit state written as?",
+              "back": "A vector α|0⟩ + β|1⟩ — a weighted combination (superposition) of the basis states |0⟩ and |1⟩ with complex amplitudes α, β."
+            },
+            {
+              "front": "Why must |α|² + |β|² = 1?",
+              "back": "Because |α|² and |β|² are the probabilities of measuring 0 and 1, and probabilities over all outcomes must sum to 1 (normalization)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "measurement-and-probabilities",
+      "title": "Measurement and probabilities",
+      "summary": "Measuring a qubit in the computational basis yields 0 or 1 with probabilities |α|² and |β|²; individual runs are random.",
+      "claims": [
+        {
+          "id": "claim-born-rule",
+          "text": "Measuring the qubit state α|0⟩ + β|1⟩ in the computational basis gives outcome 0 with probability |α|² and outcome 1 with probability |β|².",
+          "passageIds": ["p2-born-rule"],
+          "sourceIds": ["src-fixture-1"],
+          "status": "supported"
+        },
+        {
+          "id": "claim-outcome-random",
+          "text": "For identical qubits prepared in the same state, individual measurement outcomes are inherently random; only the statistics are predictable.",
+          "passageIds": ["p2-born-rule", "p2-inherent-randomness"],
+          "sourceIds": ["src-fixture-1"],
+          "status": "supported"
+        },
+        {
+          "id": "claim-many-shots",
+          "text": "Repeated runs of the same experiment converge to the Born-rule probabilities, which is how quantum predictions are tested.",
+          "passageIds": ["p2-inherent-randomness"],
+          "sourceIds": ["src-fixture-1"],
+          "status": "supported"
+        }
+      ],
+      "components": [
+        {
+          "type": "explainer",
+          "markdown": "Quantum mechanics does not usually predict *which* outcome you get — it predicts the **probability** of each outcome. For the state α|0⟩ + β|1⟩ measured in the computational basis, the **Born rule** says:\n\n- outcome **0** with probability |α|²\n- outcome **1** with probability |β|²\n\nAny single measurement is unpredictable. But prepare many identical qubits and measure them all, and the frequencies converge to these probabilities — that is how experiments test quantum predictions.\n\nNote what is *not* happening: the qubit is not secretly 0 or 1 before you look. If it were, superposition would just be ignorance about a classical fact, and interference (coming up) would be impossible.\n\n*This is fixture content (labeled placeholder passages), not live-generated text.*"
+        },
+        {
+          "type": "sim",
+          "template": "two-state-prob",
+          "params": {
+            "values": { "alpha": 0.7071067811865476, "beta": 0.7071067811865476, "shots": 100 },
+            "unit": "probability",
+            "range": [0, 1]
+          },
+          "predictPrompt": "The qubit is in the equal superposition (|0⟩ + |1⟩)/√2. You fire 100 shots at it. Predict how many 1s you will see."
+        }
+      ]
+    },
+    {
+      "id": "interference-and-the-double-slit",
+      "title": "Interference and the double slit",
+      "summary": "Amplitudes — not probabilities — combine, so alternatives can cancel; the double-slit experiment makes this visible one particle at a time.",
+      "claims": [
+        {
+          "id": "claim-amplitudes-not-probabilities",
+          "text": "In quantum mechanics, alternatives combine at the level of amplitudes, and amplitudes can cancel, which is why interference patterns appear.",
+          "passageIds": ["p3-amplitudes-not-probabilities"],
+          "sourceIds": ["src-fixture-1"],
+          "status": "supported"
+        },
+        {
+          "id": "claim-one-at-a-time",
+          "text": "Sending particles through a double slit one at a time still builds an interference pattern over many runs.",
+          "passageIds": ["p3-one-at-a-time"],
+          "sourceIds": ["src-fixture-2"],
+          "status": "supported"
+        },
+        {
+          "id": "claim-which-path-kills-interference",
+          "text": "Detecting which slit the particle went through destroys the interference pattern.",
+          "passageIds": ["p3-which-path"],
+          "sourceIds": ["src-fixture-2"],
+          "status": "supported"
+        }
+      ],
+      "components": [
+        {
+          "type": "explainer",
+          "markdown": "Classically, if two things can happen you add their **probabilities**. In quantum mechanics you add **amplitudes** — and amplitudes are complex numbers that can cancel:\n\n$$\\text{total} = \\text{amplitude via slit A} + \\text{amplitude via slit B}$$\n\nIf the two amplitudes point in opposite directions, the total is zero: the outcome becomes impossible even though *either* alternative alone would allow it. Squaring only happens at the end, when computing probabilities.\n\nThe **double-slit experiment** shows this vividly: even when particles arrive one at a time, the accumulated hits form **fringes** — bands where particles pile up and bands where none land. Each particle behaves as if it took *both* paths in superposition and the two path-amplitudes interfered. And if you detect which slit each particle used, the fringes disappear.\n\n*This is fixture content (labeled placeholder passages), not live-generated text.*"
+        },
+        {
+          "type": "sim",
+          "template": "slider-curve",
+          "params": {
+            "values": { "wavelength": 1, "slitSeparation": 4, "screenDistance": 100 },
+            "unit": "relative intensity",
+            "range": [0, 1]
+          },
+          "predictPrompt": "Particles are fired one at a time through two slits, with no way to tell which slit each went through. Predict what builds up on the screen after many runs."
+        },
+        {
+          "type": "flashcards",
+          "cards": [
+            {
+              "front": "Why do interference fringes appear even one particle at a time?",
+              "back": "Each particle's two path-amplitudes (slit A and slit B) add and can cancel or reinforce before probabilities are computed, so accumulated hits form fringes."
+            },
+            {
+              "front": "What happens to the fringes if you detect which slit was used?",
+              "back": "They vanish: knowing the path destroys the superposition of paths whose amplitudes were interfering."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "measurement-changes-the-state",
+      "title": "Measurement changes the state",
+      "summary": "After a measurement the state is updated to match the outcome; a single shot cannot reveal the amplitudes.",
+      "claims": [
+        {
+          "id": "claim-collapse-update",
+          "text": "After a measurement with outcome m, the qubit's state is updated to match that outcome; an immediate re-measurement in the same basis gives the same result.",
+          "passageIds": ["p4-collapse-update"],
+          "sourceIds": ["src-fixture-1", "src-fixture-2"],
+          "status": "supported"
+        },
+        {
+          "id": "claim-single-shot-insufficient",
+          "text": "A single measurement reveals only the outcome, not the amplitudes; recovering α and β requires many identically prepared copies.",
+          "passageIds": ["p4-one-measurement-insufficient"],
+          "sourceIds": ["src-fixture-1"],
+          "status": "supported"
+        },
+        {
+          "id": "claim-basis-dependence",
+          "text": "Which superposition you 'see' depends on the measurement basis: a state that is definite in one basis is a superposition in another.",
+          "passageIds": ["p4-basis-change"],
+          "sourceIds": ["src-fixture-2"],
+          "status": "supported"
+        }
+      ],
+      "components": [
+        {
+          "type": "explainer",
+          "markdown": "Measurement does more than reveal a number — it **updates the state**. Prepare α|0⟩ + β|1⟩, measure, and suppose you get **1**. The state is now |1⟩: an immediate second measurement in the same basis returns 1 again, not a fresh coin flip.\n\nTwo consequences follow:\n\n1. **One shot tells you almost nothing about α and β.** You saw one outcome out of many possible ones; to estimate the amplitudes you need many identically prepared copies (this is what quantum state tomography does).\n2. **Superposition is basis-relative.** The state |0⟩ is definite in the computational basis, but it is a superposition of |+⟩ and |−⟩. \"Being in a superposition\" is a statement about which basis you will measure in.\n\n*This is fixture content (labeled placeholder passages), not live-generated text.*"
+        },
+        {
+          "type": "sim",
+          "template": "two-state-prob",
+          "params": {
+            "values": { "alpha": 0, "beta": 1, "shots": 10 },
+            "unit": "probability",
+            "range": [0, 1]
+          },
+          "predictPrompt": "A qubit prepared as |1⟩ (so α = 0, β = 1) is measured 10 times in the computational basis. Predict the number of 0s."
+        },
+        {
+          "type": "quiz",
+          "questions": [
+            {
+              "id": "q-measurement-1",
+              "prompt": "You measure α|0⟩ + β|1⟩ and get 1. You immediately measure again in the same basis. What do you get?",
+              "options": [
+                "0 with probability |α|²",
+                "1 with certainty",
+                "A fresh random outcome with probabilities |α|² and |β|²",
+                "It depends on the relative phase"
+              ],
+              "answer": 1,
+              "explanation": "The measurement updated the state to |1⟩, so an immediate re-measurement in the same basis returns 1 with certainty.",
+              "passageIds": ["p4-collapse-update"]
+            },
+            {
+              "id": "q-measurement-2",
+              "prompt": "Can a single measurement reveal the amplitudes α and β?",
+              "options": [
+                "Yes, with a sufficiently precise instrument",
+                "No — one shot gives one outcome; you need many identically prepared copies",
+                "Yes, if you measure in the X basis",
+                "Yes, by measuring the same qubit twice"
+              ],
+              "answer": 1,
+              "explanation": "One measurement returns one outcome. Estimating amplitudes requires statistics over many identically prepared copies (tomography).",
+              "passageIds": ["p4-one-measurement-insufficient"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "superposition-vs-mixture",
+      "title": "Superposition vs. mixture",
+      "summary": "A coherent superposition can interfere; a classical mixture cannot — and losing phase information (decoherence) turns one into the other.",
+      "claims": [
+        {
+          "id": "claim-pure-vs-mixed",
+          "text": "A superposition holds definite phase relations between amplitudes that can interfere, while a mixture is a classical probability distribution over definite states with no interference.",
+          "passageIds": ["p5-pure-vs-mixed"],
+          "sourceIds": ["src-fixture-1", "src-fixture-2"],
+          "status": "supported"
+        },
+        {
+          "id": "claim-decoherence",
+          "text": "Decoherence — interaction with an environment that leaks phase information — makes interference disappear, which is why classical-looking behavior emerges.",
+          "passageIds": ["p5-decoherence"],
+          "sourceIds": ["src-fixture-2"],
+          "status": "supported"
+        }
+      ],
+      "components": [
+        {
+          "type": "explainer",
+          "markdown": "Is (|0⟩ + |1⟩)/√2 different from \"0 or 1, 50/50, we just don't know which\"? **Yes — and the difference is measurable.**\n\n- In the **superposition**, the two amplitudes keep a definite **phase relation**. Rotate the measurement basis (measure in the |+⟩/|−⟩ basis instead) and you see it: the + outcome comes with certainty. The state can interfere.\n- In the **mixture**, each copy is secretly 0 or 1. In the rotated basis you get 50/50 — no preference, no interference.\n\n**Decoherence** is what destroys the phase relations: when a quantum system interacts with its environment (stray photons, air molecules), the phase information leaks away and the neat superposition becomes, for all practical purposes, a mixture. This is why macroscopic objects never show interference, and why building a quantum computer is hard: you must keep phases coherent.\n\n*This is fixture content (labeled placeholder passages), not live-generated text.*"
+        },
+        {
+          "type": "quiz",
+          "questions": [
+            {
+              "id": "q-mixture-1",
+              "prompt": "You measure (|0⟩ + |1⟩)/√2 in the |+⟩/|−⟩ basis. What do you get?",
+              "options": [
+                "+ with certainty",
+                "50/50 between + and −",
+                "0 with certainty",
+                "It depends on how many shots you take"
+              ],
+              "answer": 0,
+              "explanation": "(|0⟩+|1⟩)/√2 *is* |+⟩, so measuring in the |+⟩/|−⟩ basis yields + with certainty — this is what distinguishes it from a 50/50 mixture.",
+              "passageIds": ["p5-pure-vs-mixed", "p4-basis-change"]
+            },
+            {
+              "id": "q-mixture-2",
+              "prompt": "A qubit interacts with stray environment degrees of freedom that record which-state information. What happens to its phase relations?",
+              "options": [
+                "They are amplified",
+                "They are preserved but hidden",
+                "They leak away — the superposition effectively becomes a mixture",
+                "They reverse sign"
+              ],
+              "answer": 2,
+              "explanation": "Decoherence: which-state information leaking to the environment destroys the phase relations that interference needs.",
+              "passageIds": ["p5-decoherence"]
+            }
+          ]
+        },
+        {
+          "type": "flashcards",
+          "cards": [
+            {
+              "front": "Superposition vs. mixture in one line?",
+              "back": "Superposition: definite phase relations between amplitudes, can interfere. Mixture: classical coin flip over definite states, cannot."
+            },
+            {
+              "front": "What is decoherence?",
+              "back": "Leakage of phase (which-state) information into the environment, destroying interference and making quantum behavior look classical."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "edges": [
+    { "from": "states-and-superposition", "to": "measurement-and-probabilities" },
+    { "from": "states-and-superposition", "to": "interference-and-the-double-slit" },
+    { "from": "measurement-and-probabilities", "to": "measurement-changes-the-state" },
+    { "from": "interference-and-the-double-slit", "to": "superposition-vs-mixture" },
+    { "from": "measurement-changes-the-state", "to": "superposition-vs-mixture" }
+  ],
+  "sources": [
+    {
+      "id": "src-fixture-1",
+      "title": "Fixture source 1 (placeholder)",
+      "url": "about:fixture#src-fixture-1",
+      "authority": "other",
+      "passages": [
+        {
+          "id": "p1-def-superposition",
+          "label": "fixture",
+          "text": "Fixture passage: a superposition is a weighted combination of basis states; the weights are complex amplitudes."
+        },
+        {
+          "id": "p1-dirac-notation",
+          "label": "fixture",
+          "text": "Fixture passage: Dirac 'ket' notation |0>, |1> labels the two computational basis states of a single qubit."
+        },
+        {
+          "id": "p1-normalization",
+          "label": "fixture",
+          "text": "Fixture passage: normalization requires |alpha|^2 + |beta|^2 = 1, so the squared magnitudes are probabilities."
+        },
+        {
+          "id": "p2-born-rule",
+          "label": "fixture",
+          "text": "Fixture passage: the Born rule assigns outcome 0 probability |alpha|^2 and outcome 1 probability |beta|^2 in the computational basis."
+        },
+        {
+          "id": "p2-inherent-randomness",
+          "label": "fixture",
+          "text": "Fixture passage: individual outcomes are inherently random; frequencies over many identically prepared runs converge to the Born-rule probabilities."
+        },
+        {
+          "id": "p4-collapse-update",
+          "label": "fixture",
+          "text": "Fixture passage: measurement updates the state to the observed outcome; an immediate re-measurement in the same basis reproduces it."
+        },
+        {
+          "id": "p4-one-measurement-insufficient",
+          "label": "fixture",
+          "text": "Fixture passage: a single measurement gives one outcome only; amplitudes are estimated from many identically prepared copies."
+        }
+      ]
+    },
+    {
+      "id": "src-fixture-2",
+      "title": "Fixture source 2 (placeholder)",
+      "url": "about:fixture#src-fixture-2",
+      "authority": "other",
+      "passages": [
+        {
+          "id": "p3-amplitudes-not-probabilities",
+          "label": "fixture",
+          "text": "Fixture passage: alternatives combine at the amplitude level, and amplitudes can cancel, producing interference."
+        },
+        {
+          "id": "p3-one-at-a-time",
+          "label": "fixture",
+          "text": "Fixture passage: in the double-slit experiment, particles sent one at a time still accumulate into an interference pattern."
+        },
+        {
+          "id": "p3-which-path",
+          "label": "fixture",
+          "text": "Fixture passage: detecting which slit the particle used destroys the interference pattern."
+        },
+        {
+          "id": "p4-basis-change",
+          "label": "fixture",
+          "text": "Fixture passage: superposition is basis-relative; a state definite in one basis is a superposition in another."
+        },
+        {
+          "id": "p5-pure-vs-mixed",
+          "label": "fixture",
+          "text": "Fixture passage: a superposition is coherent amplitudes that can interfere; a mixture is a classical probability distribution over definite states with no interference."
+        },
+        {
+          "id": "p5-decoherence",
+          "label": "fixture",
+          "text": "Fixture passage: decoherence is the leakage of phase relations into the environment, which turns interference into classical-looking mixtures."
+        }
+      ]
+    }
+  ]
+}
