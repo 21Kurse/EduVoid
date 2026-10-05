@@ -140,6 +140,7 @@ Simulated-learner eval for content sufficiency: a fresh agent sees only the gene
 
 ## 12. Engineering rules
 
+- This file is the spec and must stay intact. Scaffolding tools may overwrite it; check `git diff AGENTS.md` after any scaffold or dev-server run and restore if needed.
 - Small commits; keep `main` deployable. Run typecheck and lint before each commit.
 - Never commit secrets. `.env.local` for keys; document required vars in `.env.example`. Include a `.gitignore` in T0 (see below).
 - Every LLM output is schema-validated. Every failure path renders a visible, non-crashing state.

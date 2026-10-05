@@ -32,6 +32,7 @@ You are in an autonomous build loop for a hackathon project. Do exactly one task
 ## Hard rules
 
 - Never fake or hard-code outputs. Any fixture or cached content must be labeled as such in the UI; never present it as live generation. Never invent metrics in docs; use only real numbers from logs.
+- `AGENTS.md` is the owner's spec. Framework tooling (e.g. Next.js) may try to overwrite or inject into it. Never overwrite it; if it changes unexpectedly, restore it with `git checkout -- AGENTS.md` and keep any tool-generated block below the spec only if it is harmless.
 - Never invent model IDs, endpoints or API keys. If a value is missing, write the need to `BLOCKERS.md` and stop.
 - Never commit secrets; keys live in `.env.local` only. The remote is https://github.com/21Kurse/EduVoid.git; do not change it.
 - No new dependency without logging the reason in `DECISIONS.md`.
