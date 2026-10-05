@@ -14,6 +14,12 @@ One entry per completed task, newest at the bottom. Format: task id, what change
   5. Superposition (definite phase relations, can interfere) vs mixture (classical coin flip, cannot); decoherence = phase information leaking to the environment.
 - **Owner notes:** quiz answers/sim parameters are also fact-checkable at G2. The two quiz items about |+⟩/|−⟩ basis results rely on the standard X-basis measurement conventions.
 
+## 2026-10-04 — T2: UI shell from fixture
+
+- **What changed:** `components/learning-app.tsx` (home single-question → loading → learning view; fixture bundled via import, not fetched; error state with Back), `components/mindmap.tsx` (React Flow mindmap, computed layered layout from prerequisite edges, mastery-colored custom nodes, click-to-select), `components/concept-panel.tsx` (fixture banner, claim chips, explainer with react-markdown+KaTeX, quiz with answer gating + explanations, flashcards with flip, sim placeholder, safe unknown-component fallback), `lib/mastery.ts` (levels + node colors; update rules land in T11), `lib/store.ts` (localStorage persistence via `useSyncExternalStore`, cross-tab sync, corruption-safe), `app/globals.css`/`app/layout.tsx` (light-only theme, Inter, violet accent, KaTeX css). Dependencies logged in DECISIONS.md per the hard rule.
+- **Verified:** `npm run check` exit 0 (19/19 tests). Production server (`next start` :3100) driven in a real browser: home → typed topic → loading (fixture-labeled) → learning view; **console clean** (one stale 404 from the pre-fix fetch approach was ruled out by clearing logs + fresh navigation); quiz answer locks options and shows explanation; mindmap node click swaps concept; screenshot-verified at 1440×900 (side-by-side) and 390×844 (stacked). Fixture labeled in-banner, in loading, and in explainer footers.
+- **Owner notes:** mastery colors visible but static until T11 wires quiz results into them. Selection persists across reloads via localStorage.
+
 
 ## 2026-10-04 — T0: Scaffold and repo
 

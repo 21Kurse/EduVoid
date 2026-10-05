@@ -15,6 +15,13 @@ Deviations from [DEFAULT]s, dependency justifications, and spike results. Newest
 - **`.gitignore`.** Extended GitHub's Node template in place (it already covers `node_modules`, `.env*` with `!.env.example`, `.next`, `out`, `dist`, `coverage`, `*.log`); appended §14 items it lacked (`.DS_Store`, `Thumbs.db`, `.vscode/`, `.idea/`, `*.swp`, `.vercel/`) plus `.freebuff/` (local client metadata).
 - **Home page.** Minimal placeholder ("What do you want to learn?" heading) instead of scaffold branding; the real single-question UI is T2.
 
+## 2026-10-04 — T2: UI dependencies added
+
+- `@xyflow/react` (React Flow v12) — the §5.1 mastery mindmap is the centerpiece; React Flow is the §2 [DEFAULT] for the mindmap. `nodesDraggable=false`, invisible handles, custom node component.
+- `react-markdown` + `remark-math` + `rehype-katex` + `katex` — §2 [DEFAULT] KaTeX for math in explainers; react-markdown chosen over hand-rolled markdown parsing for safety (no raw HTML by default) and pipeline compat with the later pipeline renderers (T6+).
+- `emptyMastery()`/thresholds in `lib/mastery.ts` are provisional; T11 tunes them with the owner.
+- UI is light-only per [DECIDED] style; no dark-mode override shipped.
+
 ## Model spike (G1)
 
 - Not yet run — waiting on owner-supplied model ID / endpoint / key. Results will be recorded here.
