@@ -14,6 +14,7 @@ import { useLearningState } from "@/lib/store";
 import { Mindmap } from "./mindmap";
 import { ConceptPanel } from "./concept-panel";
 import { ActivityPanel, type ActivityFeed } from "./activity-panel";
+import { ClaimsList } from "./claims-list";
 
 type ConceptStatus = Record<string, { ok: boolean; detail?: string }>;
 
@@ -23,6 +24,8 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
   const [messages, setMessages] = useState<string[]>([]);
   const [sources, setSources] = useState<ActivityFeed["sources"]>([]);
   const [claims, setClaims] = useState<SourceResult["claims"]>([]);
+  const [passages, setPassages] = useState<{ id: string; text: string; url: string; sourceId: string }[]>([]);
+  const [contradictions, setContradictions] = useState<SourceResult["contradictions"]>([]);
   const [conceptStatus, setConceptStatus] = useState<ConceptStatus>({});
   const [claimsRejected, setClaimsRejected] = useState(0);
   const [verify, setVerify] = useState<{ supported: number; total: number; sources: number } | null>(null);
@@ -85,12 +88,24 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
         }
         case "claims":
           setClaims(e.claims);
+          setPassages(e.passages);
+          setContradictions(e.contradictions);
           setClaimsRejected(e.claims.filter((c) => c.status === "flagged").length);
           push(`Extracted ${e.claims.length} claims, ${e.contradictions.length} contradictions`);
           break;
         case "verified":
           setVerify({ supported: e.supported, total: e.total, sources: e.sources });
           setClaimsRejected(e.flagged);
+          // Patch claim statuses with the verifier's final verdicts (T8).
+          if (e.verdicts.length > 0) {
+            const byId = new Map(e.verdicts.map((v) => [v.id, v]));
+            setClaims((cs) =>
+              cs.map((c) => {
+                const v = byId.get(c.id);
+                return v ? { ...c, status: v.status, flagReason: v.flagReason ?? c.flagReason } : c;
+              }),
+            );
+          }
           push(
             e.flagged > 0
               ? `Verifier: ${e.supported}/${e.total} claims supported, ${e.flagged} flagged`
@@ -178,18 +193,19 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
           </div>
         </div>
         <div className="min-h-0 flex-1 lg:max-w-[46%]">
-          {spec ? (
-            <ConceptPanel
-              spec={spec}
-              learning={state}
-              conceptStatus={conceptStatus}
-              verify={verify}
-              onAnswered={() => undefined}
-              onRetry={onRetry}
-            />
-          ) : (
-            <div className="h-full border-l border-border-subtle" />
-          )}
+          <div className="flex h-full flex-col gap-3 overflow-y-auto p-4">
+            {spec && (
+              <ConceptPanel
+                spec={spec}
+                learning={state}
+                conceptStatus={conceptStatus}
+                verify={verify}
+                onAnswered={() => undefined}
+                onRetry={onRetry}
+              />
+            )}
+            <ClaimsList claims={claims} contradictions={contradictions} passages={passages} sources={sources} />
+          </div>
         </div>
       </div>
     </div>

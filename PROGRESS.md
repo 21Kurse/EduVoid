@@ -75,3 +75,9 @@ One entry per completed task, newest at the bottom. Format: task id, what change
 - **Console errors during full run: 0.** Verify badge visible in-UI: "verified against 8 sources · 44/46 claims supported" (2 flagged claims surfaced).
 - **Order 3 (content errors at G2):** owner reported none; planted-error set stays at the original 10; `probe:verify` result 10/10 stands.
 - **Order 4 (parallel claims + source cap):** per-source extraction is parallel (mapWithConcurrency, concurrency 4) since T4; live bench (`npm run bench:claims`, 2 runs): sequential median **139.9s** vs parallel median **38.2s** = **3.67x** speedup, comparable claim yields. `MAX_SOURCES=8` in `lib/source.ts` (within the 6–8 cap, §13.3).
+
+## T8 — Cited claims UI (2026-10-05)
+- `verified` SSE event now carries per-claim `verdicts` so the UI updates claim statuses after verification (claims arrive pre-verify for activity-feed visibility; verdicts patch them in place).
+- `lib/citations.ts`: pure passageId → {passage, source} joins from SSE payloads; `contradictionRows` expands disagree-pairs (dangling pairs dropped).
+- `components/claims-list.tsx`: collapsible "Claims & citations" section in the reading column — every claim expands to cited passage text + `[authority] title ↗` source link (target=_blank); flagged claims show the verifier's reason; contradictions render as amber "⚠ sources disagree" rows with both texts (§4.1).
+- Live probe: PASS (6/6 concepts, 38/39 verified, 1 flagged, wall 172.9s — NIM flake run, degraded batches contained as designed). 69/69 tests, check exit 0.

@@ -104,6 +104,11 @@ export async function POST(req: NextRequest) {
           passages: v.passages,
           flagged: v.flagged,
           degraded: v.degraded,
+          verdicts: v.claims.map((cl) => ({
+            id: cl.id,
+            status: cl.status,
+            ...(cl.flagReason ? { flagReason: cl.flagReason } : {}),
+          })),
           atMs: 0,
         });
         return { v, contradictions: c.contradictions };

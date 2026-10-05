@@ -34,6 +34,8 @@ export type PipelineEvent =
       passages: number;
       flagged: number;
       degraded: boolean;
+      /** Final per-claim statuses so the UI can update the claims list (T8). */
+      verdicts: { id: string; status: "supported" | "flagged"; flagReason?: string }[];
       atMs: number;
     }
   | {
