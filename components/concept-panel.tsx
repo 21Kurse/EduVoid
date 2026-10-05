@@ -11,7 +11,8 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import type { Claim, Component, CurriculumSpec } from "@/lib/spec";
 import type { LearningState } from "@/lib/store";
-import { Quiz, Flashcards, SimPlaceholder, UnknownComponent } from "./widgets";
+import { Quiz, Flashcards, UnknownComponent } from "./widgets";
+import { Sim } from "./sims";
 
 export function VerifyBadge({
   supported,
@@ -31,6 +32,16 @@ export function VerifyBadge({
       ✓ verified against {sources} source{sources === 1 ? "" : "s"} · {supported}/{total} claims supported
     </span>
   );
+}
+
+/** Stable numeric seed from a concept id so sim runs are reproducible. */
+function seedFrom(id: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < id.length; i++) {
+    h ^= id.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
 }
 
 function ClaimChips({ claims }: { claims: Claim[] }) {
@@ -139,7 +150,7 @@ export function ConceptPanel({
                 case "flashcards":
                   return <Flashcards key={i} cards={comp.cards} />;
                 case "sim":
-                  return <SimPlaceholder key={i} prompt={comp.predictPrompt} />;
+                  return <Sim key={i} component={comp} seed={seedFrom(concept.id)} />;
                 default:
                   return <UnknownComponent key={i} type={(comp as { type?: string }).type ?? "unknown"} />;
               }

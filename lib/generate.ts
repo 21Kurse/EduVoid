@@ -9,7 +9,7 @@ import { z } from "zod";
 import type { Concept } from "./spec.ts";
 import type { SourceResult } from "./source.ts";
 
-const SIM_TEMPLATES = ["two-state-prob", "slider-curve", "vector-field"] as const;
+const SIM_TEMPLATES = ["two-state-prob", "double-slit", "slider-curve", "vector-field"] as const;
 
 // Schema is deliberately permissive: per-item salvage happens in code so a
 // single bad quiz option does not burn a schema retry (and its tokens).
@@ -40,7 +40,7 @@ const genSchema = z.object({
 });
 
 const GEN_SYSTEM =
-  'You write study content for ONE concept. Output ONLY JSON of shape {"explainer":string,"quiz":[{"prompt":string,"options":[string],"answer":number,"explanation":string}],"flashcards":[{"front":string,"back":string}],"sim":optional({"template":"two-state-prob"|"slider-curve"|"vector-field","values":{string:number},"predictPrompt":string})}. Ground every statement in the cited claims given to you (paraphrase; quotes under 15 words). Use $...$ for inline math. 2 quiz questions, 1-2 flashcards. If a concrete numeric simulation of this concept fits one of the listed templates, include "sim" with 2-4 numeric values and a prediction question; otherwise omit it.';
+  'You write study content for ONE concept. Output ONLY JSON of shape {"explainer":string,"quiz":[{"prompt":string,"options":[string],"answer":number,"explanation":string}],"flashcards":[{"front":string,"back":string}],"sim":optional({"template":"two-state-prob"|"double-slit","values":{string:number},"predictPrompt":string})}. Ground every statement in the cited claims given to you (paraphrase; quotes under 15 words). Use $...$ for inline math. 2 quiz questions, 1-2 flashcards. If a concrete numeric simulation of this concept fits one of the listed templates, include "sim" with 2-4 numeric values (two-state-prob: p in 0..1 and n shots; double-slit: slit separation d and wavelength lambda) and a prediction question; otherwise omit it.';
 
 export type GeneratedConcept =
   | { ok: true; concept: Concept; latencyMs: number }

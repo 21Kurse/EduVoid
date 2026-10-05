@@ -81,3 +81,9 @@ One entry per completed task, newest at the bottom. Format: task id, what change
 - `lib/citations.ts`: pure passageId → {passage, source} joins from SSE payloads; `contradictionRows` expands disagree-pairs (dangling pairs dropped).
 - `components/claims-list.tsx`: collapsible "Claims & citations" section in the reading column — every claim expands to cited passage text + `[authority] title ↗` source link (target=_blank); flagged claims show the verifier's reason; contradictions render as amber "⚠ sources disagree" rows with both texts (§4.1).
 - Live probe: PASS (6/6 concepts, 38/39 verified, 1 flagged, wall 172.9s — NIM flake run, degraded batches contained as designed). 69/69 tests, check exit 0.
+
+## T9 — Predict-then-reveal sims (2026-10-05)
+- Hand-built templates per §13.6 (LLM supplies parameters + prediction prompt only): **two-state-prob** (n shots at P(A)=p; numeric prediction → bar outcome + "you predicted X, run gave Y, expected ≈ pN ± 2σ" comparison) and **double-slit** (fixed 4-option prediction → SVG intensity curve cos²(πdx/λ)·sinc² envelope; comparison names the fringe count and the interference explanation). Both LOCKED until the user commits (§5.2); rerun resets the prediction.
+- `lib/sim-math.ts`: pure + seeded (mulberry32) — clamps all LLM params (p∈[0.05,0.95], n∈[10,200], d∈[0.5,5], λ∈[0.25,2]) so bad model output can never break a template. 8 unit tests (determinism, binomial expectation/spread, center peak, outward fringe decay, symmetry, fringe scaling λ/d).
+- "double-slit" added to the template enum + generator allowlist; prompt now offers only the two implemented templates (slider-curve/vector-field stay valid for fixtures, render as labeled placeholders).
+- Live probe: PASS (3/3 concepts, 53/53 verified, skeleton 9.4s, wall 94.8s). 77/77 tests, check exit 0.
