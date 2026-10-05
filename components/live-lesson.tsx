@@ -25,6 +25,7 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
   const [claims, setClaims] = useState<SourceResult["claims"]>([]);
   const [conceptStatus, setConceptStatus] = useState<ConceptStatus>({});
   const [claimsRejected, setClaimsRejected] = useState(0);
+  const [verify, setVerify] = useState<{ supported: number; total: number; sources: number } | null>(null);
   const [done, setDone] = useState(false);
   const { state, selectConcept } = useLearningState();
   const specRef = useRef<CurriculumSpec | null>(null);
@@ -80,6 +81,15 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
           setClaims(e.claims);
           setClaimsRejected(e.claims.filter((c) => c.status === "flagged").length);
           push(`Extracted ${e.claims.length} claims, ${e.contradictions.length} contradictions`);
+          break;
+        case "verified":
+          setVerify({ supported: e.supported, total: e.total, sources: e.sources });
+          setClaimsRejected(e.flagged);
+          push(
+            e.flagged > 0
+              ? `Verifier: ${e.supported}/${e.total} claims supported, ${e.flagged} flagged`
+              : `Verifier: ${e.supported}/${e.total} claims supported`,
+          );
           break;
         case "error":
           push(`ERROR: ${e.detail}`);
@@ -167,6 +177,7 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
               spec={spec}
               learning={state}
               conceptStatus={conceptStatus}
+              verify={verify}
               onAnswered={() => undefined}
               onRetry={onRetry}
             />

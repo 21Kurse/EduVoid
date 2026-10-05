@@ -47,7 +47,9 @@ export type GeneratedConcept =
   | { ok: false; detail: string; latencyMs: number };
 
 function claimsForConcept(topic: string, concept: { id: string; title: string; summary: string }, source: SourceResult): string {
-  const own = source.claims.slice(0, 10).map((c, i) => `${i + 1}. ${c.text} [passages: ${c.passageIds.join(", ")}]`).join("\n");
+  // Flagged claims (T7 verifier) must never ground generation (§4.4).
+  const supported = source.claims.filter((c) => c.status === "supported");
+  const own = supported.slice(0, 10).map((c, i) => `${i + 1}. ${c.text} [passages: ${c.passageIds.join(", ")}]`).join("\n");
   const passages = source.sources
     .flatMap((s) => s.passages.map((p) => `[${p.id}] ${p.text.slice(0, 260)}`))
     .slice(0, 10)

@@ -27,6 +27,16 @@ export type PipelineEvent =
       atMs: number;
     }
   | {
+      type: "verified";
+      supported: number;
+      total: number;
+      sources: number;
+      passages: number;
+      flagged: number;
+      degraded: boolean;
+      atMs: number;
+    }
+  | {
       type: "claims";
       claims: ExtractedClaim[];
       contradictions: Contradiction[];

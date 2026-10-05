@@ -24,14 +24,22 @@ function FixtureBanner() {
   );
 }
 
-export function VerifyBadge({ supported, total }: { supported: number; total: number }) {
+export function VerifyBadge({
+  supported,
+  total,
+  sources,
+}: {
+  supported: number;
+  total: number;
+  sources: number;
+}) {
   return (
     <span
       className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] text-emerald-700"
       data-testid="verify-badge"
-      title="Claims verified against source passages"
+      title="Claims verified against source passages by the pipeline verifier"
     >
-      ✓ verified against {total} passage{total === 1 ? "" : "s"} · {supported}/{total} claims supported
+      ✓ verified against {sources} source{sources === 1 ? "" : "s"} · {supported}/{total} claims supported
     </span>
   );
 }
@@ -69,12 +77,14 @@ export function ConceptPanel({
   spec,
   learning,
   conceptStatus = {},
+  verify = null,
   onAnswered,
   onRetry,
 }: {
   spec: CurriculumSpec;
   learning: LearningState;
   conceptStatus?: Record<string, { ok: boolean; detail?: string }>;
+  verify?: { supported: number; total: number; sources: number } | null;
   onAnswered: (conceptId: string, correct: boolean) => void;
   onRetry?: (concept: { id: string; title: string; summary: string }) => void;
 }) {
@@ -96,6 +106,12 @@ export function ConceptPanel({
               <h2 className="text-xl font-semibold tracking-tight text-zinc-900">{concept.title}</h2>
               <p className="mt-1 text-[14px] text-zinc-500">{concept.summary}</p>
             </div>
+
+            {verify && verify.total > 0 && (
+              <div>
+                <VerifyBadge supported={verify.supported} total={verify.total} sources={verify.sources} />
+              </div>
+            )}
 
             <ClaimChips claims={concept.claims} />
 

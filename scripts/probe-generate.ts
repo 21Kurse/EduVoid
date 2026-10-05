@@ -47,6 +47,7 @@ async function main(): Promise<number> {
   let conceptsTotal = 0;
   let skeleton = false;
   let claims = 0;
+  let verified: { supported: number; total: number; flagged: number; degraded: boolean } | null = null;
   let error: string | null = null;
   let done = false;
 
@@ -60,7 +61,17 @@ async function main(): Promise<number> {
       buffer = buffer.slice(idx + 2);
       for (const line of frame.split("\n")) {
         if (!line.startsWith("data: ")) continue;
-        const e = JSON.parse(line.slice(6)) as { type: string; atMs?: number; ok?: boolean; detail?: string; claims?: unknown[] };
+        const e = JSON.parse(line.slice(6)) as {
+          type: string;
+          atMs?: number;
+          ok?: boolean;
+          detail?: string;
+          claims?: unknown[];
+          supported?: number;
+          total?: number;
+          flagged?: number;
+          degraded?: boolean;
+        };
         counts[e.type] = (counts[e.type] ?? 0) + 1;
         if (e.atMs !== undefined && firstAt[e.type] === undefined) firstAt[e.type] = e.atMs;
         if (e.type === "skeleton") {
@@ -72,6 +83,9 @@ async function main(): Promise<number> {
           else error = `concept failed: ${e.detail}`;
         }
         if (e.type === "claims" && Array.isArray(e.claims)) claims = e.claims.length;
+        if (e.type === "verified" && typeof e.supported === "number") {
+          verified = { supported: e.supported, total: e.total ?? 0, flagged: e.flagged ?? 0, degraded: e.degraded ?? false };
+        }
         if (e.type === "error") error = e.detail ?? "unknown";
         if (e.type === "done") done = true;
       }
@@ -87,9 +101,11 @@ async function main(): Promise<number> {
       Object.fromEntries(Object.entries(firstAt).map(([k, v]) => [k, Math.round(v as number)])),
     ),
   );
-  console.log(`skeleton=${skeleton} concepts_ok=${conceptsOk} claims=${claims} error=${error ?? "none"} done=${done} wall=${totalMs}ms`);
+  console.log(
+    `skeleton=${skeleton} concepts_ok=${conceptsOk} claims=${claims} verified=${verified ? `${verified.supported}/${verified.total} flagged=${verified.flagged} degraded=${verified.degraded}` : "none"} error=${error ?? "none"} done=${done} wall=${totalMs}ms`,
+  );
   const pass = skeleton && claims > 0 && conceptsOk >= 3 && !error && done;
-  console.log(pass ? "T6 PROBE: PASS" : "T6 PROBE: FAIL");
+  console.log(pass ? "PIPELINE PROBE: PASS" : "PIPELINE PROBE: FAIL");
   return pass ? 0 : 1;
 }
 

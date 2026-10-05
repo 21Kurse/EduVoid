@@ -1,6 +1,7 @@
 import { runSearchStage, runClaimsStage } from "../../../lib/source.ts";
 import { runPlanStage } from "../../../lib/plan.ts";
 import { generateConcept } from "../../../lib/generate.ts";
+import { runVerifyStage } from "../../../lib/verify.ts";
 import { mapWithConcurrency } from "../../../lib/llm.ts";
 import { toSseChunk, type PipelineEvent } from "../../../lib/pipeline-events.ts";
 import { defaultProvider } from "../../../lib/search.ts";
@@ -80,30 +81,35 @@ export async function POST(req: NextRequest) {
       atMs: 0,
     });
 
-    // Claims extraction (slow) runs concurrently with plan + generation.
+    // Claims extraction (slow) runs concurrently with plan + generation;
+    // the verifier (§4.4) gates what reaches the generator.
+    const allPassages = search.sources.flatMap((s) =>
+      s.passages.map((p) => ({ id: p.id, text: p.text, url: s.url, sourceId: s.id })),
+    );
     const claimsPromise = runClaimsStage(topic, search.sources, { timeoutMs: 45_000 })
-      .then((c) => {
+      .then(async (c) => {
         emit({
           type: "claims",
           claims: c.claims,
           contradictions: c.contradictions,
-          passages: search.sources.flatMap((s) =>
-            s.passages.map((p) => ({ id: p.id, text: p.text, url: s.url, sourceId: s.id })),
-          ),
+          passages: allPassages,
           atMs: 0,
         });
-        return c;
+        const v = await runVerifyStage({ claims: c.claims, passages: search.sources.flatMap((s) => s.passages) });
+        emit({
+          type: "verified",
+          supported: v.supported,
+          total: v.total,
+          sources: v.sources,
+          passages: v.passages,
+          flagged: v.flagged,
+          degraded: v.degraded,
+          atMs: 0,
+        });
+        return { v, contradictions: c.contradictions };
       })
       .catch((e: unknown) => {
-        emit({
-          type: "claims",
-          claims: [],
-          contradictions: [],
-          passages: search.sources.flatMap((s) =>
-            s.passages.map((p) => ({ id: p.id, text: p.text, url: s.url, sourceId: s.id })),
-          ),
-          atMs: 0,
-        });
+        emit({ type: "claims", claims: [], contradictions: [], passages: allPassages, atMs: 0 });
         console.error(`[route] claims extraction failed: ${e instanceof Error ? e.message : String(e)}`);
         return null;
       });
@@ -122,18 +128,20 @@ export async function POST(req: NextRequest) {
       atMs: 0,
     });
 
+    emit({ type: "status", stage: "verify", message: "Verifying claims against passages", atMs: 0 });
     emit({ type: "status", stage: "generate", message: "Generating concepts", atMs: 0 });
-    // Ground generation in whatever the concurrent claims stage returned.
-    const claimsPart = await claimsPromise;
+    // Ground generation in the VERIFIED claim set (§4.4); raw claims were
+    // already streamed to the activity panel via the claims event.
+    const verified = await claimsPromise;
     const composed = {
       topic,
       sources: search.sources,
-      claims: claimsPart?.claims ?? [],
-      contradictions: claimsPart?.contradictions ?? [],
+      claims: verified?.v.claims ?? [],
+      contradictions: verified?.contradictions ?? [],
       timings: {
         searchMs: search.searchMs,
         extractionMs: 0,
-        claimsMs: claimsPart?.timings.claimsMs ?? 0,
+        claimsMs: verified?.v.verifierMs ?? 0,
         totalMs: 0,
       },
     };
