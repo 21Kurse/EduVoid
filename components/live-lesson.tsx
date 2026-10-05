@@ -60,6 +60,12 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
             push(`Planned ${e.concepts.length} concepts`);
             const first = e.concepts[0]?.id;
             if (first) selectConcept(first);
+          } else {
+            // §12: no silent failure paths — surface and stop.
+            const issue = parsed.error.issues[0];
+            const detail = `skeleton failed validation: ${issue?.path.join(".")} ${issue?.message}`;
+            console.error(detail, parsed.error.issues);
+            onFail(detail);
           }
           break;
         }

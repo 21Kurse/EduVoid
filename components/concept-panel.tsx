@@ -13,17 +13,6 @@ import type { Claim, Component, CurriculumSpec } from "@/lib/spec";
 import type { LearningState } from "@/lib/store";
 import { Quiz, Flashcards, SimPlaceholder, UnknownComponent } from "./widgets";
 
-function FixtureBanner() {
-  return (
-    <div
-      className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] text-amber-800"
-      data-testid="fixture-banner"
-    >
-      <strong>Fixture mode</strong> — content is a hand-written placeholder run (labeled passages), not live generation.
-    </div>
-  );
-}
-
 export function VerifyBadge({
   supported,
   total,

@@ -58,20 +58,10 @@ export function LearningApp() {
     );
   }
 
-  if (phase === "loading") {
-    return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-5 px-6 text-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-200 border-t-violet-600" />
-        <p className="text-[15px] text-zinc-700">Starting agents for &ldquo;{topic}&rdquo;</p>
-        <button
-          type="button"
-          onClick={() => setPhase("home")}
-          className="rounded-lg border border-border-subtle px-4 py-2 text-[13px] hover:bg-zinc-50"
-        >
-          Cancel
-        </button>
-      </div>
-    );
+  if (phase === "loading" || phase === "learning") {
+    // LiveLesson owns the loading state from here (skeleton -> concepts ->
+    // done); onFail is the only way back out to the error phase.
+    return <LiveLesson topic={topic} onFail={(d) => { setError(d); setPhase("error"); }} />;
   }
 
   if (phase === "error") {

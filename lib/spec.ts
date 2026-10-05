@@ -120,7 +120,10 @@ export const curriculumSpecSchema = z
     level: z.enum(LEVELS),
     concepts: z.array(conceptSchema).min(1),
     edges: z.array(edgeSchema),
-    sources: z.array(sourceSchema).min(1),
+    // No min(1): live skeleton specs are parsed client-side before the
+    // sources/claims events have been merged (fixture runs supply full
+    // sources; live runs carry them as separate SSE events).
+    sources: z.array(sourceSchema),
   })
   .superRefine((spec, ctx) => {
     // ---- Global ID uniqueness --------------------------------------------

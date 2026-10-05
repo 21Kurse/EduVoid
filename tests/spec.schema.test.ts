@@ -40,6 +40,21 @@ describe("curriculumSpecSchema extra validations", () => {
     expect(curriculumSpecSchema.safeParse(baseSpec).success).toBe(true);
   });
 
+  it("accepts a live skeleton spec with empty sources (client-side parse path)", () => {
+    // Regression: the T6 client rebuilds skeleton specs with sources: []
+    // before the sources SSE event merges in; min(1) there broke every
+    // live run (silent), while node probes never exercised this path.
+    const skeleton = {
+      topic: "Bayes' theorem",
+      level: "beginner",
+      concepts: [{ id: "c-1", title: "C1", summary: "s", claims: [], components: [] }],
+      edges: [],
+      sources: [],
+    };
+    const r = curriculumSpecSchema.safeParse(skeleton);
+    expect(r.success).toBe(true);
+  });
+
   it("rejects duplicate concept ids", () => {
     const bad = { ...baseSpec, concepts: [baseConcept, baseConcept] };
     const r = curriculumSpecSchema.safeParse(bad);
