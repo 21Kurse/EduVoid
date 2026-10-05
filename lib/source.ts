@@ -109,18 +109,23 @@ function passagesPrompt(passages: Passage[], budgetChars = 6000): string {
 
 const inMemoryCache = new Map<string, SourceResult>();
 
-export async function runSourceStage(
+export type SearchStageResult = {
+  sources: SourceRecord[];
+  searchMs: number;
+};
+
+/**
+ * Fast half of the Source stage: search + passage slicing only. The plan
+ * needs just this; claim extraction runs concurrently as its own stage so
+ * the skeleton never waits on it (§13.2 latency budget).
+ */
+export async function runSearchStage(
   topic: string,
   provider: SearchProvider,
-  opts: { timeoutMs?: number; concurrency?: number } = {},
-): Promise<SourceResult> {
-  const cached = inMemoryCache.get(topic);
-  if (cached) return cached;
-
+): Promise<SearchStageResult> {
   const t0 = Date.now();
   const searchRes = await provider.search({ query: topic, maxResults: MAX_SOURCES });
   const searchMs = Date.now() - t0;
-
   const top: SearchResult[] = searchRes.slice(0, MAX_SOURCES);
   const sources: SourceRecord[] = top.map((r, i) => {
     const id = `src-${i + 1}`;
@@ -132,7 +137,15 @@ export async function runSourceStage(
       passages: slicePassages(id, r.content ?? r.snippet ?? ""),
     };
   });
+  return { sources, searchMs };
+}
 
+/** Slow half: per-source claim extraction over an already-searched set. */
+export async function runClaimsStage(
+  topic: string,
+  sources: SourceRecord[],
+  opts: { timeoutMs?: number; concurrency?: number } = {},
+): Promise<Pick<SourceResult, "claims" | "contradictions" | "timings"> & { sources: SourceRecord[] }> {
   const withPassages = sources.filter((s) => s.passages.length > 0);
 
   // Per-source claims extraction (§13.5: flat, small outputs). One failed
@@ -191,15 +204,38 @@ export async function runSourceStage(
   }
 
   const extractionMs = 0; // extraction happens inside the provider (§13.3)
-  const result: SourceResult = {
-    topic,
+  return {
     sources,
     claims,
     contradictions,
+    timings: { searchMs: 0, extractionMs, claimsMs, totalMs: claimsMs },
+  };
+}
+
+/**
+ * Composed stage (search + claims) with per-topic caching. Kept for the
+ * retry route and probes; the streaming route forks the two halves so the
+ * plan never waits on claim extraction.
+ */
+export async function runSourceStage(
+  topic: string,
+  provider: SearchProvider,
+  opts: { timeoutMs?: number; concurrency?: number } = {},
+): Promise<SourceResult> {
+  const cached = inMemoryCache.get(topic);
+  if (cached) return cached;
+  const t0 = Date.now();
+  const search = await runSearchStage(topic, provider);
+  const claimsPart = await runClaimsStage(topic, search.sources, opts);
+  const result: SourceResult = {
+    topic,
+    sources: search.sources,
+    claims: claimsPart.claims,
+    contradictions: claimsPart.contradictions,
     timings: {
-      searchMs,
-      extractionMs,
-      claimsMs,
+      searchMs: search.searchMs,
+      extractionMs: claimsPart.timings.extractionMs,
+      claimsMs: claimsPart.timings.claimsMs,
       totalMs: Date.now() - t0,
     },
   };

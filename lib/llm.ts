@@ -162,6 +162,10 @@ export async function complete<T>(input: CompleteInput<T>): Promise<CompleteResu
     const parsed = extractJson(raw);
     if (parsed === null) {
       lastIssue = "Response contained no parseable JSON.";
+      // Server-side diagnostic so NIM flakiness is observable in logs.
+      console.error(
+        `[llm] unparseable output (${raw.length} chars, model ${model}): ${raw.slice(0, 240).replace(/\s+/g, " ")}`,
+      );
     } else {
       const result = input.schema.safeParse(parsed);
       if (result.success) {

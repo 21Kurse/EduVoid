@@ -65,6 +65,50 @@ describe("extractJson", () => {
   it("returns null when no JSON exists", () => {
     expect(extractJson("no json here")).toBeNull();
   });
+  it("drops an unterminated think block (truncated mid-reasoning)", () => {
+    const OPEN = "<th" + "ink>";
+    const CLOSE = "</th" + "ink>";
+    // Well-formed block: stripped entirely, the answer JSON survives.
+    const closed = `pre ${OPEN}noise {"x":1} mid ${CLOSE} post {"a":1}`;
+    expect(extractJson(closed)).toEqual({ a: 1 });
+    // Unclosed tag: everything from the tag on is treated as thinking; if
+    // the answer only exists inside it, there is nothing safe to return.
+    expect(extractJson(`${OPEN}reasoning {"x":1}`)).toBeNull();
+    // JSON emitted BEFORE an unclosed block still survives.
+    expect(extractJson(`{"a":1} ${OPEN}reasoning {"x":2}`)).toEqual({ a: 1 });
+  });
+  it("salvages JSON truncated inside a string ending with an escaped quote", () => {
+    // Peel-close keeps the model's own content; the dangling escape pair
+    // becomes a literal quote in the salvaged value.
+    expect(extractJson('{"a":"x\\"')).toEqual({ a: 'x"' });
+  });
+  it("doubles invalid escapes (single-backslash LaTeX) inside strings", () => {
+    const BS = String.fromCharCode(92);
+    const bad = `{"a":"${BS}psi is a ${BS}"state"}`;
+    const good = `{"a":"${BS}\\psi is a ${BS}\\state"}`;
+    const badParsed = extractJson(bad);
+    expect(badParsed).not.toBeNull();
+    expect((badParsed as { a: string }).a).toBe(BS + "psi is a \"state");
+    expect(extractJson(good)).toEqual({ a: BS + "psi is a " + BS + "state" });
+  });
+  it("leaves valid JSON byte-identical (no sanitizer distortion)", () => {
+    const BS = String.fromCharCode(92);
+    const Q = '"';
+    const doc =
+      "{" + Q + "a" + Q + ":" + Q + "x" + BS + "n y " + BS + "t z" + Q + "," +
+      Q + "b" + Q + ":[1,{" + Q + "c" + Q + ":" + Q + BS + Q + "q" + BS + Q + Q + "}]}";
+    // The constructed document must be valid JSON on its own...
+    expect(JSON.parse(doc)).toEqual({ a: "x\n y \t z", b: [1, { c: '"q"' }] });
+    // ...and the sanitizer must not distort it.
+    expect(extractJson(doc)).toEqual({ a: "x\n y \t z", b: [1, { c: '"q"' }] });
+  });
+  it("escapes raw control characters inside strings", () => {
+    const doc = "{\"a\":\"line1" + String.fromCharCode(10) + "line2\"}";
+    expect(extractJson(doc)).toEqual({ a: "line1\nline2" });
+  });
+  it("salvages JSON truncated mid-string", () => {
+    expect(extractJson('{"a":"x')).toEqual({ a: "x" });
+  });
 });
 
 describe("complete()", () => {

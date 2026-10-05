@@ -91,7 +91,7 @@ export async function runPlanStage(
     messages: [{ role: "user", content: planPrompt(topic, level, sources) }],
     schema: planSchema,
     temperature: 0.3,
-    maxTokens: 700,
+    maxTokens: 1200,
     timeoutMs: opts.timeoutMs ?? 45_000,
     rateLimit: { baseMs: 1500, maxRetries: 2 },
   });
