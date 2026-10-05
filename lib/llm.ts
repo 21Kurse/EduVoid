@@ -6,18 +6,18 @@
  * so callers render a visible, non-crashing state (§12).
  */
 
-import { extractJson } from "./extract";
-import { envTransport, HttpError, modelForRole } from "./transport";
+import { extractJson } from "./extract.ts";
+import { envTransport, HttpError, modelForRole } from "./transport.ts";
 import type {
   ChatResponse,
   CompleteInput,
   CompleteResult,
   LlmMessage,
   TokenUsage,
-} from "./types";
+} from "./types.ts";
 
-export { HttpError, modelForRole, openAiCompatibleTransport } from "./transport";
-export { extractJson } from "./extract";
+export { HttpError, modelForRole, openAiCompatibleTransport } from "./transport.ts";
+export { extractJson } from "./extract.ts";
 export type {
   ChatRequest,
   ChatResponse,
@@ -29,7 +29,7 @@ export type {
   LlmMessage,
   Role,
   TokenUsage,
-} from "./types";
+} from "./types.ts";
 
 const MAX_RETRIES = 2; // initial attempt + 2 retries (§3)
 

@@ -3,7 +3,7 @@
  * Split out of lib/llm.ts to keep files small.
  */
 
-import { type ChatRequest, type ChatResponse, type Role, type TokenUsage } from "./types";
+import { type ChatRequest, type ChatResponse, type Role, type TokenUsage } from "./types.ts";
 
 /** Role -> model ID from env. Missing values surface as no-config, never a guess. */
 export function modelForRole(role: Role): string | null {
