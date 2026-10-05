@@ -86,6 +86,11 @@ export function updateLearningState(
   listeners.forEach((l) => l());
 }
 
+/** Read the current state outside React (event handlers, T11 adaptive loop). */
+export function readLearningState(): LearningState {
+  return getSnapshot();
+}
+
 export function useLearningState() {
   const state = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const selectConcept = useCallback((conceptId: string | null) => {

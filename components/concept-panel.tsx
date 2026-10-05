@@ -81,6 +81,8 @@ export function ConceptPanel({
   verify = null,
   hero = null,
   onAnswered,
+  onDontGet,
+  adaptation = null,
   onRetry,
 }: {
   spec: CurriculumSpec;
@@ -89,6 +91,8 @@ export function ConceptPanel({
   verify?: { supported: number; total: number; sources: number } | null;
   hero?: { conceptId: string; code: string; fallback: { template: string; values: Record<string, number | string | boolean>; predictPrompt: string } } | null;
   onAnswered: (conceptId: string, correct: boolean) => void;
+  onDontGet?: (conceptId: string) => void;
+  adaptation?: string | null;
   onRetry?: (concept: { id: string; title: string; summary: string }) => void;
 }) {
   const concept = spec.concepts.find((c) => c.id === learning.selectedConceptId) ?? null;
@@ -109,6 +113,28 @@ export function ConceptPanel({
               <h2 className="text-xl font-semibold tracking-tight text-zinc-900">{concept.title}</h2>
               <p className="mt-1 text-[14px] text-zinc-500">{concept.summary}</p>
             </div>
+
+            {adaptation && (
+              <div
+                className="rounded-xl border border-violet-200 bg-violet-50 px-4 py-2.5 text-[13px] text-violet-800"
+                data-testid="adaptation-banner"
+              >
+                ↻ {adaptation}
+              </div>
+            )}
+
+            {onDontGet && concept.components.length > 0 && (
+              <div>
+                <button
+                  type="button"
+                  data-testid="dont-get"
+                  onClick={() => onDontGet(concept.id)}
+                  className="rounded-lg border border-border-subtle px-3 py-1.5 text-[12px] text-zinc-600 transition-colors hover:border-violet-300 hover:bg-violet-50"
+                >
+                  I don&apos;t get this
+                </button>
+              </div>
+            )}
 
             {verify && verify.total > 0 && (
               <div>

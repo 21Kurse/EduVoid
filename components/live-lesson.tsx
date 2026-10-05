@@ -11,6 +11,7 @@ import type { PipelineEvent } from "@/lib/pipeline-events";
 import { curriculumSpecSchema, type Concept, type CurriculumSpec } from "@/lib/spec";
 import type { SourceResult } from "@/lib/source";
 import { useLearningState } from "@/lib/store";
+import { useAdaptive } from "@/lib/use-adaptive";
 import { Mindmap } from "./mindmap";
 import { ConceptPanel } from "./concept-panel";
 import { ActivityPanel, type ActivityFeed } from "./activity-panel";
@@ -165,6 +166,22 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
     [topic, push],
   );
 
+  // T11 adaptive loop (§6): mastery events → store, failed concepts
+  // regenerate in the next modality with a visible one-line reason.
+  const getConcept = useCallback(
+    (id: string) => specRef.current?.concepts.find((c) => c.id === id),
+    [],
+  );
+  const onRegenerated = useCallback((conceptId: string, components: Concept["components"]) => {
+    if (!specRef.current) return;
+    const concepts = specRef.current.concepts.map((c) =>
+      c.id === conceptId ? { ...c, components } : c,
+    );
+    specRef.current = { ...specRef.current, concepts };
+    setSpec(specRef.current);
+  }, []);
+  const { onAnswered, onDontGet, adaptations } = useAdaptive({ topic, getConcept, onRegenerated, push });
+
   const feed: ActivityFeed = useMemo(
     () => ({
       stage,
@@ -211,7 +228,11 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
                 conceptStatus={conceptStatus}
                 verify={verify}
                 hero={hero}
-                onAnswered={() => undefined}
+                onAnswered={onAnswered}
+                onDontGet={onDontGet}
+                adaptation={
+                  state.selectedConceptId ? (adaptations[state.selectedConceptId] ?? null) : null
+                }
                 onRetry={onRetry}
               />
             )}

@@ -43,3 +43,66 @@ export function masteryLevel(state: MasteryState | undefined): MasteryLevel {
 export function emptyMastery(): MasteryState {
   return { mastery: null, attempts: 0, timeSpent: 0, modalityHistory: [] };
 }
+
+/**
+ * Deterministic mastery events (T11, §13.12 — rules, no BKT):
+ * - quiz correct: +0.4 (two clean answers master an untouched concept)
+ * - quiz wrong: −0.3, floored at 0; first miss on unseen starts at 0.5
+ * - "I don't get this": collapse toward struggling (×0.4)
+ * - regenerated: record the new modality in the history
+ */
+export type MasteryEvent =
+  | { type: "quiz"; correct: boolean }
+  | { type: "dont-get" }
+  | { type: "regenerated"; modality: string };
+
+export function applyMasteryEvent(
+  current: MasteryState | undefined,
+  event: MasteryEvent,
+): MasteryState {
+  const s = current ?? emptyMastery();
+  switch (event.type) {
+    case "quiz": {
+      const base = s.mastery ?? 0.5;
+      const mastery = Math.min(1, Math.max(0, base + (event.correct ? 0.4 : -0.3)));
+      return { ...s, mastery, attempts: s.attempts + 1 };
+    }
+    case "dont-get": {
+      const base = s.mastery ?? 0.5;
+      return { ...s, mastery: Math.max(0, base * 0.4) };
+    }
+    case "regenerated": {
+      return { ...s, modalityHistory: [...s.modalityHistory.slice(-5), event.modality] };
+    }
+  }
+}
+
+/**
+ * Modality cycle for regeneration (§6): text → sim → flashcards → quiz →
+ * back to text. The next modality is the first one after the last used,
+ * so a failed explainer regenerates as a simulation, etc.
+ */
+export const MODALITY_CYCLE = ["explainer", "sim", "flashcards", "quiz"] as const;
+export type Modality = (typeof MODALITY_CYCLE)[number];
+
+export function nextModality(history: string[]): Modality {
+  // Every concept is initially presented explainer-led, so the first
+  // regeneration after a failure moves straight to a simulation.
+  if (history.length === 0) return "sim";
+  const last = history[history.length - 1];
+  const idx = MODALITY_CYCLE.indexOf(last as Modality);
+  return MODALITY_CYCLE[(idx + 1) % MODALITY_CYCLE.length] ?? "sim";
+}
+
+/** The visible one-line reason (§13.7) shown when a concept regenerates. */
+export function adaptReason(modality: Modality, missed: boolean): string {
+  const as: Record<Modality, string> = {
+    explainer: "a worked explanation",
+    sim: "a hands-on simulation",
+    flashcards: "flashcards",
+    quiz: "a quick quiz",
+  };
+  return missed
+    ? `You missed a question, so here it is again as ${as[modality]}.`
+    : `You said this didn't land, so here it is as ${as[modality]}.`;
+}

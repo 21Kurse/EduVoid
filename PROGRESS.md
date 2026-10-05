@@ -94,3 +94,10 @@ One entry per completed task, newest at the bottom. Format: task id, what change
 - SSE: new `hero` event; hero generation runs concurrently with concept generation and never crashes the run (any failure → feed line only). Forced-failure tests: upstream 500 → `ok:false` (never throws); schema-valid but unsafe code → rejected with "forbidden construct".
 - Fixed a generate ↔ hero-sim circular import (SIM_TEMPLATES moved to `lib/sim-templates.ts`).
 - Live probe: PASS (5/5 concepts, hero event present, 39/40 verified). 84/84 tests, check exit 0.
+
+## T11 — Adaptive loop (2026-10-05)
+- **Deterministic mastery rules** (`lib/mastery.ts`, §13.12 — no BKT): quiz correct +0.4 / wrong −0.3 (first miss on an unseen concept starts at 0.5 → 0.2 struggling), "I don't get this" ×0.4 collapse, clamped [0,1]; `modalityHistory` bounded to the last 6 entries. Level thresholds: unseen / struggling <0.5 / learning <0.8 / mastered.
+- **Modality cycle** explainer → sim → flashcards → quiz → explainer; `nextModality` picks the successor of the last used (empty history → sim, since every concept is initially explainer-led).
+- **Visible adaptation (§13.7):** regeneration is a real modality change, not a re-roll — `MODALITY_HINT` in `lib/generate.ts` steers the generator per modality, `/api/generate-concept` accepts a validated `modality` hint, and the concept panel shows a one-line reason banner ("You missed a question, so here it is again as a hands-on simulation.") while the new content streams in. Failed regeneration keeps the original content and amends the banner (no silent path, §12).
+- **Triggers:** first quiz miss on a concept auto-regenerates once (guard: empty modalityHistory); "I don't get this" button always regenerates. Both apply mastery events through `lib/use-adaptive.ts` → `updateLearningState` (localStorage, survives reloads); mindmap colors update live from the same store.
+- **Tests:** 7 mastery-rule tests incl. the scripted §6 scenario (miss → sim reason line → recover to mastered) + 2 generation tests (hint coverage for every modality; hint actually sent in the LLM request). 93/93 tests across 14 files, `npm run check` exit 0.

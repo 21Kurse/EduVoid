@@ -5,6 +5,7 @@
  * EventSource cannot POST). Parses `data: {...}` frames into PipelineEvents.
  */
 import type { PipelineEvent } from "./pipeline-events";
+import type { Concept } from "./spec";
 
 export async function runLiveGeneration(
   topic: string,
@@ -53,15 +54,16 @@ export async function runLiveGeneration(
 export async function retryConcept(
   topic: string,
   concept: { id: string; title: string; summary: string },
-): Promise<{ ok: boolean; components?: PipelineEvent extends never ? never : import("./spec").Concept["components"]; detail?: string }> {
+  modality?: string,
+): Promise<{ ok: boolean; components?: Concept["components"]; detail?: string }> {
   const res = await fetch("/api/generate-concept", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ topic, concept }),
+    body: JSON.stringify({ topic, concept, modality }),
   });
   const j = (await res.json().catch(() => ({}))) as {
     ok?: boolean;
-    concept?: { components: import("./spec").Concept["components"] };
+    concept?: { components: Concept["components"] };
     detail?: string;
   };
   return { ok: Boolean(j.ok), components: j.concept?.components, detail: j.detail };

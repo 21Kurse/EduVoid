@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { generateConcept } from "../lib/generate";
+import { generateConcept, MODALITY_HINT } from "../lib/generate";
+import { MODALITY_CYCLE } from "../lib/mastery";
 import type { SourceResult } from "../lib/source";
 
 const ENV_KEYS = ["LLM_MODEL_DEFAULT", "LLM_BASE_URL", "LLM_API_KEY"] as const;
@@ -118,5 +119,23 @@ describe("generateConcept", () => {
       if (r.ok) {
         expect(r.concept.components.some((c) => c.type === "sim")).toBe(false);
       }
+    }));
+
+  it("has an adaptation hint for every modality in the cycle (T11)", () => {
+    for (const m of MODALITY_CYCLE) expect(MODALITY_HINT[m]).toMatch(/\S/);
+  });
+
+  it("sends the adaptation hint to the model when regenerating in a modality", () =>
+    withLlmEnv(async () => {
+      const fetchMock = vi.fn().mockResolvedValue(okResponse(GOOD_GEN));
+      vi.stubGlobal("fetch", fetchMock);
+      const r = await generateConcept("t", CONCEPT, SOURCE, { modality: "sim" });
+      expect(r.ok).toBe(true);
+      const body = JSON.parse(String(fetchMock.mock.calls[0][1].body)) as {
+        messages: { content: string }[];
+      };
+      expect(body.messages.map((m) => m.content).join("\n")).toContain(
+        'Adaptation mode "simulation"',
+      );
     }));
 });

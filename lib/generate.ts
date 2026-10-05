@@ -42,6 +42,19 @@ const genSchema = z.object({
 const GEN_SYSTEM =
   'You write study content for ONE concept. Output ONLY JSON of shape {"explainer":string,"quiz":[{"prompt":string,"options":[string],"answer":number,"explanation":string}],"flashcards":[{"front":string,"back":string}],"sim":optional({"template":"two-state-prob"|"double-slit","values":{string:number},"predictPrompt":string})}. Ground every statement in the cited claims given to you (paraphrase; quotes under 15 words). Use $...$ for inline math. 2 quiz questions, 1-2 flashcards. If a concrete numeric simulation of this concept fits one of the listed templates, include "sim" with 2-4 numeric values (two-state-prob: p in 0..1 and n shots; double-slit: slit separation d and wavelength lambda) and a prediction question; otherwise omit it.';
 
+/**
+ * T11 (§13.7): regeneration must be a genuinely different modality, not a
+ * re-roll of the same explainer. One hint per modality in MODALITY_CYCLE.
+ */
+export const MODALITY_HINT: Record<string, string> = {
+  explainer:
+    'Adaptation mode "worked explanation": write the explainer as a step-by-step worked walkthrough of one concrete example, carried through to its result with numbers.',
+  sim: 'Adaptation mode "simulation": lead with the interactive sim — include a "sim" component choosing whichever listed template fits this concept best, and keep the explainer to 2-3 sentences of setup. If no template fits, use a concrete numeric worked example instead.',
+  flashcards:
+    'Adaptation mode "flashcards": include 3-4 flashcards covering the core ideas and keep the explainer to 2-3 sentences.',
+  quiz: 'Adaptation mode "practice quiz": give 3 quiz questions of increasing difficulty and keep the explainer to 1-2 sentences.',
+};
+
 export type GeneratedConcept =
   | { ok: true; concept: Concept; latencyMs: number }
   | { ok: false; detail: string; latencyMs: number };
@@ -66,13 +79,17 @@ export async function generateConcept(
   topic: string,
   concept: { id: string; title: string; summary: string },
   source: SourceResult,
-  opts: { timeoutMs?: number } = {},
+  opts: { timeoutMs?: number; modality?: string } = {},
 ): Promise<GeneratedConcept> {
   const t0 = Date.now();
+  const hint = opts.modality ? MODALITY_HINT[opts.modality] : undefined;
+  const content = hint
+    ? `${claimsForConcept(topic, concept, source)}\n\nADAPTATION (regenerating for a learner who missed this concept): ${hint}`
+    : claimsForConcept(topic, concept, source);
   const r = await complete({
     role: "generator",
     system: GEN_SYSTEM,
-    messages: [{ role: "user", content: claimsForConcept(topic, concept, source) }],
+    messages: [{ role: "user", content }],
     schema: genSchema,
     temperature: 0.4,
     maxTokens: 2000,
