@@ -2,6 +2,13 @@
 
 One entry per completed task, newest at the bottom. Format: task id, what changed, how verified, owner notes.
 
+## 2026-10-04 — G1 cleared (keys + model spike)
+
+- **What changed:** `.env.local` configured from owner-provided keys (NIM + Tavily; values never leave the file) with role routing set to the spike winner; `lib/llm.ts` split into `lib/types.ts` / `lib/transport.ts` / `lib/extract.ts` (all < 250 lines); transport gained per-attempt timeout, bounded 429/5xx exponential backoff, `mapWithConcurrency`, `reasoning_content` handling; `scripts/spike.ts` rewritten for per-candidate/per-role probing with metrics (validity, verifier catches, median/max latency, tokens, rate-limit counts); spike datasets moved to `lib/spike-data.ts`.
+- **Verified (numbers):** NIM /v1/models → 200 (0.09 s); Tavily /search → 200. Spike: super-120b 10/10 JSON + 10/10 verifier @ 5.1 s median (PASS); nano-omni-reasoning 7/10 + 10/10 @ 15.9 s + 2× 503 (FAIL); lightning-30b 9/10 + 9/10 @ 17.8 s (FAIL). Full details in DECISIONS.md. `npm run check` exit 0 (35/35 tests, incl. two new backoff tests).
+- **Gate decision:** both thresholds met (≥9/10 validity, ≥8/10 verifier, 5.1 s median ≪ 15 s skeleton budget) → G1 cleared, `GATE_REACHED.md` deleted, loop continues at T4.
+- **Owner notes:** model routing is `nvidia/nemotron-3-super-120b-a12b` for all roles. Your primary (nano-omni-30b-reasoning) verifies perfectly (10/10) but drops JSON validity to 7/10 and hits 503 capacity limits today — documented as fallback. NIM reports no separate reasoning-token counts for these models.
+
 ## 2026-10-04 — T1: Types and fixture
 
 - **What changed:** `lib/spec.ts` — zod schemas for `CurriculumSpec` (§4) with passage-level citations per §13.4, plus `superRefine` checks: globally unique IDs (sources/passages/concepts/claims/questions), every claim's passage+source refs resolve, quiz answer index in range, edges reference real concepts and are not self-loops. `lib/graph.ts` — Kahn acyclicity/topo-sort + prerequisite helpers. `fixtures/qm-superposition.json` — 5 concepts (states-and-superposition → measurement-and-probabilities / interference-and-the-double-slit → measurement-changes-the-state → superposition-vs-mixture), 5 prerequisite edges, 2 placeholder sources, 13 passages all labeled `fixture` with `about:fixture#…` URLs (no invented titles/URLs). Tests: `tests/spec.schema.test.ts`, `tests/graph.test.ts`, `tests/fixture.json.test.ts` (19 tests total). No new dependencies.

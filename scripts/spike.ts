@@ -1,24 +1,34 @@
 /**
- * G1 model spike (AGENTS.md section 3, amendment 4). Owner-run once keys exist.
+ * G1 model spike (AGENTS.md section 3, amendment 4) — NVIDIA NIM edition.
  *
- *   npm run spike
- *   (reads .env.local; see .env.example for the required vars)
+ *   npm run spike                        # all candidates, all roles
+ *   npm run spike -- --model <id>        # one candidate only
  *
- * Measures, on the configured default model:
- *   (a) JSON validity rate against the REAL CurriculumSpec schema over 10 runs
- *   (b) planted-error verifier pass: 10 factually wrong claims, each judged
- *       against its cited passage only -- how many are caught?
+ * Reads .env.local. For each candidate model and each role (planner,
+ * verifier) it measures, numbers only:
+ *   - JSON validity on the REAL CurriculumSpec schema over 10 runs (after retries)
+ *   - verifier catches out of 10 planted errors (passage-level judging)
+ *   - median/max latency per call, tokens per call (answer vs reasoning)
+ *   - any 429/rate-limit hits
  *
- * Results print to stdout; paste them into DECISIONS.md. No model IDs are
- * invented here: everything comes from env. Exit code 1 with instructions
- * when configuration is missing.
+ * Reasoning models: <think> blocks are stripped before JSON parsing, a
+ * reasoning_effort/thinking parameter is attempted (removed automatically
+ * if the API rejects it), and reasoning vs answer tokens are logged.
+ * Never prints key values; exit 1 with setup help when unconfigured.
  */
 
 import fs from "node:fs";
 import path from "node:path";
-import { z } from "zod";
-import { complete, modelForRole, type LlmMessage } from "../lib/llm.ts";
-import { curriculumSpecSchema } from "../lib/spec.ts";
+import { complete } from "../lib/llm.ts";
+import {
+  PLANTED_ERRORS,
+  SPEC_SYSTEM,
+  VERIFY_SYSTEM,
+  specProbeSchema,
+  specUserPrompt,
+  verdictSchema,
+  verifyMessages,
+} from "../lib/spike-data.ts";
 
 function loadEnvLocal(): void {
   const file = path.join(process.cwd(), ".env.local");
@@ -31,192 +41,179 @@ function loadEnvLocal(): void {
   }
 }
 
+/** Candidates — every ID taken verbatim from GET /v1/models (2026-10-04).
+ *  Probe-verified as served for this account: nano-omni 200, lightning 200,
+ *  muse-glimmer 200, super-120b 200. (ultra-253b/deepseek-flash excluded:
+ *  404-not-provisioned / indefinite hang — see BLOCKERS.md.) */
+const CANDIDATES = {
+  reasoning: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+  fast: "nvidia/nemotron-3.5-lightning-30b-a3b",
+  strong: "nvidia/nemotron-3-super-120b-a12b",
+} as const;
+
 const RUNS = 10;
+const TOPICS = ["bayes theorem", "fourier transform", "photosynthesis", "supply and demand", "plate tectonics"];
 
-// ---------------------------------------------------------------------------
-// (a) CurriculumSpec generation probe
-// ---------------------------------------------------------------------------
+const THINK_OFF = { chat_template_kwargs: { thinking: false } };
+const REASONING_EFFORT_LOW = { reasoning_effort: "low" };
 
-const SPEC_SYSTEM =
-  "You produce tiny curriculum specs as JSON. Output ONLY JSON, no prose, no markdown fences. Keep it minimal: exactly 2 concepts, 1 edge, 1 source with 2 passages, 1 claim per concept citing existing passage IDs, and one explainer component per concept.";
-
-function specUserPrompt(topic: string): string {
-  return [
-    'Topic: "' + topic + '". Produce this exact JSON shape:',
-    "{",
-    '  "topic": string,',
-    '  "level": "beginner" | "intermediate" | "advanced",',
-    '  "concepts": [ { "id": string, "title": string, "summary": string, "claims": [ { "id": string, "text": string, "passageIds": string[], "sourceIds": string[], "status": "supported" } ], "components": [ { "type": "explainer", "markdown": string } ] } ],',
-    '  "edges": [ { "from": conceptId, "to": conceptId } ],',
-    '  "sources": [ { "id": string, "title": string, "url": string, "authority": "explainer", "passages": [ { "id": string, "label": string, "text": string } ] } ]',
-    "}",
-    "All IDs lowercase-kebab-case and globally unique. Every claim's passageIds must reference passages inside sources, and its sourceIds must reference that source.",
-  ].join("\n");
+function median(xs: number[]): number {
+  if (xs.length === 0) return 0;
+  const s = [...xs].sort((a, b) => a - b);
+  const mid = Math.floor(s.length / 2);
+  return s.length % 2 ? s[mid] : Math.round((s[mid - 1] + s[mid]) / 2);
 }
 
-const specProbeSchema = z.object({ spec: curriculumSpecSchema });
+type ProbeResult = {
+  label: string;
+  jsonValid: number;
+  retriesUsed: number;
+  latencyMedianMs: number;
+  latencyMaxMs: number;
+  tokensMedian: number;
+  reasoningTokensMedian: number;
+  rateLimited: number;
+  verifierCaught: number | null;
+  verifierLatencyMs: number | null;
+  errors: string[];
+};
 
-// ---------------------------------------------------------------------------
-// (b) planted-error verifier probe
-// ---------------------------------------------------------------------------
-
-const VERIFIER_PASSAGES: { id: string; text: string }[] = [
-  { id: "vp-1", text: "Water boils at 100 degrees Celsius at standard atmospheric pressure." },
-  { id: "vp-2", text: "The speed of light in vacuum is about 299,792 kilometers per second." },
-  { id: "vp-3", text: "Humans have 23 pairs of chromosomes, for 46 in total." },
-  { id: "vp-4", text: "The chemical formula of table salt is NaCl." },
-  { id: "vp-5", text: "Sound travels faster in water than in air." },
-  { id: "vp-6", text: "The Earth orbits the Sun once approximately every 365.25 days." },
-  { id: "vp-7", text: "DNA carries genetic information in living cells." },
-  { id: "vp-8", text: "The freezing point of water at standard pressure is 0 degrees Celsius." },
-  { id: "vp-9", text: "Iron rusts through a chemical reaction with oxygen." },
-  { id: "vp-10", text: "A year on Mars is longer than a year on Earth." },
-  { id: "vp-11", text: "Helium is the second lightest element in the periodic table." },
-  { id: "vp-12", text: "Photosynthesis in plants consumes carbon dioxide and produces oxygen." },
-];
-
-const PLANTED_ERRORS: { id: string; text: string; passageId: string }[] = [
-  { id: "e1", text: "Water boils at 50 degrees Celsius at standard atmospheric pressure.", passageId: "vp-1" },
-  { id: "e2", text: "The speed of light in vacuum is about 150,000 kilometers per second.", passageId: "vp-2" },
-  { id: "e3", text: "Humans have 12 pairs of chromosomes, for 24 in total.", passageId: "vp-3" },
-  { id: "e4", text: "The chemical formula of table salt is KCl.", passageId: "vp-4" },
-  { id: "e5", text: "Sound travels slower in water than in air.", passageId: "vp-5" },
-  { id: "e6", text: "The Earth orbits the Sun once approximately every 100 days.", passageId: "vp-6" },
-  { id: "e7", text: "Proteins, not DNA, carry genetic information in living cells.", passageId: "vp-7" },
-  { id: "e8", text: "The freezing point of water at standard pressure is 20 degrees Celsius.", passageId: "vp-8" },
-  { id: "e9", text: "Iron rusts through a chemical reaction with nitrogen.", passageId: "vp-9" },
-  { id: "e10", text: "A year on Mars is shorter than a year on Earth.", passageId: "vp-10" },
-];
-
-const verdictSchema = z.object({
-  verdicts: z
-    .array(
-      z.object({
-        id: z.string(),
-        supported: z.enum(["supported", "unsupported", "contradicted"]),
-      }),
-    )
-    .min(1),
-});
-
-const VERIFY_SYSTEM =
-  'You are a strict fact verifier. You get passages and claims. For each claim, judge ONLY against the single passage it cites: is the claim supported by that passage, unsupported, or contradicted? Output ONLY JSON of shape {"verdicts":[{"id":string,"supported":"supported"|"unsupported"|"contradicted"}]}.';
-
-function verifyMessages(): LlmMessage[] {
-  const passageBlock = VERIFIER_PASSAGES.map((p) => "[" + p.id + "] " + p.text).join("\n");
-  const claimBlock = PLANTED_ERRORS.map(
-    (e) =>
-      '{ "id": "' + e.id + '", "text": ' + JSON.stringify(e.text) + ', "citedPassage": "' + e.passageId + '" }',
-  ).join(",\n");
-  return [
-    {
-      role: "user",
-      content:
-        "Passages:\n" + passageBlock + "\n\nClaims:\n[" + claimBlock + "]\n\nJudge each claim against its citedPassage only.",
-    },
-  ];
+function tokenSummary(usage: { completionTokens?: number; reasoningTokens?: number } | undefined): {
+  total: number;
+  reasoning: number;
+} {
+  return {
+    total: usage?.completionTokens ?? 0,
+    reasoning: usage?.reasoningTokens ?? 0,
+  };
 }
 
-// ---------------------------------------------------------------------------
-// main
-// ---------------------------------------------------------------------------
+async function probeModel(label: string, model: string, role: "planner" | "verifier"): Promise<ProbeResult> {
+  const result: ProbeResult = {
+    label,
+    jsonValid: 0,
+    retriesUsed: 0,
+    latencyMedianMs: 0,
+    latencyMaxMs: 0,
+    tokensMedian: 0,
+    reasoningTokensMedian: 0,
+    rateLimited: 0,
+    verifierCaught: null,
+    verifierLatencyMs: null,
+    errors: [],
+  };
+  const latencies: number[] = [];
+  const tokens: number[] = [];
+  const reasoningTokens: number[] = [];
 
-async function main(): Promise<number> {
-  loadEnvLocal();
-  const model = modelForRole("planner");
-  const hasTransport = Boolean(process.env.LLM_BASE_URL && process.env.LLM_API_KEY);
-
-  console.log("== EduVoid G1 model spike ==");
-  console.log("planner model: " + (model ?? "(unset)"));
-  console.log("transport: " + (hasTransport ? String(process.env.LLM_BASE_URL) : "(unset)"));
-
-  if (!model || !hasTransport) {
-    console.error(
-      [
-        "",
-        "Missing configuration. Add to .env.local (see .env.example):",
-        "  LLM_BASE_URL=https://<provider-endpoint>/v1",
-        "  LLM_API_KEY=<key>",
-        "  LLM_MODEL_DEFAULT=<exact model id the owner supplies>",
-        "  (optionally LLM_MODEL_PLANNER / LLM_MODEL_VERIFIER overrides)",
-        "",
-        "Then re-run: npm run spike",
-      ].join("\n"),
-    );
-    return 1;
-  }
-
-  // -- (a) JSON validity rate over 10 runs ----------------------------------
-  console.log("\n(a) CurriculumSpec JSON validity over " + RUNS + " runs (schema: curriculumSpecSchema)...");
-  let valid = 0;
-  let retriesUsed = 0;
-  const t0 = Date.now();
-  const topics = ["bayes theorem", "fourier transform", "photosynthesis", "supply and demand", "plate tectonics"];
+  // Probe (a): CurriculumSpec JSON validity, sequential to be gentle on limits.
   for (let i = 1; i <= RUNS; i++) {
-    const topic = topics[i % topics.length];
-    const result = await complete({
-      role: "planner",
+    const topic = TOPICS[i % TOPICS.length];
+    const r = await complete({
+      role,
+      modelOverride: model,
       system: SPEC_SYSTEM,
       messages: [{ role: "user", content: specUserPrompt(topic) }],
       schema: specProbeSchema,
       temperature: 0.7,
-      maxTokens: 1200,
+      maxTokens: 1500,
+      bodyExtras: { ...THINK_OFF, ...REASONING_EFFORT_LOW },
+      rateLimit: { baseMs: 2000, maxRetries: 4 },
+      timeoutMs: 60_000,
     });
-    if (result.ok) {
-      valid += 1;
-      retriesUsed += result.attempts - 1;
-      console.log("  run " + i + ": valid (attempts=" + result.attempts + ", model=" + result.model + ")");
+    if (r.ok) {
+      result.jsonValid += 1;
+      result.retriesUsed += r.attempts - 1;
+      latencies.push(r.latencyMs);
+      const t = tokenSummary(r.usage);
+      tokens.push(t.total);
+      reasoningTokens.push(t.reasoning);
     } else {
-      console.log("  run " + i + ": INVALID (" + result.reason + ": " + result.detail.slice(0, 140) + ")");
+      if (r.status === 429) result.rateLimited += 1;
+      result.errors.push(`run ${i}: ${r.reason}${r.status ? ` HTTP ${r.status}` : ""}: ${r.detail.slice(0, 120)}`);
     }
   }
-  const specMs = Date.now() - t0;
-  console.log(
-    "=> JSON validity: " +
-      valid +
-      "/" +
-      RUNS +
-      " (" +
-      Math.round((valid / RUNS) * 100) +
-      "%), total " +
-      specMs +
-      " ms, avg " +
-      Math.round(specMs / RUNS) +
-      " ms/run, retries used: " +
-      retriesUsed,
-  );
 
-  // -- (b) planted-error verifier pass --------------------------------------
-  console.log("\n(b) Planted-error verifier test (10 errors, judged passage-by-passage)...");
-  const verify = await complete({
+  // Probe (b): planted-error verifier pass.
+  const v = await complete({
     role: "verifier",
+    modelOverride: model,
     system: VERIFY_SYSTEM,
     messages: verifyMessages(),
     schema: verdictSchema,
     temperature: 0,
-    maxTokens: 800,
+    maxTokens: 1200,
+    bodyExtras: { ...THINK_OFF, ...REASONING_EFFORT_LOW },
+    rateLimit: { baseMs: 2000, maxRetries: 4 },
+    timeoutMs: 60_000,
   });
-  let caught = 0;
-  if (!verify.ok) {
-    console.log("=> verifier call FAILED (" + verify.reason + ": " + verify.detail.slice(0, 200) + ")");
-    console.log("=> caught: 0/10 (verifier unusable in this state)");
+  if (v.ok) {
+    const verdicts = new Map(v.data.verdicts.map((x) => [x.id, x.supported]));
+    result.verifierCaught = PLANTED_ERRORS.filter((e) => {
+      const verdict = verdicts.get(e.id);
+      return verdict === "unsupported" || verdict === "contradicted";
+    }).length;
+    result.verifierLatencyMs = v.latencyMs;
+    const t = tokenSummary(v.usage);
+    tokens.push(t.total);
+    reasoningTokens.push(t.reasoning);
   } else {
-    const verdicts = new Map(verify.data.verdicts.map((v) => [v.id, v.supported]));
-    for (const e of PLANTED_ERRORS) {
-      const v = verdicts.get(e.id);
-      const isCaught = v === "unsupported" || v === "contradicted";
-      if (isCaught) caught += 1;
-      console.log("  " + e.id + ": " + (v ?? "(missing)") + " -- " + (isCaught ? "caught" : "MISSED"));
-    }
-    console.log("=> verifier caught " + caught + "/10 planted errors (threshold: >=8, amendment 4)");
+    if (v.status === 429) result.rateLimited += 1;
+    result.errors.push(`verifier: ${v.reason}${v.status ? ` HTTP ${v.status}` : ""}: ${v.detail.slice(0, 120)}`);
   }
 
-  console.log("\nPaste these results into DECISIONS.md under 'Model spike (G1)'.");
-  if (caught < 8) {
-    console.log("Recommendation: route verifier (and planner) to a stronger model (amendment 4).");
-  } else {
-    console.log("Recommendation: flash model OK for verifier on this probe.");
+  result.latencyMedianMs = median(latencies);
+  result.latencyMaxMs = latencies.length ? Math.max(...latencies) : 0;
+  result.tokensMedian = median(tokens);
+  result.reasoningTokensMedian = median(reasoningTokens);
+  return result;
+}
+
+async function main(): Promise<number> {
+  loadEnvLocal();
+  const args = process.argv.slice(2);
+  const onlyIdx = args.indexOf("--model");
+  const only = onlyIdx !== -1 ? args[onlyIdx + 1] : undefined;
+
+  const hasTransport = Boolean(process.env.LLM_BASE_URL && process.env.LLM_API_KEY);
+  console.log("== EduVoid G1 model spike (NVIDIA NIM) ==");
+  console.log("transport: " + (hasTransport ? String(process.env.LLM_BASE_URL) : "(unset)"));
+  if (!hasTransport) {
+    console.error("Missing LLM_BASE_URL / LLM_API_KEY in .env.local (see .env.example).");
+    return 1;
   }
+
+  const entries = Object.entries(CANDIDATES).filter(([k]) => !only || k === only || CANDIDATES[k as keyof typeof CANDIDATES] === only);
+  if (entries.length === 0) {
+    console.error("No candidate matches --model " + only);
+    return 1;
+  }
+
+  const all: ProbeResult[] = [];
+  for (const [label, model] of entries) {
+    console.log("\n## " + label + " — " + model);
+    const r = await probeModel(label, model, "planner");
+    all.push(r);
+    console.log(
+      [
+        "json_valid=" + r.jsonValid + "/" + RUNS,
+        "retries=" + r.retriesUsed,
+        "latency_ms median=" + r.latencyMedianMs + " max=" + r.latencyMaxMs,
+        "tokens median=" + r.tokensMedian + " reasoning=" + r.reasoningTokensMedian,
+        "rate_limited=" + r.rateLimited,
+        "verifier_caught=" + (r.verifierCaught ?? "FAIL") + "/10",
+        "verifier_latency_ms=" + (r.verifierLatencyMs ?? "-"),
+      ].join("  "),
+    );
+    for (const e of r.errors) console.log("  ! " + e);
+  }
+
+  console.log("\n== Thresholds: json_valid >= 9/10, verifier >= 8/10, planner median low enough for ~15 s skeleton ==");
+  for (const r of all) {
+    const pass = r.jsonValid >= 9 && (r.verifierCaught ?? 0) >= 8 && r.latencyMedianMs <= 15000;
+    console.log((pass ? "PASS" : "FAIL") + "  " + r.label + " (" + CANDIDATES[r.label as keyof typeof CANDIDATES] + ")");
+  }
+  console.log("\nPaste this block into DECISIONS.md under 'Model spike (G1)'.");
   return 0;
 }
 

@@ -1,137 +1,80 @@
 /**
  * Provider-agnostic LLM access (AGENTS.md §3). All model calls go through
- * complete(): role-based routing, JSON extraction, zod validation, and up to
- * 2 retries with the validation error fed back. No model IDs are invented
- * here — everything comes from env (see .env.example; owner supplies at G1).
- *
- * Failure contract: complete() never throws; it returns a discriminated
- * result so callers can render a visible, non-crashing state (§12).
+ * complete(): role-based routing, JSON extraction, zod validation, schema
+ * retries with the error fed back, bounded 429/5xx backoff, and a transport
+ * timeout. Failure contract: never throws — returns a discriminated result
+ * so callers render a visible, non-crashing state (§12).
  */
 
-import type { z } from "zod";
+import { extractJson } from "./extract";
+import { envTransport, HttpError, modelForRole } from "./transport";
+import type {
+  ChatResponse,
+  CompleteInput,
+  CompleteResult,
+  LlmMessage,
+  TokenUsage,
+} from "./types";
 
-export type Role = "planner" | "generator" | "verifier" | "grader";
-
-export type LlmMessage = { role: "system" | "user" | "assistant"; content: string };
-
-export type CompleteInput<T> = {
-  role: Role;
-  system: string;
-  messages: LlmMessage[];
-  /** When set, the response must be JSON validating against this schema. */
-  schema?: z.ZodType<T>;
-  temperature?: number;
-  maxTokens?: number;
-};
-
-export type CompleteOk<T> = {
-  ok: true;
-  data: T;
-  /** Raw text (JSON string when a schema was given). */
-  raw: string;
-  attempts: number;
-  model: string;
-};
-
-export type CompleteErr = {
-  ok: false;
-  /** Why it failed: transport, no-config, or schema validation after retries. */
-  reason: "no-config" | "transport" | "schema" | "empty";
-  detail: string;
-  attempts: number;
-  model: string | null;
-};
-
-export type CompleteResult<T> = CompleteOk<T> | CompleteErr;
-
-/** Role -> model ID from env. Missing values must surface as no-config, never a guess. */
-export function modelForRole(role: Role): string | null {
-  const specific = process.env[`LLM_MODEL_${role.toUpperCase()}`];
-  if (specific && specific.trim()) return specific.trim();
-  const fallback = process.env.LLM_MODEL_DEFAULT;
-  if (fallback && fallback.trim()) return fallback.trim();
-  return null;
-}
-
-/** Everything except credentials — those are injected by the transport factory. */
-export type ChatRequest = {
-  model: string;
-  system: string;
-  messages: LlmMessage[];
-  temperature?: number;
-  maxTokens?: number;
-};
-
-/** Minimal OpenAI-compatible chat transport (works for most providers, incl. GLM). */
-export type ChatTransport = (req: ChatRequest) => Promise<string>;
-
-export async function openAiCompatibleTransport(
-  req: ChatRequest & { baseUrl: string; apiKey: string },
-): Promise<string> {
-  const res = await fetch(`${req.baseUrl.replace(/\/$/, "")}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${req.apiKey}`,
-    },
-    body: JSON.stringify({
-      model: req.model,
-      temperature: req.temperature ?? 0.2,
-      max_tokens: req.maxTokens,
-      messages: [
-        { role: "system", content: req.system },
-        ...req.messages,
-      ],
-    }),
-  });
-  if (!res.ok) {
-    throw new Error(`LLM HTTP ${res.status}: ${(await res.text()).slice(0, 300)}`);
-  }
-  const json = (await res.json()) as {
-    choices?: { message?: { content?: string } }[];
-  };
-  const text = json.choices?.[0]?.message?.content;
-  if (!text) throw new Error("LLM response had no message content");
-  return text;
-}
-
-function envTransport(): ChatTransport | null {
-  const baseUrl = process.env.LLM_BASE_URL?.trim();
-  const apiKey = process.env.LLM_API_KEY?.trim();
-  if (!baseUrl || !apiKey) return null;
-  // Credentials bound here; call sites pass only ChatRequest.
-  return (req) => openAiCompatibleTransport({ ...req, baseUrl, apiKey });
-}
-
-/** Extract the first JSON object/array from model text (handles prose + fences). */
-export function extractJson(text: string): unknown | null {
-  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-  const candidates = [fenced?.[1], text].filter(
-    (s): s is string => typeof s === "string",
-  );
-  for (const candidate of candidates) {
-    const start = candidate.search(/[[{]/);
-    if (start === -1) continue;
-    const end = Math.max(candidate.lastIndexOf("}"), candidate.lastIndexOf("]"));
-    if (end <= start) continue;
-    try {
-      return JSON.parse(candidate.slice(start, end + 1)) as unknown;
-    } catch {
-      continue;
-    }
-  }
-  return null;
-}
+export { HttpError, modelForRole, openAiCompatibleTransport } from "./transport";
+export { extractJson } from "./extract";
+export type {
+  ChatRequest,
+  ChatResponse,
+  ChatTransport,
+  CompleteErr,
+  CompleteInput,
+  CompleteOk,
+  CompleteResult,
+  LlmMessage,
+  Role,
+  TokenUsage,
+} from "./types";
 
 const MAX_RETRIES = 2; // initial attempt + 2 retries (§3)
 
+/** Backoff base for 429/5xx transport retries (exponential). */
+const RATE_LIMIT_BASE_MS = 1000;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+/**
+ * Bounded-concurrency map (protects against rate limits in parallel runs).
+ * Results match input order.
+ */
+export async function mapWithConcurrency<T, R>(
+  items: T[],
+  limit: number,
+  fn: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let next = 0;
+  const workers = Array.from(
+    { length: Math.max(1, Math.min(limit, items.length)) },
+    async () => {
+      while (true) {
+        const i = next++;
+        if (i >= items.length) return;
+        results[i] = await fn(items[i], i);
+      }
+    },
+  );
+  await Promise.all(workers);
+  return results;
+}
+
 /**
  * One completion. With a schema: request JSON, validate with zod, and on
- * failure retry up to 2 times appending the validation error. Never throws.
+ * failure retry up to 2 times appending the validation error. 429/5xx get
+ * exponential backoff within a separately bounded budget. Never throws.
  */
 export async function complete<T>(input: CompleteInput<T>): Promise<CompleteResult<T>> {
-  const model = modelForRole(input.role);
+  const routed = modelForRole(input.role);
+  const model = input.modelOverride ?? routed;
   const transport = envTransport();
+  const startedAll = Date.now();
   if (!model) {
     return {
       ok: false,
@@ -139,6 +82,7 @@ export async function complete<T>(input: CompleteInput<T>): Promise<CompleteResu
       detail: `No model configured for role "${input.role}" (set LLM_MODEL_DEFAULT or LLM_MODEL_${input.role.toUpperCase()}).`,
       attempts: 0,
       model: null,
+      latencyMs: 0,
     };
   }
   if (!transport) {
@@ -148,16 +92,24 @@ export async function complete<T>(input: CompleteInput<T>): Promise<CompleteResu
       detail: "LLM_BASE_URL / LLM_API_KEY missing; cannot call the model.",
       attempts: 0,
       model,
+      latencyMs: 0,
     };
   }
 
   const messages: LlmMessage[] = [...input.messages];
   let lastIssue = "";
+  let lastUsage: TokenUsage | undefined;
+  // Rate-limit retries are bounded separately from schema retries, or a
+  // persistently-429ing endpoint would loop forever.
+  const rateMax = input.rateLimit?.maxRetries ?? 3;
+  const rateBaseMs = input.rateLimit?.baseMs ?? RATE_LIMIT_BASE_MS;
+  let rateRetries = 0;
 
   for (let attempt = 1; attempt <= 1 + MAX_RETRIES; attempt++) {
-    let raw: string;
+    const t0 = Date.now();
+    let res: ChatResponse;
     try {
-      raw = await transport({
+      res = await transport({
         model,
         system:
           input.schema && attempt === 1
@@ -166,19 +118,45 @@ export async function complete<T>(input: CompleteInput<T>): Promise<CompleteResu
         messages,
         temperature: input.temperature,
         maxTokens: input.maxTokens,
+        bodyExtras: input.bodyExtras,
+        timeoutMs: input.timeoutMs,
       });
     } catch (e) {
+      // Retry only on 429/5xx, with exponential backoff, within a separate
+      // bounded budget so a hard rate limit terminates.
+      const status = e instanceof HttpError ? e.status : undefined;
+      const retryable = status !== undefined && (status === 429 || status >= 500);
+      if (retryable && rateRetries < rateMax) {
+        rateRetries += 1;
+        await sleep(rateBaseMs * 2 ** (rateRetries - 1));
+        attempt -= 1; // rate limiting must not consume a schema-retry slot
+        continue;
+      }
       return {
         ok: false,
         reason: "transport",
         detail: e instanceof Error ? e.message : String(e),
         attempts: attempt,
         model,
+        status,
+        latencyMs: Date.now() - startedAll,
+        usage: lastUsage,
       };
     }
 
+    lastUsage = res.usage;
+    const raw = res.text;
+
     if (!input.schema) {
-      return { ok: true, data: raw as unknown as T, raw, attempts: attempt, model };
+      return {
+        ok: true,
+        data: raw as unknown as T,
+        raw,
+        attempts: attempt,
+        model,
+        latencyMs: Date.now() - t0,
+        usage: res.usage,
+      };
     }
 
     const parsed = extractJson(raw);
@@ -187,7 +165,15 @@ export async function complete<T>(input: CompleteInput<T>): Promise<CompleteResu
     } else {
       const result = input.schema.safeParse(parsed);
       if (result.success) {
-        return { ok: true, data: result.data, raw, attempts: attempt, model };
+        return {
+          ok: true,
+          data: result.data,
+          raw,
+          attempts: attempt,
+          model,
+          latencyMs: Date.now() - t0,
+          usage: res.usage,
+        };
       }
       lastIssue = result.error.issues
         .map((i) => `${i.path.join(".")}: ${i.message}`)
@@ -208,5 +194,7 @@ export async function complete<T>(input: CompleteInput<T>): Promise<CompleteResu
     detail: lastIssue,
     attempts: 1 + MAX_RETRIES,
     model,
+    latencyMs: Date.now() - startedAll,
+    usage: lastUsage,
   };
 }

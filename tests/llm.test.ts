@@ -218,20 +218,49 @@ describe("complete()", () => {
     withEnv(
       { LLM_MODEL_DEFAULT: "m", LLM_BASE_URL: "https://x.example/v1", LLM_API_KEY: "k" },
       async () => {
+        // Fresh Response per call (bodies are single-read); 429 is retryable,
+        // so the bounded rate-limit budget (baseMs=1 keeps the test fast)
+        // must exhaust before the transport error surfaces.
         const fetchMock = vi
           .fn()
-          .mockResolvedValue(new Response("rate limited", { status: 429 }));
+          .mockImplementation(() => Promise.resolve(new Response("rate limited", { status: 429 })));
         vi.stubGlobal("fetch", fetchMock);
         const result = await complete({
           role: "generator",
           system: "s",
           messages: [{ role: "user", content: "g" }],
+          rateLimit: { baseMs: 1, maxRetries: 3 },
         });
         expect(result.ok).toBe(false);
         if (!result.ok) {
           expect(result.reason).toBe("transport");
           expect(result.detail).toMatch(/429/);
         }
+        expect(fetchMock).toHaveBeenCalledTimes(4); // 1 + 3 rate-limit retries
+      },
+    ));
+
+  it("recovers after a 429 with backoff and succeeds", () =>
+    withEnv(
+      { LLM_MODEL_DEFAULT: "m", LLM_BASE_URL: "https://x.example/v1", LLM_API_KEY: "k" },
+      async () => {
+        let calls = 0;
+        const fetchMock = vi.fn().mockImplementation(() => {
+          calls += 1;
+          if (calls === 1) return Promise.resolve(new Response("rate limited", { status: 429 }));
+          return Promise.resolve(llmResponse('{"topic":"qm","count":7}'));
+        });
+        vi.stubGlobal("fetch", fetchMock);
+        const result = await complete({
+          role: "planner",
+          system: "s",
+          messages: [{ role: "user", content: "p" }],
+          schema: toySchema,
+          rateLimit: { baseMs: 1, maxRetries: 3 },
+        });
+        expect(result.ok).toBe(true);
+        if (result.ok) expect(result.data).toEqual({ topic: "qm", count: 7 });
+        expect(fetchMock).toHaveBeenCalledTimes(2);
       },
     ));
 });
