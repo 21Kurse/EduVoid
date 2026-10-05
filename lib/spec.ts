@@ -105,7 +105,8 @@ export const conceptSchema = z.object({
   title: z.string().min(1),
   summary: z.string().min(1),
   claims: z.array(claimSchema),
-  components: z.array(componentSchema).min(1),
+  // Skeletons (T5) arrive with empty components; generation (T6) fills them.
+  components: z.array(componentSchema),
 });
 
 export const edgeSchema = z.object({

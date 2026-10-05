@@ -56,6 +56,12 @@ describe("T1 fixture: qm-superposition.json", () => {
     }
   });
 
+  it("has at least one component per concept (skeleton schema allows 0, fixture does not)", () => {
+    for (const c of fixture.concepts) {
+      expect(c.components.length).toBeGreaterThan(0);
+    }
+  });
+
   it("has prerequisite edges that reference real concepts", () => {
     const ids = new Set(fixture.concepts.map((c) => c.id));
     for (const e of fixture.edges) {
