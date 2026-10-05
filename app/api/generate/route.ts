@@ -1,6 +1,6 @@
 import { runSearchStage, runClaimsStage } from "../../../lib/source.ts";
 import { runPlanStage } from "../../../lib/plan.ts";
-import { generateConcept } from "../../../lib/generate.ts";
+import { generateConcept, generateHeroSim } from "../../../lib/generate.ts";
 import { runVerifyStage } from "../../../lib/verify.ts";
 import { mapWithConcurrency } from "../../../lib/llm.ts";
 import { toSseChunk, type PipelineEvent } from "../../../lib/pipeline-events.ts";
@@ -150,6 +150,24 @@ export async function POST(req: NextRequest) {
         totalMs: 0,
       },
     };
+    // Hero sim (T10): one per run, for the first planned concept; runs
+    // while concepts generate. Any failure simply drops the hero event
+    // detail into the activity feed — never a crash (§3).
+    const heroConcept = plan.spec.concepts[0];
+    const heroPromise = generateHeroSim(topic, heroConcept, composed, { timeoutMs: 60_000 })
+      .then((h) => {
+        emit({
+          type: "hero",
+          conceptId: h.conceptId,
+          ok: h.ok,
+          ...(h.ok ? { code: h.spec.code, fallback: h.spec.fallback } : { detail: h.detail }),
+          atMs: 0,
+        });
+      })
+      .catch((e: unknown) => {
+        console.error(`[route] hero sim failed: ${e instanceof Error ? e.message : String(e)}`);
+      });
+
     await mapWithConcurrency(plan.spec.concepts, CONCURRENCY, async (c) => {
       let g = await generateConcept(topic, c, composed, { timeoutMs: 60_000 });
       if (!g.ok) {
@@ -165,5 +183,6 @@ export async function POST(req: NextRequest) {
         emit({ type: "concept", conceptId: c.id, ok: false, detail: g.detail, latencyMs: g.latencyMs, atMs: 0 });
       }
     });
+    await heroPromise;
   });
 }

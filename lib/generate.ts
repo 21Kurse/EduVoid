@@ -8,8 +8,8 @@ import { complete } from "./llm.ts";
 import { z } from "zod";
 import type { Concept } from "./spec.ts";
 import type { SourceResult } from "./source.ts";
-
-const SIM_TEMPLATES = ["two-state-prob", "double-slit", "slider-curve", "vector-field"] as const;
+import { HERO_MESSAGES_SYSTEM, heroSimSchema, validateHeroCode, type HeroSimSpec } from "./hero-sim.ts";
+import { SIM_TEMPLATES } from "./sim-templates.ts";
 
 // Schema is deliberately permissive: per-item salvage happens in code so a
 // single bad quiz option does not burn a schema retry (and its tokens).
@@ -126,4 +126,40 @@ export async function generateConcept(
     concept: { id: concept.id, title: concept.title, summary: concept.summary, claims: [], components },
     latencyMs,
   };
+}
+
+/**
+ * One hero sim per run (T10): LLM-written canvas/JS, statically validated
+ * here; the client re-validates at runtime (ready timeout + error trap)
+ * and falls back to the paired template sim on any failure.
+ */
+export async function generateHeroSim(
+  topic: string,
+  concept: Concept,
+  source: SourceResult,
+  opts: { timeoutMs?: number; rateLimit?: { baseMs?: number; maxRetries?: number } } = {},
+): Promise<{ ok: true; conceptId: string; spec: HeroSimSpec } | { ok: false; conceptId: string; detail: string }> {
+  const claimBlock = source.claims
+    .filter((c) => c.status === "supported")
+    .slice(0, 8)
+    .map((c) => `- ${c.text}`)
+    .join("\n");
+  const r = await complete({
+    role: "generator",
+    system: HERO_MESSAGES_SYSTEM,
+    messages: [
+      {
+        role: "user",
+        content: `Topic: ${topic}\nConcept: ${concept.title} — ${concept.summary}\nVerified claims to illustrate:\n${claimBlock}`,
+      },
+    ],
+    schema: heroSimSchema,
+    maxTokens: 1400,
+    timeoutMs: opts.timeoutMs,
+    rateLimit: opts.rateLimit,
+  });
+  if (!r.ok) return { ok: false, conceptId: concept.id, detail: r.detail };
+  const v = validateHeroCode(r.data.code);
+  if (!v.ok) return { ok: false, conceptId: concept.id, detail: `hero code rejected: ${v.reason}` };
+  return { ok: true, conceptId: concept.id, spec: r.data };
 }

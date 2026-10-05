@@ -13,6 +13,7 @@ import type { Claim, Component, CurriculumSpec } from "@/lib/spec";
 import type { LearningState } from "@/lib/store";
 import { Quiz, Flashcards, UnknownComponent } from "./widgets";
 import { Sim } from "./sims";
+import { HeroSim } from "./hero-sim";
 
 export function VerifyBadge({
   supported,
@@ -78,6 +79,7 @@ export function ConceptPanel({
   learning,
   conceptStatus = {},
   verify = null,
+  hero = null,
   onAnswered,
   onRetry,
 }: {
@@ -85,6 +87,7 @@ export function ConceptPanel({
   learning: LearningState;
   conceptStatus?: Record<string, { ok: boolean; detail?: string }>;
   verify?: { supported: number; total: number; sources: number } | null;
+  hero?: { conceptId: string; code: string; fallback: { template: string; values: Record<string, number | string | boolean>; predictPrompt: string } } | null;
   onAnswered: (conceptId: string, correct: boolean) => void;
   onRetry?: (concept: { id: string; title: string; summary: string }) => void;
 }) {
@@ -112,6 +115,8 @@ export function ConceptPanel({
                 <VerifyBadge supported={verify.supported} total={verify.total} sources={verify.sources} />
               </div>
             )}
+
+            {hero && hero.conceptId === concept.id && <HeroSim code={hero.code} fallback={hero.fallback} />}
 
             <ClaimChips claims={concept.claims} />
 

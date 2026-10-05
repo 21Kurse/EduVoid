@@ -15,6 +15,7 @@ import { Mindmap } from "./mindmap";
 import { ConceptPanel } from "./concept-panel";
 import { ActivityPanel, type ActivityFeed } from "./activity-panel";
 import { ClaimsList } from "./claims-list";
+import type { HeroFallback } from "./hero-sim";
 
 type ConceptStatus = Record<string, { ok: boolean; detail?: string }>;
 
@@ -29,6 +30,7 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
   const [conceptStatus, setConceptStatus] = useState<ConceptStatus>({});
   const [claimsRejected, setClaimsRejected] = useState(0);
   const [verify, setVerify] = useState<{ supported: number; total: number; sources: number } | null>(null);
+  const [hero, setHero] = useState<{ conceptId: string; code: string; fallback: HeroFallback } | null>(null);
   const [done, setDone] = useState(false);
   const { state, selectConcept } = useLearningState();
   const specRef = useRef<CurriculumSpec | null>(null);
@@ -111,6 +113,14 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
               ? `Verifier: ${e.supported}/${e.total} claims supported, ${e.flagged} flagged`
               : `Verifier: ${e.supported}/${e.total} claims supported`,
           );
+          break;
+        case "hero":
+          if (e.ok && e.code && e.fallback) {
+            setHero({ conceptId: e.conceptId, code: e.code, fallback: e.fallback });
+            push(`Generated demo for “${e.conceptId}”`);
+          } else {
+            push(`Generated demo failed (${e.detail ?? "unknown"}) — template fallback available`);
+          }
           break;
         case "error":
           push(`ERROR: ${e.detail}`);
@@ -200,6 +210,7 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
                 learning={state}
                 conceptStatus={conceptStatus}
                 verify={verify}
+                hero={hero}
                 onAnswered={() => undefined}
                 onRetry={onRetry}
               />

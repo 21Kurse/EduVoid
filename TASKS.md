@@ -18,7 +18,7 @@ Ordered checklist for the loop. Tick a box only when its acceptance criteria are
 - [ ] **GATE G2 (owner).** Owner reads the generated demo-topic content for factual correctness and approves or lists fixes.
 - [x] **T8 Cited claims UI.** Click a claim -> passage and source link; "sources disagree" display for contradictions. Accept: works for every claim; links open.
 - [x] **T9 Predict-then-reveal sims.** Hand-built templates: two-state probability and double-slit interference; LLM supplies parameters and the prediction prompt; the sim stays locked until the user commits a prediction. Accept: prediction gating works; prediction vs outcome comparison shown.
-- [ ] **T10 Hero sim.** LLM-generated canvas/JS in `<iframe sandbox="allow-scripts" srcdoc>`, no network, `postMessage` only, render timeout, automatic fallback to a template. Accept: forced-failure test falls back cleanly.
+- [x] **T10 Hero sim.** LLM-generated canvas/JS in `<iframe sandbox="allow-scripts" srcdoc>`, no network, `postMessage` only, render timeout, automatic fallback to a template. Accept: forced-failure test falls back cleanly.
 - [ ] **T11 Adaptive loop.** Deterministic mastery rules; failed concept regenerates in a different modality; visible one-line reason; mindmap colors update; state persists across reloads. Accept: unit tests for the rules plus a scripted scenario.
 - [ ] **T12 Diagnostics.** 2-3 quick questions after topic entry set starting level and skip or unlock prerequisites. Accept: results change the plan input.
 - [ ] **GATE G3 (owner).** Owner runs the full flow on the demo topic and reports problems.

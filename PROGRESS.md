@@ -87,3 +87,10 @@ One entry per completed task, newest at the bottom. Format: task id, what change
 - `lib/sim-math.ts`: pure + seeded (mulberry32) — clamps all LLM params (p∈[0.05,0.95], n∈[10,200], d∈[0.5,5], λ∈[0.25,2]) so bad model output can never break a template. 8 unit tests (determinism, binomial expectation/spread, center peak, outward fringe decay, symmetry, fringe scaling λ/d).
 - "double-slit" added to the template enum + generator allowlist; prompt now offers only the two implemented templates (slider-curve/vector-field stay valid for fixtures, render as labeled placeholders).
 - Live probe: PASS (3/3 concepts, 53/53 verified, skeleton 9.4s, wall 94.8s). 77/77 tests, check exit 0.
+
+## T10 — Hero sim (2026-10-05)
+- One LLM-generated canvas/JS demo per run (`generateHeroSim`, first planned concept), statically validated server-side: exactly one `<canvas>`, no remote scripts, no fetch/XHR/WebSocket/eval/cookie/storage. Generator emits the demo **plus a paired template-sim fallback** in the same call.
+- Client renders it in `<iframe sandbox="allow-scripts" srcDoc>` with a CSP-injected srcdoc (`default-src 'none'`, inline script only), `window.onerror` trap installed **before** user code, and a `ready` ping after two rAFs. State machine: `checking → live` on ready; **any error message, missing ready within 5s, or static rejection → automatic fallback to the template sim** with a visible reason line.
+- SSE: new `hero` event; hero generation runs concurrently with concept generation and never crashes the run (any failure → feed line only). Forced-failure tests: upstream 500 → `ok:false` (never throws); schema-valid but unsafe code → rejected with "forbidden construct".
+- Fixed a generate ↔ hero-sim circular import (SIM_TEMPLATES moved to `lib/sim-templates.ts`).
+- Live probe: PASS (5/5 concepts, hero event present, 39/40 verified). 84/84 tests, check exit 0.

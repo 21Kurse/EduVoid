@@ -46,6 +46,15 @@ export type PipelineEvent =
       atMs: number;
     }
   | { type: "error"; detail: string; atMs: number }
+  | {
+      type: "hero";
+      conceptId: string;
+      ok: boolean;
+      detail?: string;
+      code?: string;
+      fallback?: { template: string; values: Record<string, number | string | boolean>; predictPrompt: string };
+      atMs: number;
+    }
   | { type: "done"; atMs: number };
 
 /** Server-side run state snapshot for the agent-activity panel (§13.10). */
