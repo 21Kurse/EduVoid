@@ -20,6 +20,12 @@ One entry per completed task, newest at the bottom. Format: task id, what change
 - **Verified:** `npm run check` exit 0 (19/19 tests). Production server (`next start` :3100) driven in a real browser: home → typed topic → loading (fixture-labeled) → learning view; **console clean** (one stale 404 from the pre-fix fetch approach was ruled out by clearing logs + fresh navigation); quiz answer locks options and shows explanation; mindmap node click swaps concept; screenshot-verified at 1440×900 (side-by-side) and 390×844 (stacked). Fixture labeled in-banner, in loading, and in explainer footers.
 - **Owner notes:** mastery colors visible but static until T11 wires quiz results into them. Selection persists across reloads via localStorage.
 
+## 2026-10-04 — T3: LLM and search wrappers
+
+- **What changed:** `lib/llm.ts` — role routing (`LLM_MODEL_<ROLE>` > `LLM_MODEL_DEFAULT`, null when unset — never invents an ID), OpenAI-compatible transport (works for GLM-style endpoints), JSON extraction from prose/fences, zod validation with up to 2 retries feeding the validation error back, discriminated result (`no-config | transport | schema`) so callers render visible failure states. `lib/search.ts` — `SearchProvider` interface, Tavily implementation with built-in extraction (no raw scraping, §13.3), in-memory per-query cache, env provider null when unconfigured (no fake fallback). `scripts/spike.ts` + `npm run spike` — owner-runnable G1 probe: (a) JSON validity over 10 runs against the real `curriculumSpecSchema`, (b) 10 planted factual errors judged passage-by-passage with the ≥8/10 threshold printout. `.env.example` updated to match (`LLM_MODEL_DEFAULT` + per-role overrides). `allowImportingTsExtensions` added to tsconfig for the node-run script.
+- **Verified:** `npm run check` exit 0 — 34/34 tests including new suites: role routing precedence, no-config never calls fetch, per-role model in request bodies, first-attempt JSON success, retry-with-feedback (asserts the error text appears in the second request body), schema exhaustion after exactly 3 attempts, transport/HTTP error surfacing, Tavily mapping, cache hits, null-when-unconfigured. `npm run spike` with no env exits 1 with exact setup instructions (verified — this is the intended pre-G1 behavior).
+- **Owner notes:** run `npm run spike` after adding keys to `.env.local`; paste its output into DECISIONS.md. Nothing about the model is hardcoded anywhere — grep `LLM_MODEL` to confirm it only ever reads env.
+
 
 ## 2026-10-04 — T0: Scaffold and repo
 
