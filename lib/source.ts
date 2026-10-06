@@ -127,16 +127,20 @@ export async function runSearchStage(
   const searchRes = await provider.search({ query: topic, maxResults: MAX_SOURCES });
   const searchMs = Date.now() - t0;
   const top: SearchResult[] = searchRes.slice(0, MAX_SOURCES);
-  const sources: SourceRecord[] = top.map((r, i) => {
-    const id = `src-${i + 1}`;
-    return {
-      id,
-      title: r.title,
-      url: r.url,
-      authority: rankAuthority(r.url),
-      passages: slicePassages(id, r.content ?? r.snippet ?? ""),
-    };
-  });
+  const sources: SourceRecord[] = top
+    .map((r, i) => {
+      const id = `src-${i + 1}`;
+      return {
+        id,
+        title: r.title,
+        url: r.url,
+        authority: rankAuthority(r.url),
+        passages: slicePassages(id, r.content ?? r.snippet ?? ""),
+      };
+    })
+    // Sources with no extractable content carry nothing and would fail the
+    // spec's passages.min(1) invariant — drop them at the edge (probe-found).
+    .filter((s) => s.passages.length > 0);
   return { sources, searchMs };
 }
 

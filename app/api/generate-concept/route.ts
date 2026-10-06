@@ -44,12 +44,24 @@ export async function POST(req: NextRequest) {
     source = { ...raw, claims: v.claims };
     setVerifiedSource(topic, source);
   }
-  const g = await generateConcept(
+  let g = await generateConcept(
     topic,
     { id: concept.id, title: concept.title, summary: concept.summary ?? "" },
     source,
     { timeoutMs: 60_000, modality },
   );
+  if (!g.ok) {
+    // One fresh-conversation retry: the error-feedback chain inside
+    // complete() can stay polluted by bad raw output; a clean call often
+    // succeeds (NIM flake resilience, kept from the eager route).
+    console.error(`[route] concept ${concept.id} failed (${g.detail}); retrying once`);
+    g = await generateConcept(
+      topic,
+      { id: concept.id, title: concept.title, summary: concept.summary ?? "" },
+      source,
+      { timeoutMs: 60_000, modality },
+    );
+  }
   if (!g.ok) {
     return Response.json({ ok: false, detail: g.detail }, { status: 502 });
   }

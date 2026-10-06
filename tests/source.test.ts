@@ -185,3 +185,17 @@ describe("runSourceStage", () => {
     }
     }));
 });
+
+describe("runSearchStage (probe-found regression)", () => {
+  it("drops sources with no extractable content (would fail passages.min(1))", async () => {
+    const provider = mockProvider([
+      { title: "Good", url: "https://uni.example/a", content: LONG.slice(0, 1200) },
+      { title: "Empty", url: "https://junk.example/b", content: "" },
+      { title: "Whitespace", url: "https://junk.example/c", content: "   " },
+    ]);
+    const { runSearchStage } = await import("../lib/source");
+    const { sources } = await runSearchStage("t", provider);
+    expect(sources.map((s) => s.title)).toEqual(["Good"]);
+    for (const s of sources) expect(s.passages.length).toBeGreaterThan(0);
+  });
+});
