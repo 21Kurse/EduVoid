@@ -10,6 +10,7 @@ import { runLiveGeneration, retryConcept } from "@/lib/live-client";
 import type { PipelineEvent } from "@/lib/pipeline-events";
 import { curriculumSpecSchema, type Concept, type CurriculumSpec } from "@/lib/spec";
 import type { SourceResult } from "@/lib/source";
+import { mergeConcept } from "@/lib/merge-concept";
 import { useLearningState } from "@/lib/store";
 import { useAdaptive } from "@/lib/use-adaptive";
 import { LessonMap } from "./lesson-map";
@@ -36,21 +37,16 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
   const { state, selectConcept } = useLearningState();
   const specRef = useRef<CurriculumSpec | null>(null);
 
-  /** Patch one concept in the spec (components and/or claims), by id. */
+  /** Patch one concept in the spec (components and/or claims), by id.
+   * mergeConcept changes only the named concept and never leaks an unknown
+   * id into the spec (G3 finding 3). */
   const patchConcept = useCallback(
     (conceptId: string, patch: { components?: Concept["components"]; claims?: Concept["claims"] }) => {
       if (!specRef.current) return;
-      const concepts = specRef.current.concepts.map((c) =>
-        c.id === conceptId
-          ? {
-              ...c,
-              ...(patch.components ? { components: patch.components } : {}),
-              ...(patch.claims ? { claims: patch.claims } : {}),
-            }
-          : c,
-      );
-      specRef.current = { ...specRef.current, concepts };
-      setSpec(specRef.current);
+      const next = mergeConcept(specRef.current, conceptId, patch);
+      if (!next) return;
+      specRef.current = next;
+      setSpec(next);
     },
     [],
   );

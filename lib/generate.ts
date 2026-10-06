@@ -9,6 +9,7 @@ import { z } from "zod";
 import type { Claim, Concept } from "./spec.ts";
 import type { SourceResult } from "./source.ts";
 import { numberClaims, postProcessExplainer } from "./claim-numbers.ts";
+import { MODALITY_HINT, modalityFeedback, usableModality } from "./modality.ts";
 import { HERO_MESSAGES_SYSTEM, heroSimSchema, validateHeroCode, type HeroSimSpec } from "./hero-sim.ts";
 import { SIM_TEMPLATES } from "./sim-templates.ts";
 
@@ -46,18 +47,8 @@ const GEN_SYSTEM =
   'You write study content for ONE concept. Output ONLY JSON of shape {"explainer":string,"grounding":[string],"quiz":[{"prompt":string,"options":[string],"answer":number,"explanation":string}],"flashcards":[{"front":string,"back":string}],"sim":optional({"template":"two-state-prob"|"double-slit","values":{string:number},"predictPrompt":string})}. Ground every statement in the cited claims given to you (paraphrase; quotes under 15 words). Use $...$ for inline math. 2 quiz questions, 1-2 flashcards. If a concrete numeric simulation of this concept fits one of the listed templates, include "sim" with 2-4 numeric values (two-state-prob: p in 0..1 and n shots; double-slit: slit separation d and wavelength lambda) and a prediction question; otherwise omit it. Cite as you write: after each sentence a claim supports, append the marker [[claim-id]] using the exact id from the claim pool. List every id you used in "grounding". NEVER write claim numbers or ids as prose (no "claim 9", no bare ids); the marker is the only citation form.';
 
 /**
- * T11 (§13.7): regeneration must be a genuinely different modality, not a
- * re-roll of the same explainer. One hint per modality in MODALITY_CYCLE.
+ * T11 (§13.7) + G3 F3: modality hints and enforcement live in modality.ts.
  */
-export const MODALITY_HINT: Record<string, string> = {
-  explainer:
-    'Adaptation mode "worked explanation": write the explainer as a step-by-step worked walkthrough of one concrete example, carried through to its result with numbers.',
-  sim: 'Adaptation mode "simulation": lead with the interactive sim — include a "sim" component choosing whichever listed template fits this concept best, and keep the explainer to 2-3 sentences of setup. If no template fits, use a concrete numeric worked example instead.',
-  flashcards:
-    'Adaptation mode "flashcards": include 3-4 flashcards covering the core ideas and keep the explainer to 2-3 sentences.',
-  quiz: 'Adaptation mode "practice quiz": give 3 quiz questions of increasing difficulty and keep the explainer to 1-2 sentences.',
-};
-
 export type GeneratedConcept =
   | { ok: true; concept: Concept; latencyMs: number }
   | { ok: false; detail: string; latencyMs: number };
@@ -83,36 +74,19 @@ function claimsForConcept(topic: string, concept: { id: string; title: string; s
   ].join("\n\n");
 }
 
-export async function generateConcept(
-  topic: string,
+type ParsedGen = z.infer<typeof genSchema>;
+
+/**
+ * Build the typed Concept from a validated generator output: assigns the
+ * grounded claims (G3 F1/F2), post-processes explainer markers, and salvages
+ * quiz/flashcards/sim items per component.
+ */
+function buildConcept(
+  d: ParsedGen,
   concept: { id: string; title: string; summary: string },
   source: SourceResult,
-  opts: { timeoutMs?: number; modality?: string } = {},
-): Promise<GeneratedConcept> {
-  const t0 = Date.now();
-  const hint = opts.modality ? MODALITY_HINT[opts.modality] : undefined;
-  const content = hint
-    ? `${claimsForConcept(topic, concept, source)}\n\nADAPTATION (regenerating for a learner who missed this concept): ${hint}`
-    : claimsForConcept(topic, concept, source);
-  const r = await complete({
-    role: "generator",
-    system: GEN_SYSTEM,
-    messages: [{ role: "user", content }],
-    schema: genSchema,
-    temperature: 0.4,
-    maxTokens: 2000,
-    timeoutMs: opts.timeoutMs ?? 60_000,
-    rateLimit: { baseMs: 1500, maxRetries: 2 },
-  });
-  const latencyMs = Date.now() - t0;
-  if (!r.ok) {
-    return { ok: false, detail: `${r.reason}: ${r.detail.slice(0, 200)}`, latencyMs };
-  }
-  const d = r.data;
-  if (!d.explainer.trim()) {
-    return { ok: false, detail: "generator returned an empty explainer", latencyMs };
-  }
-
+  modality?: string,
+): Concept {
   // Concept -> claim assignment (G3 findings 1+2): the generator names the
   // ids it grounded on; only those (still verified) become this concept's
   // claims, in the order the generator used them. Display numbering and the
@@ -152,7 +126,8 @@ export async function generateConcept(
       })),
     });
   }
-  const cards = d.flashcards.filter((c) => c.front.trim() && c.back.trim()).slice(0, 2);
+  const maxCards = modality === "flashcards" ? 4 : 2;
+  const cards = d.flashcards.filter((c) => c.front.trim() && c.back.trim()).slice(0, maxCards);
   if (cards.length > 0) {
     components.push({ type: "flashcards", cards });
   }
@@ -164,17 +139,55 @@ export async function generateConcept(
       predictPrompt: d.sim.predictPrompt,
     });
   }
-  return {
-    ok: true,
-    concept: {
-      id: concept.id,
-      title: concept.title,
-      summary: concept.summary,
-      claims: conceptClaims,
-      components,
-    },
-    latencyMs,
-  };
+  return { id: concept.id, title: concept.title, summary: concept.summary, claims: conceptClaims, components };
+}
+
+export async function generateConcept(
+  topic: string,
+  concept: { id: string; title: string; summary: string },
+  source: SourceResult,
+  opts: { timeoutMs?: number; modality?: string } = {},
+): Promise<GeneratedConcept> {
+  const t0 = Date.now();
+  const hint = opts.modality ? MODALITY_HINT[opts.modality] : undefined;
+  const content = hint
+    ? `${claimsForConcept(topic, concept, source)}\n\nADAPTATION (regenerating for a learner who missed this concept): ${hint}`
+    : claimsForConcept(topic, concept, source);
+  const call = (c: string) =>
+    complete({
+      role: "generator",
+      system: GEN_SYSTEM,
+      messages: [{ role: "user", content: c }],
+      schema: genSchema,
+      temperature: 0.4,
+      maxTokens: 2000,
+      timeoutMs: opts.timeoutMs ?? 60_000,
+      rateLimit: { baseMs: 1500, maxRetries: 2 },
+    });
+  const latencyMs = () => Date.now() - t0;
+  const fail = (detail: string) => ({ ok: false as const, detail, latencyMs: latencyMs() });
+
+  const r = await call(content);
+  if (!r.ok) return fail(`${r.reason}: ${r.detail.slice(0, 200)}`);
+  if (!r.data.explainer.trim()) return fail("generator returned an empty explainer");
+  let built = buildConcept(r.data, concept, source, opts.modality);
+
+  // G3 F3 enforcement: the requested modality must actually exist, or the
+  // banner would promise something the panel does not show. One stronger
+  // retry, then an honest failure (the client keeps the original content).
+  const modality = opts.modality && opts.modality !== "explainer" ? opts.modality : null;
+  if (modality && !usableModality(built.components, modality)) {
+    console.warn(`[generate] modality '${modality}' missing for ${concept.id}; retrying once`);
+    const r2 = await call(`${content}\n\n${modalityFeedback(modality)}`);
+    if (r2.ok && r2.data.explainer.trim()) {
+      const built2 = buildConcept(r2.data, concept, source, modality);
+      if (usableModality(built2.components, modality)) built = built2;
+    }
+  }
+  if (modality && !usableModality(built.components, modality)) {
+    return fail(`adaptation failed: no usable '${modality}' component in generator output`);
+  }
+  return { ok: true, concept: built, latencyMs: latencyMs() };
 }
 
 /**

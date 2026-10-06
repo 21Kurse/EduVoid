@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { generateConcept, MODALITY_HINT } from "../lib/generate";
+import { generateConcept } from "../lib/generate";
 import { MODALITY_CYCLE } from "../lib/mastery";
+import { MODALITY_HINT } from "../lib/modality";
 import type { SourceResult } from "../lib/source";
 
 const ENV_KEYS = ["LLM_MODEL_DEFAULT", "LLM_BASE_URL", "LLM_API_KEY"] as const;
@@ -163,6 +164,60 @@ describe("generateConcept", () => {
           expect(explainer.markdown).not.toMatch(/claim\s+4/i);
         }
       }
+    }));
+
+  it("fails honestly when the requested modality is missing from output (G3 F3)", () =>
+    withLlmEnv(async () => {
+      // Both attempts lack flashcards -> adaptation must fail with a visible
+      // detail, not return a banner-worthy concept without flashcards.
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockImplementation(() =>
+          Promise.resolve(okResponse({ explainer: "E", quiz: [], flashcards: [] })),
+        ),
+      );
+      const r = await generateConcept("t", CONCEPT, SOURCE, { modality: "flashcards" });
+      expect(r.ok).toBe(false);
+      if (!r.ok) expect(r.detail).toMatch(/no usable 'flashcards'/);
+    }));
+
+  it("retries once with a stronger requirement and then honors the modality (G3 F3)", () =>
+    withLlmEnv(async () => {
+      const responses = [
+        okResponse({ explainer: "E", quiz: [], flashcards: [] }),
+        okResponse({
+          explainer: "E",
+          quiz: [],
+          flashcards: [
+            { front: "f1", back: "b1" },
+            { front: "f2", back: "b2" },
+          ],
+        }),
+      ];
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockImplementation(() => Promise.resolve(responses.shift() ?? responses[0])),
+      );
+      const r = await generateConcept("t", CONCEPT, SOURCE, { modality: "flashcards" });
+      expect(r.ok).toBe(true);
+      if (r.ok) {
+        const fc = r.concept.components.find((c) => c.type === "flashcards");
+        expect(fc?.type).toBe("flashcards");
+        expect(r.concept.components.some((c) => c.type === "sim")).toBe(false);
+      }
+    }));
+
+  it("treats a sim-less regeneration as a failure in sim mode (G3 F3)", () =>
+    withLlmEnv(async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockImplementation(() =>
+          Promise.resolve(okResponse({ explainer: "E", quiz: [], flashcards: [] })),
+        ),
+      );
+      const r = await generateConcept("t", CONCEPT, SOURCE, { modality: "sim" });
+      expect(r.ok).toBe(false);
+      if (!r.ok) expect(r.detail).toMatch(/no usable 'sim'/);
     }));
 
   it("has an adaptation hint for every modality in the cycle (T11)", () => {

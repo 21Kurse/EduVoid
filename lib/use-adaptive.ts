@@ -28,7 +28,11 @@ export function useAdaptive({
 }: {
   topic: string;
   getConcept: (id: string) => ConceptLite | undefined;
-  onRegenerated: (conceptId: string, components: Concept["components"]) => void;
+  onRegenerated: (
+    conceptId: string,
+    components: Concept["components"],
+    claims?: Concept["claims"],
+  ) => void;
   push: (m: string) => void;
 }): {
   onAnswered: (conceptId: string, correct: boolean) => void;
@@ -58,15 +62,17 @@ export function useAdaptive({
       void retryConcept(topic, concept, modality).then((r) => {
         adaptingRef.current.delete(concept.id);
         if (r.ok && r.components) {
-          onRegenerated(concept.id, r.components);
+          onRegenerated(concept.id, r.components, r.claims);
           push(`Adapted “${concept.id}” as ${modality}`);
         } else {
-          // §12: visible, non-crashing failure — keep the original content.
+          // §12 + G3 F3: visible, HONEST failure — replace the promise with
+          // what actually happened and keep the original content shown.
+          const detail = (r.detail ?? "unknown").slice(0, 140);
           setAdaptations((a) => ({
             ...a,
-            [concept.id]: `${reason} (couldn't regenerate — showing the original)`,
+            [concept.id]: `Regeneration as ${modality} failed (${detail}) — showing the original content.`,
           }));
-          push(`Adaptation failed for “${concept.id}” (${r.detail ?? "unknown"})`);
+          push(`Adaptation failed for “${concept.id}” (${detail})`);
         }
       });
     },
