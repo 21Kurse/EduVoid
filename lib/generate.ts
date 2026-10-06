@@ -6,8 +6,9 @@
  */
 import { complete } from "./llm.ts";
 import { z } from "zod";
-import type { Concept } from "./spec.ts";
+import type { Claim, Concept } from "./spec.ts";
 import type { SourceResult } from "./source.ts";
+import { numberClaims, postProcessExplainer } from "./claim-numbers.ts";
 import { HERO_MESSAGES_SYSTEM, heroSimSchema, validateHeroCode, type HeroSimSpec } from "./hero-sim.ts";
 import { SIM_TEMPLATES } from "./sim-templates.ts";
 
@@ -15,6 +16,8 @@ import { SIM_TEMPLATES } from "./sim-templates.ts";
 // single bad quiz option does not burn a schema retry (and its tokens).
 const genSchema = z.object({
   explainer: z.string(),
+  /** Claim ids the explainer/quiz actually used (G3 finding 1: concept -> claim mapping). */
+  grounding: z.array(z.string()).max(12).default([]),
   quiz: z
     .array(
       z.object({
@@ -40,7 +43,7 @@ const genSchema = z.object({
 });
 
 const GEN_SYSTEM =
-  'You write study content for ONE concept. Output ONLY JSON of shape {"explainer":string,"quiz":[{"prompt":string,"options":[string],"answer":number,"explanation":string}],"flashcards":[{"front":string,"back":string}],"sim":optional({"template":"two-state-prob"|"double-slit","values":{string:number},"predictPrompt":string})}. Ground every statement in the cited claims given to you (paraphrase; quotes under 15 words). Use $...$ for inline math. 2 quiz questions, 1-2 flashcards. If a concrete numeric simulation of this concept fits one of the listed templates, include "sim" with 2-4 numeric values (two-state-prob: p in 0..1 and n shots; double-slit: slit separation d and wavelength lambda) and a prediction question; otherwise omit it.';
+  'You write study content for ONE concept. Output ONLY JSON of shape {"explainer":string,"grounding":[string],"quiz":[{"prompt":string,"options":[string],"answer":number,"explanation":string}],"flashcards":[{"front":string,"back":string}],"sim":optional({"template":"two-state-prob"|"double-slit","values":{string:number},"predictPrompt":string})}. Ground every statement in the cited claims given to you (paraphrase; quotes under 15 words). Use $...$ for inline math. 2 quiz questions, 1-2 flashcards. If a concrete numeric simulation of this concept fits one of the listed templates, include "sim" with 2-4 numeric values (two-state-prob: p in 0..1 and n shots; double-slit: slit separation d and wavelength lambda) and a prediction question; otherwise omit it. Cite as you write: after each sentence a claim supports, append the marker [[claim-id]] using the exact id from the claim pool. List every id you used in "grounding". NEVER write claim numbers or ids as prose (no "claim 9", no bare ids); the marker is the only citation form.';
 
 /**
  * T11 (§13.7): regeneration must be a genuinely different modality, not a
@@ -62,7 +65,12 @@ export type GeneratedConcept =
 function claimsForConcept(topic: string, concept: { id: string; title: string; summary: string }, source: SourceResult): string {
   // Flagged claims (T7 verifier) must never ground generation (§4.4).
   const supported = source.claims.filter((c) => c.status === "supported");
-  const own = supported.slice(0, 10).map((c, i) => `${i + 1}. ${c.text} [passages: ${c.passageIds.join(", ")}]`).join("\n");
+  // Bullets with ids, no numbers: the model has nothing to mimic as
+  // "claim 9" prose and can copy exact ids into [[...]] markers (G3 F2).
+  const own = supported
+    .slice(0, 10)
+    .map((c) => `- ${c.text} [id: ${c.id}]`)
+    .join("\n");
   const passages = source.sources
     .flatMap((s) => s.passages.map((p) => `[${p.id}] ${p.text.slice(0, 260)}`))
     .slice(0, 10)
@@ -105,8 +113,26 @@ export async function generateConcept(
     return { ok: false, detail: "generator returned an empty explainer", latencyMs };
   }
 
+  // Concept -> claim assignment (G3 findings 1+2): the generator names the
+  // ids it grounded on; only those (still verified) become this concept's
+  // claims, in the order the generator used them. Display numbering and the
+  // explainer's inline markers both derive from this list.
+  const supportedById = new Map(
+    source.claims.filter((c) => c.status === "supported").map((c) => [c.id, c]),
+  );
+  const conceptClaims: Claim[] = [];
+  for (const id of d.grounding) {
+    const c = supportedById.get(id);
+    if (c && !conceptClaims.some((x) => x.id === c.id)) conceptClaims.push(c);
+    if (conceptClaims.length >= 10) break;
+  }
+  const numbered = postProcessExplainer(
+    d.explainer.slice(0, 4000),
+    numberClaims(conceptClaims),
+  );
+
   const components: Concept["components"] = [
-    { type: "explainer", markdown: d.explainer.slice(0, 4000) },
+    { type: "explainer", markdown: numbered.markdown },
   ];
   const quizItems = d.quiz
     .filter((q) => q.prompt.trim() && q.options.length >= 2 && Number.isInteger(q.answer) && q.answer >= 0 && q.answer < q.options.length && q.explanation.trim())
@@ -140,7 +166,13 @@ export async function generateConcept(
   }
   return {
     ok: true,
-    concept: { id: concept.id, title: concept.title, summary: concept.summary, claims: [], components },
+    concept: {
+      id: concept.id,
+      title: concept.title,
+      summary: concept.summary,
+      claims: conceptClaims,
+      components,
+    },
     latencyMs,
   };
 }

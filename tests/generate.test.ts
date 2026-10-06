@@ -121,6 +121,50 @@ describe("generateConcept", () => {
       }
     }));
 
+  it("assigns grounded claims to the concept and numbers explainer markers (G3 F2)", () =>
+    withLlmEnv(async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue(
+          okResponse({
+            ...GOOD_GEN,
+            explainer: "Probability is the squared amplitude. [[claim-1]] Done.",
+            grounding: ["claim-1", "claim-nonexistent"],
+          }),
+        ),
+      );
+      const r = await generateConcept("t", CONCEPT, SOURCE);
+      expect(r.ok).toBe(true);
+      if (r.ok) {
+        expect(r.concept.claims.map((c) => c.id)).toEqual(["claim-1"]);
+        const explainer = r.concept.components.find((c) => c.type === "explainer");
+        if (explainer?.type === "explainer") {
+          expect(explainer.markdown).toContain("[1](#claim-claim-1)");
+          expect(explainer.markdown).not.toContain("[[");
+        }
+      }
+    }));
+
+  it("strips markers for ungrounded claims and keeps concept.claims empty", () =>
+    withLlmEnv(async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue(
+          okResponse({ ...GOOD_GEN, explainer: "Facts [[claim-1]] hold. claim 4 says so." }),
+        ),
+      );
+      const r = await generateConcept("t", CONCEPT, SOURCE);
+      expect(r.ok).toBe(true);
+      if (r.ok) {
+        expect(r.concept.claims).toEqual([]);
+        const explainer = r.concept.components.find((c) => c.type === "explainer");
+        if (explainer?.type === "explainer") {
+          expect(explainer.markdown).not.toContain("[[");
+          expect(explainer.markdown).not.toMatch(/claim\s+4/i);
+        }
+      }
+    }));
+
   it("has an adaptation hint for every modality in the cycle (T11)", () => {
     for (const m of MODALITY_CYCLE) expect(MODALITY_HINT[m]).toMatch(/\S/);
   });

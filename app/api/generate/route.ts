@@ -178,7 +178,7 @@ export async function POST(req: NextRequest) {
         g = await generateConcept(topic, c, composed, { timeoutMs: 60_000 });
       }
       if (g.ok) {
-        emit({ type: "concept", conceptId: c.id, ok: true, components: g.concept.components, latencyMs: g.latencyMs, atMs: 0 });
+        emit({ type: "concept", conceptId: c.id, ok: true, components: g.concept.components, claims: g.concept.claims, latencyMs: g.latencyMs, atMs: 0 });
       } else {
         emit({ type: "concept", conceptId: c.id, ok: false, detail: g.detail, latencyMs: g.latencyMs, atMs: 0 });
       }

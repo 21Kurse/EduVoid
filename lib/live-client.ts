@@ -55,16 +55,23 @@ export async function retryConcept(
   topic: string,
   concept: { id: string; title: string; summary: string },
   modality?: string,
-): Promise<{ ok: boolean; components?: Concept["components"]; detail?: string }> {
+  signal?: AbortSignal,
+): Promise<{ ok: boolean; components?: Concept["components"]; claims?: Concept["claims"]; detail?: string }> {
   const res = await fetch("/api/generate-concept", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ topic, concept, modality }),
+    signal,
   });
   const j = (await res.json().catch(() => ({}))) as {
     ok?: boolean;
-    concept?: { components: Concept["components"] };
+    concept?: { components: Concept["components"]; claims?: Concept["claims"] };
     detail?: string;
   };
-  return { ok: Boolean(j.ok), components: j.concept?.components, detail: j.detail };
+  return {
+    ok: Boolean(j.ok),
+    components: j.concept?.components,
+    claims: j.concept?.claims,
+    detail: j.detail,
+  };
 }

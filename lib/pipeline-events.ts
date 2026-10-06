@@ -23,6 +23,8 @@ export type PipelineEvent =
       ok: boolean;
       detail?: string;
       components?: CurriculumSpec["concepts"][number]["components"];
+      /** Claims the generator grounded on (G3 finding 1: per-concept claims). */
+      claims?: CurriculumSpec["concepts"][number]["claims"];
       latencyMs: number;
       atMs: number;
     }
