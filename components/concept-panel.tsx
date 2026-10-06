@@ -5,11 +5,11 @@
  * placeholders. Live mode adds per-concept generating/failed states with
  * retry; the verify badge lights up in T7.
  */
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
-import type { Claim, Component, CurriculumSpec } from "@/lib/spec";
+import type { Component, CurriculumSpec } from "@/lib/spec";
 import type { LearningState } from "@/lib/store";
 import { Quiz, Flashcards, UnknownComponent } from "./widgets";
 import { Sim } from "./sims";
@@ -45,29 +45,42 @@ function seedFrom(id: string): number {
   return h >>> 0;
 }
 
-function ClaimChips({ claims }: { claims: Claim[] }) {
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {claims.map((c) => (
-        <span
-          key={c.id}
-          className={`rounded-full px-2 py-0.5 text-[11px] ${
-            c.status === "flagged" ? "bg-red-50 text-red-700" : "bg-violet-50 text-violet-700"
-          }`}
-        >
-          {c.status === "flagged" ? "⚠ flagged" : "✓"} claim · {c.passageIds.length} passage
-          {c.passageIds.length === 1 ? "" : "s"}
-          {c.status === "flagged" && c.flagReason ? ` · ${c.flagReason}` : ""}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function Explainer({ markdown }: { markdown: string }) {
+/**
+ * Explainer with KaTeX and clickable inline citation markers (G3 finding 2):
+ * the post-processor emits `[n](#claim-<id>)` links; they render as
+ * superscript buttons that scroll to + highlight the claim in the panel.
+ */
+function Explainer({ markdown, onCite }: { markdown: string; onCite?: (claimId: string) => void }) {
   return (
     <div className="prose-void max-w-none text-[15px] leading-relaxed text-zinc-700" data-testid="explainer">
-      <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+      <ReactMarkdown
+        remarkPlugins={[remarkMath]}
+        rehypePlugins={[rehypeKatex]}
+        components={{
+          a: ({ href, children }) => {
+            if (href?.startsWith("#claim-")) {
+              const id = decodeURIComponent(href.slice("#claim-".length));
+              return (
+                <sup>
+                  <button
+                    type="button"
+                    data-claim-marker={id}
+                    onClick={() => onCite?.(id)}
+                    className="ml-0.5 rounded bg-violet-50 px-1 text-[11px] font-medium text-violet-700 hover:bg-violet-100"
+                  >
+                    {children}
+                  </button>
+                </sup>
+              );
+            }
+            return (
+              <a href={href} target="_blank" rel="noreferrer">
+                {children}
+              </a>
+            );
+          },
+        }}
+      >
         {markdown}
       </ReactMarkdown>
     </div>
@@ -83,6 +96,8 @@ export function ConceptPanel({
   onAnswered,
   onDontGet,
   adaptation = null,
+  claimsNode = null,
+  onCite,
   onRetry,
 }: {
   spec: CurriculumSpec;
@@ -93,16 +108,16 @@ export function ConceptPanel({
   onAnswered: (conceptId: string, correct: boolean) => void;
   onDontGet?: (conceptId: string) => void;
   adaptation?: string | null;
+  /** Mobile claims section, rendered inline below the explainer (G3 F1). */
+  claimsNode?: ReactNode;
+  onCite?: (claimId: string) => void;
   onRetry?: (concept: { id: string; title: string; summary: string }) => void;
 }) {
   const concept = spec.concepts.find((c) => c.id === learning.selectedConceptId) ?? null;
 
   return (
-    <div
-      className="flex h-full flex-col overflow-y-auto border-l border-border-subtle bg-white"
-      data-testid="concept-panel"
-    >
-      <div className="flex flex-col gap-4 p-6">
+    <div className="flex flex-col gap-4" data-testid="concept-panel">
+      <div className="flex flex-col gap-4">
         {!concept ? (
           <div className="flex flex-1 items-center justify-center py-24 text-center text-[14px] text-zinc-400">
             Select a concept on the map to start.
@@ -144,8 +159,6 @@ export function ConceptPanel({
 
             {hero && hero.conceptId === concept.id && <HeroSim code={hero.code} fallback={hero.fallback} />}
 
-            <ClaimChips claims={concept.claims} />
-
             {concept.components.length === 0 && !conceptStatus[concept.id]?.ok && (
               <div className="rounded-xl border border-border-subtle bg-zinc-50 p-4 text-[13px] text-zinc-500" data-testid="concept-generating">
                 {conceptStatus[concept.id] && !conceptStatus[concept.id].ok ? (
@@ -175,7 +188,12 @@ export function ConceptPanel({
             {concept.components.map((comp: Component, i: number) => {
               switch (comp.type) {
                 case "explainer":
-                  return <Explainer key={i} markdown={comp.markdown} />;
+                  // G3 F1: on mobile the claims section sits right below
+                  // the explainer; on desktop the sticky aside is used.
+                  return [
+                    <Explainer key={i} markdown={comp.markdown} onCite={onCite} />,
+                    ...(claimsNode ? [<div key={`${i}-claims`} className="lg:hidden">{claimsNode}</div>] : []),
+                  ];
                 case "quiz":
                   return <Quiz key={i} questions={comp.questions} conceptId={concept.id} onAnswered={onAnswered} />;
                 case "flashcards":

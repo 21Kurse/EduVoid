@@ -7,6 +7,7 @@
  */
 
 import { useState } from "react";
+import type { ConceptStatus } from "./concept-status";
 
 export type ActivityFeed = {
   stage: string;
@@ -17,6 +18,27 @@ export type ActivityFeed = {
   conceptsDone: number;
   conceptsTotal: number;
 };
+
+/** Build the feed snapshot from live-lesson state (kept here for size). */
+export function buildActivityFeed(
+  stage: string,
+  messages: string[],
+  sources: { id: string; title: string; url: string; authority: string }[],
+  claimsCount: number,
+  claimsRejected: number,
+  conceptStatus: ConceptStatus,
+  conceptsTotal: number,
+): ActivityFeed {
+  return {
+    stage,
+    messages,
+    sources,
+    claimsExtracted: claimsCount,
+    claimsRejected,
+    conceptsDone: Object.values(conceptStatus).filter((s) => s.ok).length,
+    conceptsTotal,
+  };
+}
 
 export function ActivityPanel({ feed }: { feed: ActivityFeed }) {
   const [open, setOpen] = useState(false);

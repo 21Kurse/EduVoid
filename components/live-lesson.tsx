@@ -12,13 +12,12 @@ import { curriculumSpecSchema, type Concept, type CurriculumSpec } from "@/lib/s
 import type { SourceResult } from "@/lib/source";
 import { useLearningState } from "@/lib/store";
 import { useAdaptive } from "@/lib/use-adaptive";
-import { Mindmap } from "./mindmap";
+import { LessonMap } from "./lesson-map";
 import { ConceptPanel } from "./concept-panel";
-import { ActivityPanel, type ActivityFeed } from "./activity-panel";
-import { ClaimsList } from "./claims-list";
+import { ClaimsPanel } from "./claims-panel";
+import { buildActivityFeed, type ActivityFeed } from "./activity-panel";
+import type { ConceptStatus } from "./concept-status";
 import type { HeroFallback } from "./hero-sim";
-
-type ConceptStatus = Record<string, { ok: boolean; detail?: string }>;
 
 export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: string) => void }) {
   const [spec, setSpec] = useState<CurriculumSpec | null>(null);
@@ -33,8 +32,28 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
   const [verify, setVerify] = useState<{ supported: number; total: number; sources: number } | null>(null);
   const [hero, setHero] = useState<{ conceptId: string; code: string; fallback: HeroFallback } | null>(null);
   const [done, setDone] = useState(false);
+  const [highlightClaim, setHighlightClaim] = useState<string | null>(null);
   const { state, selectConcept } = useLearningState();
   const specRef = useRef<CurriculumSpec | null>(null);
+
+  /** Patch one concept in the spec (components and/or claims), by id. */
+  const patchConcept = useCallback(
+    (conceptId: string, patch: { components?: Concept["components"]; claims?: Concept["claims"] }) => {
+      if (!specRef.current) return;
+      const concepts = specRef.current.concepts.map((c) =>
+        c.id === conceptId
+          ? {
+              ...c,
+              ...(patch.components ? { components: patch.components } : {}),
+              ...(patch.claims ? { claims: patch.claims } : {}),
+            }
+          : c,
+      );
+      specRef.current = { ...specRef.current, concepts };
+      setSpec(specRef.current);
+    },
+    [],
+  );
 
   const push = useCallback((m: string) => {
     setMessages((ms) => [...ms.slice(-30), m]);
@@ -77,12 +96,8 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
         }
         case "concept": {
           setConceptStatus((s) => ({ ...s, [e.conceptId]: { ok: e.ok, detail: e.detail } }));
-          if (e.ok && e.components && specRef.current) {
-            const concepts: Concept[] = specRef.current.concepts.map((c) =>
-              c.id === e.conceptId ? { ...c, components: e.components ?? [] } : c,
-            );
-            specRef.current = { ...specRef.current, concepts };
-            setSpec(specRef.current);
+          if (e.ok && e.components) {
+            patchConcept(e.conceptId, { components: e.components, claims: e.claims });
             push(`Generated “${e.conceptId}” (${Math.round(e.latencyMs / 100) / 10}s)`);
           } else if (!e.ok) {
             push(`FAILED “${e.conceptId}”: ${e.detail ?? "unknown"}`);
@@ -133,7 +148,7 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
           break;
       }
     },
-    [topic, push, selectConcept, onFail],
+    [topic, push, selectConcept, onFail, patchConcept],
   );
 
   // Kick off generation exactly once per mounted lesson (run-once effect;
@@ -153,17 +168,13 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
       push(`Retrying “${concept.id}”…`);
       void retryConcept(topic, concept).then((r) => {
         setConceptStatus((s) => ({ ...s, [concept.id]: { ok: r.ok, detail: r.detail } }));
-        if (r.ok && r.components && specRef.current) {
-          const concepts = specRef.current.concepts.map((c) =>
-            c.id === concept.id ? { ...c, components: r.components ?? [] } : c,
-          );
-          specRef.current = { ...specRef.current, concepts };
-          setSpec(specRef.current);
+        if (r.ok && r.components) {
+          patchConcept(concept.id, { components: r.components, claims: r.claims });
           push(`Retry succeeded for “${concept.id}”`);
         }
       });
     },
-    [topic, push],
+    [topic, push, patchConcept],
   );
 
   // T11 adaptive loop (§6): mastery events → store, failed concepts
@@ -172,28 +183,33 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
     (id: string) => specRef.current?.concepts.find((c) => c.id === id),
     [],
   );
-  const onRegenerated = useCallback((conceptId: string, components: Concept["components"]) => {
-    if (!specRef.current) return;
-    const concepts = specRef.current.concepts.map((c) =>
-      c.id === conceptId ? { ...c, components } : c,
-    );
-    specRef.current = { ...specRef.current, concepts };
-    setSpec(specRef.current);
-  }, []);
+  const onRegenerated = useCallback(
+    (conceptId: string, components: Concept["components"], claims?: Concept["claims"]) => {
+      patchConcept(conceptId, { components, claims });
+    },
+    [patchConcept],
+  );
   const { onAnswered, onDontGet, adaptations } = useAdaptive({ topic, getConcept, onRegenerated, push });
 
   const feed: ActivityFeed = useMemo(
-    () => ({
-      stage,
-      messages,
-      sources,
-      claimsExtracted: claims.length,
-      claimsRejected,
-      conceptsDone: Object.values(conceptStatus).filter((s) => s.ok).length,
-      conceptsTotal: spec?.concepts.length ?? 0,
-    }),
+    () =>
+      buildActivityFeed(stage, messages, sources, claims.length, claimsRejected, conceptStatus, spec?.concepts.length ?? 0),
     [stage, messages, sources, claims, claimsRejected, conceptStatus, spec],
   );
+
+  const selectedConcept = spec?.concepts.find((c) => c.id === state.selectedConceptId) ?? null;
+  const claimsFor = (variant: "panel" | "inline") =>
+    spec && selectedConcept ? (
+      <ClaimsPanel
+        claims={selectedConcept.claims}
+        allClaims={claims}
+        contradictions={contradictions}
+        passages={passages}
+        sources={sources}
+        highlightClaim={highlightClaim}
+        variant={variant}
+      />
+    ) : null;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -204,23 +220,9 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
         </span>
       </div>
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        <div className="relative h-[46vh] border-b border-border-subtle lg:h-auto lg:flex-1 lg:border-b-0">
-          {spec ? (
-            <Mindmap spec={spec} learning={state} onSelect={selectConcept} />
-          ) : (
-            <div className="flex h-full items-center justify-center text-[13px] text-zinc-400">
-              <span className="inline-flex items-center gap-2">
-                <span className="h-3 w-3 animate-spin rounded-full border-2 border-zinc-300 border-t-violet-500" />
-                {stage}…
-              </span>
-            </div>
-          )}
-          <div className="absolute bottom-3 left-3 right-3 lg:right-auto">
-            <ActivityPanel feed={feed} />
-          </div>
-        </div>
-        <div className="min-h-0 flex-1 lg:max-w-[46%]">
-          <div className="flex h-full flex-col gap-3 overflow-y-auto p-4">
+        <LessonMap spec={spec} stage={stage} learning={state} onSelect={selectConcept} feed={feed} />
+        <div className="min-h-0 flex-1 overflow-y-auto lg:max-w-[52%] lg:border-l lg:border-border-subtle lg:bg-white">
+          <div className="flex flex-col gap-3 p-4 lg:grid lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start lg:gap-4 lg:p-6">
             {spec && (
               <ConceptPanel
                 spec={spec}
@@ -233,10 +235,16 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
                 adaptation={
                   state.selectedConceptId ? (adaptations[state.selectedConceptId] ?? null) : null
                 }
+                claimsNode={claimsFor("inline")}
+                onCite={setHighlightClaim}
                 onRetry={onRetry}
               />
             )}
-            <ClaimsList claims={claims} contradictions={contradictions} passages={passages} sources={sources} />
+            <aside className="hidden lg:block" data-testid="claims-aside">
+              <div className="sticky top-0 max-h-[calc(100vh-5rem)] overflow-y-auto">
+                {claimsFor("panel")}
+              </div>
+            </aside>
           </div>
         </div>
       </div>
