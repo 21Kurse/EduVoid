@@ -1,5 +1,7 @@
-import { runSourceStage } from "../../../lib/source.ts";
+import { runSourceStage, type SourceResult } from "../../../lib/source.ts";
 import { generateConcept } from "../../../lib/generate.ts";
+import { runVerifyStage } from "../../../lib/verify.ts";
+import { getVerifiedSource, setVerifiedSource } from "../../../lib/source-cache.ts";
 import { defaultProvider } from "../../../lib/search.ts";
 import { MODALITY_CYCLE } from "../../../lib/mastery.ts";
 import type { NextRequest } from "next/server";
@@ -29,7 +31,19 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: "Live generation is not configured." }, { status: 503 });
   }
 
-  const source = await runSourceStage(topic, provider, { timeoutMs: 45_000 });
+  // G3 F4: reuse the run's verified source set when warm; on a cold cache
+  // re-run source + verify so §4.4 (flagged claims never ground generation)
+  // holds in every path.
+  let source: SourceResult | null = getVerifiedSource(topic);
+  if (!source) {
+    const raw = await runSourceStage(topic, provider, { timeoutMs: 45_000 });
+    const v = await runVerifyStage({
+      claims: raw.claims,
+      passages: raw.sources.flatMap((s) => s.passages),
+    });
+    source = { ...raw, claims: v.claims };
+    setVerifiedSource(topic, source);
+  }
   const g = await generateConcept(
     topic,
     { id: concept.id, title: concept.title, summary: concept.summary ?? "" },

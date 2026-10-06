@@ -1,7 +1,9 @@
 /**
- * Live probe for the full pipeline route (T6 acceptance). Invokes the route
- * handler directly (no HTTP server needed), consumes the SSE stream, and
- * asserts the event sequence + logs per-stage timings:
+ * Live probe for the pipeline (T6 + G3 F4). Invokes the setup route
+ * directly (no HTTP server needed), consumes the SSE stream (sources ->
+ * plan/skeleton -> claims -> verified; concepts are NO longer generated
+ * here), then simulates the lazy client: opens the first concept and the
+ * prefetch second via /api/generate-concept and reports latencies.
  *
  *   npm run probe:generate -- "quantum superposition and measurement"
  */
@@ -43,9 +45,8 @@ async function main(): Promise<number> {
   const counts: Counts = {};
   const t0 = Date.now();
   const firstAt: Partial<Record<string, number>> = {};
-  let conceptsOk = 0;
-  let conceptsTotal = 0;
   let skeleton = false;
+  let skeletonConcepts: { id: string; title: string; summary: string }[] = [];
   let claims = 0;
   let verified: { supported: number; total: number; flagged: number; degraded: boolean } | null = null;
   let error: string | null = null;
@@ -64,23 +65,19 @@ async function main(): Promise<number> {
         const e = JSON.parse(line.slice(6)) as {
           type: string;
           atMs?: number;
-          ok?: boolean;
           detail?: string;
           claims?: unknown[];
           supported?: number;
           total?: number;
           flagged?: number;
           degraded?: boolean;
+          concepts?: { id: string; title: string; summary: string }[];
         };
         counts[e.type] = (counts[e.type] ?? 0) + 1;
         if (e.atMs !== undefined && firstAt[e.type] === undefined) firstAt[e.type] = e.atMs;
         if (e.type === "skeleton") {
           skeleton = true;
-          conceptsTotal = 0;
-        }
-        if (e.type === "concept") {
-          if (e.ok) conceptsOk += 1;
-          else error = `concept failed: ${e.detail}`;
+          skeletonConcepts = e.concepts ?? [];
         }
         if (e.type === "claims" && Array.isArray(e.claims)) claims = e.claims.length;
         if (e.type === "verified" && typeof e.supported === "number") {
@@ -91,20 +88,49 @@ async function main(): Promise<number> {
       }
     }
   }
-  void conceptsTotal;
 
-  const totalMs = Date.now() - t0;
+  const setupMs = Date.now() - t0;
   console.log("events:", JSON.stringify(counts));
   console.log(
     "first-at(ms):",
-    JSON.stringify(
-      Object.fromEntries(Object.entries(firstAt).map(([k, v]) => [k, Math.round(v as number)])),
-    ),
+    JSON.stringify(Object.fromEntries(Object.entries(firstAt).map(([k, v]) => [k, Math.round(v as number)]))),
   );
   console.log(
-    `skeleton=${skeleton} concepts_ok=${conceptsOk} claims=${claims} verified=${verified ? `${verified.supported}/${verified.total} flagged=${verified.flagged} degraded=${verified.degraded}` : "none"} error=${error ?? "none"} done=${done} wall=${totalMs}ms`,
+    `skeleton=${skeleton} claims=${claims} verified=${verified ? `${verified.supported}/${verified.total} flagged=${verified.flagged} degraded=${verified.degraded}` : "none"} error=${error ?? "none"} done=${done} setup_wall=${setupMs}ms`,
   );
-  const pass = skeleton && claims > 0 && conceptsOk >= 3 && !error && done;
+
+  // Lazy concept generation (G3 F4): open the first concept, then the
+  // prefetch second — exactly what the client scheduler does.
+  let firstOk = false;
+  let firstMs = 0;
+  let secondOk = false;
+  let secondMs = 0;
+  if (skeletonConcepts.length > 0) {
+    const { POST: conceptPost } = await import("../app/api/generate-concept/route.ts");
+    const ask = async (c: { id: string; title: string; summary: string }): Promise<{ ok: boolean; ms: number }> => {
+      const t = Date.now();
+      const r = await conceptPost(
+        new Request("http://localhost/api/generate-concept", {
+          method: "POST",
+          body: JSON.stringify({ topic, concept: c }),
+        }) as never,
+      );
+      const j = (await r.json()) as { ok?: boolean };
+      return { ok: r.ok && j.ok === true, ms: Date.now() - t };
+    };
+    const first = await ask(skeletonConcepts[0]);
+    firstOk = first.ok;
+    firstMs = first.ms;
+    if (skeletonConcepts.length > 1) {
+      const second = await ask(skeletonConcepts[1]);
+      secondOk = second.ok;
+      secondMs = second.ms;
+    }
+  }
+  console.log(
+    `first_concept=${skeletonConcepts[0]?.id ?? "none"} ok=${firstOk} latency=${firstMs}ms; second ok=${secondOk} latency=${secondMs}ms`,
+  );
+  const pass = skeleton && claims > 0 && firstOk && !error && done;
   console.log(pass ? "PIPELINE PROBE: PASS" : "PIPELINE PROBE: FAIL");
   return pass ? 0 : 1;
 }

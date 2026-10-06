@@ -6,14 +6,15 @@
  * generations complete; the activity panel tracks every stage.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { runLiveGeneration, retryConcept } from "@/lib/live-client";
+import { runLiveGeneration } from "@/lib/live-client";
 import type { PipelineEvent } from "@/lib/pipeline-events";
 import { curriculumSpecSchema, type Concept, type CurriculumSpec } from "@/lib/spec";
 import type { SourceResult } from "@/lib/source";
 import { mergeConcept } from "@/lib/merge-concept";
+import { useConceptLoader } from "@/lib/use-concept-loader";
 import { useLearningState } from "@/lib/store";
 import { useAdaptive } from "@/lib/use-adaptive";
-import { LessonMap } from "./lesson-map";
+import { LessonHeader, LessonMap } from "./lesson-map";
 import { ConceptPanel } from "./concept-panel";
 import { ClaimsPanel } from "./claims-panel";
 import { buildActivityFeed, type ActivityFeed } from "./activity-panel";
@@ -55,6 +56,23 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
     setMessages((ms) => [...ms.slice(-30), m]);
   }, []);
 
+  // G3 F4: lazy per-concept generation (open + next prefetch, abort on
+  // switch, cached concepts never re-requested).
+  const { buildScheduler, openConcept } = useConceptLoader({
+    topic,
+    getSpec: () => specRef.current,
+    patchConcept,
+    push,
+    setConceptStatus,
+  });
+  const onSelect = useCallback(
+    (id: string | null) => {
+      selectConcept(id);
+      openConcept(id);
+    },
+    [selectConcept, openConcept],
+  );
+
   const onEvent = useCallback(
     (e: PipelineEvent) => {
       switch (e.type) {
@@ -81,6 +99,10 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
             push(`Planned ${e.concepts.length} concepts`);
             const first = e.concepts[0]?.id;
             if (first) selectConcept(first);
+            // G3 F4: generate the first concept now; the scheduler prefetches
+            // the next one in prerequisite order in the background.
+            buildScheduler(e.concepts.map((c) => c.id));
+            openConcept(first ?? null);
           } else {
             // §12: no silent failure paths — surface and stop.
             const issue = parsed.error.issues[0];
@@ -144,7 +166,7 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
           break;
       }
     },
-    [topic, push, selectConcept, onFail, patchConcept],
+    [topic, push, selectConcept, onFail, patchConcept, buildScheduler, openConcept],
   );
 
   // Kick off generation exactly once per mounted lesson (run-once effect;
@@ -161,16 +183,9 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
 
   const onRetry = useCallback(
     (concept: { id: string; title: string; summary: string }) => {
-      push(`Retrying “${concept.id}”…`);
-      void retryConcept(topic, concept).then((r) => {
-        setConceptStatus((s) => ({ ...s, [concept.id]: { ok: r.ok, detail: r.detail } }));
-        if (r.ok && r.components) {
-          patchConcept(concept.id, { components: r.components, claims: r.claims });
-          push(`Retry succeeded for “${concept.id}”`);
-        }
-      });
+      openConcept(concept.id);
     },
-    [topic, push, patchConcept],
+    [openConcept],
   );
 
   // T11 adaptive loop (§6): mastery events → store, failed concepts
@@ -196,27 +211,14 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
   const selectedConcept = spec?.concepts.find((c) => c.id === state.selectedConceptId) ?? null;
   const claimsFor = (variant: "panel" | "inline") =>
     spec && selectedConcept ? (
-      <ClaimsPanel
-        claims={selectedConcept.claims}
-        allClaims={claims}
-        contradictions={contradictions}
-        passages={passages}
-        sources={sources}
-        highlightClaim={highlightClaim}
-        variant={variant}
-      />
+      <ClaimsPanel claims={selectedConcept.claims} allClaims={claims} contradictions={contradictions} passages={passages} sources={sources} highlightClaim={highlightClaim} variant={variant} />
     ) : null;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex items-center gap-2 border-b border-border-subtle px-4 py-2 text-[12px]">
-        <span className="font-medium text-zinc-700">{topic}</span>
-        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-700" data-testid="live-badge">
-          live generation{done ? " · done" : " · running"}
-        </span>
-      </div>
+      <LessonHeader topic={topic} done={done} />
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        <LessonMap spec={spec} stage={stage} learning={state} onSelect={selectConcept} feed={feed} />
+        <LessonMap spec={spec} stage={stage} learning={state} onSelect={onSelect} feed={feed} />
         <div className="min-h-0 flex-1 overflow-y-auto lg:max-w-[52%] lg:border-l lg:border-border-subtle lg:bg-white">
           <div className="flex flex-col gap-3 p-4 lg:grid lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start lg:gap-4 lg:p-6">
             {spec && (

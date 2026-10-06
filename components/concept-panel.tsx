@@ -11,6 +11,7 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import type { Component, CurriculumSpec } from "@/lib/spec";
 import type { LearningState } from "@/lib/store";
+import type { ConceptStatus } from "./concept-status";
 import { Quiz, Flashcards, UnknownComponent } from "./widgets";
 import { Sim } from "./sims";
 import { HeroSim } from "./hero-sim";
@@ -102,7 +103,7 @@ export function ConceptPanel({
 }: {
   spec: CurriculumSpec;
   learning: LearningState;
-  conceptStatus?: Record<string, { ok: boolean; detail?: string }>;
+  conceptStatus?: ConceptStatus;
   verify?: { supported: number; total: number; sources: number } | null;
   hero?: { conceptId: string; code: string; fallback: { template: string; values: Record<string, number | string | boolean>; predictPrompt: string } } | null;
   onAnswered: (conceptId: string, correct: boolean) => void;
@@ -161,7 +162,7 @@ export function ConceptPanel({
 
             {concept.components.length === 0 && !conceptStatus[concept.id]?.ok && (
               <div className="rounded-xl border border-border-subtle bg-zinc-50 p-4 text-[13px] text-zinc-500" data-testid="concept-generating">
-                {conceptStatus[concept.id] && !conceptStatus[concept.id].ok ? (
+                {conceptStatus[concept.id] && !conceptStatus[concept.id].ok && !conceptStatus[concept.id].loading ? (
                   <>
                     <p className="mb-2 text-red-700">
                       Couldn&apos;t generate this concept{conceptStatus[concept.id].detail ? ` (${conceptStatus[concept.id].detail})` : ""}.

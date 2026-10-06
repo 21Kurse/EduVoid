@@ -10,6 +10,18 @@ import type { LearningState } from "@/lib/store";
 import { ActivityPanel, type ActivityFeed } from "./activity-panel";
 import { Mindmap } from "./mindmap";
 
+/** Full-width lesson header: topic + live badge (kept here for size). */
+export function LessonHeader({ topic, done }: { topic: string; done: boolean }) {
+  return (
+    <div className="flex items-center gap-2 border-b border-border-subtle px-4 py-2 text-[12px]">
+      <span className="font-medium text-zinc-700">{topic}</span>
+      <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-700" data-testid="live-badge">
+        live generation{done ? " · ready" : " · running"}
+      </span>
+    </div>
+  );
+}
+
 export function LessonMap({
   spec,
   stage,

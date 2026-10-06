@@ -1,16 +1,14 @@
 import { runSearchStage, runClaimsStage } from "../../../lib/source.ts";
 import { runPlanStage } from "../../../lib/plan.ts";
-import { generateConcept, generateHeroSim } from "../../../lib/generate.ts";
+import { generateHeroSim } from "../../../lib/generate.ts";
 import { runVerifyStage } from "../../../lib/verify.ts";
-import { mapWithConcurrency } from "../../../lib/llm.ts";
+import { setVerifiedSource } from "../../../lib/source-cache.ts";
 import { toSseChunk, type PipelineEvent } from "../../../lib/pipeline-events.ts";
 import { defaultProvider } from "../../../lib/search.ts";
 import type { NextRequest } from "next/server";
 
 // Vercel fluid-compute ceiling; per-call timeouts keep us well inside it.
 export const maxDuration = 300;
-
-const CONCURRENCY = 3;
 
 function sse(handler: (emit: (e: PipelineEvent) => void) => Promise<void>): Response {
   const encoder = new TextEncoder();
@@ -134,7 +132,9 @@ export async function POST(req: NextRequest) {
     });
 
     emit({ type: "status", stage: "verify", message: "Verifying claims against passages", atMs: 0 });
-    emit({ type: "status", stage: "generate", message: "Generating concepts", atMs: 0 });
+    // G3 F4: concepts generate lazily as the user opens them; this route
+    // only prepares sources + verified claims (cached for the lazy route).
+    emit({ type: "status", stage: "generate", message: "Concepts generate on demand as you open them", atMs: 0 });
     // Ground generation in the VERIFIED claim set (§4.4); raw claims were
     // already streamed to the activity panel via the claims event.
     const verified = await claimsPromise;
@@ -150,9 +150,11 @@ export async function POST(req: NextRequest) {
         totalMs: 0,
       },
     };
-    // Hero sim (T10): one per run, for the first planned concept; runs
-    // while concepts generate. Any failure simply drops the hero event
-    // detail into the activity feed — never a crash (§3).
+    // G3 F4: publish the verified source set for lazy per-concept requests.
+    setVerifiedSource(topic, composed);
+    // Hero sim (T10): one per run, for the first planned concept. Any
+    // failure simply drops the hero event detail into the activity feed —
+    // never a crash (§3).
     const heroConcept = plan.spec.concepts[0];
     const heroPromise = generateHeroSim(topic, heroConcept, composed, { timeoutMs: 60_000 })
       .then((h) => {
@@ -168,21 +170,6 @@ export async function POST(req: NextRequest) {
         console.error(`[route] hero sim failed: ${e instanceof Error ? e.message : String(e)}`);
       });
 
-    await mapWithConcurrency(plan.spec.concepts, CONCURRENCY, async (c) => {
-      let g = await generateConcept(topic, c, composed, { timeoutMs: 60_000 });
-      if (!g.ok) {
-        // One fresh-conversation retry: the error-feedback chain inside
-        // complete() can stay polluted by bad raw output; a clean call
-        // often succeeds (§3 graceful degradation, per concept).
-        console.error(`[route] concept ${c.id} failed (${g.detail}); retrying once`);
-        g = await generateConcept(topic, c, composed, { timeoutMs: 60_000 });
-      }
-      if (g.ok) {
-        emit({ type: "concept", conceptId: c.id, ok: true, components: g.concept.components, claims: g.concept.claims, latencyMs: g.latencyMs, atMs: 0 });
-      } else {
-        emit({ type: "concept", conceptId: c.id, ok: false, detail: g.detail, latencyMs: g.latencyMs, atMs: 0 });
-      }
-    });
     await heroPromise;
   });
 }
