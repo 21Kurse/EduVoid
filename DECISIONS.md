@@ -50,6 +50,19 @@ The G1 spike measured `nvidia/nemotron-3-super-120b-a12b` at 10/10 valid JSON, b
 
 **Effect (real numbers):** claims extraction on the demo topic went **0 → 61 claims** (55/61 verified), and the demo-safe cached capture completed in a single run after two prior runs failed entirely on this. This is a deviation from a literal reading of §3 (which does not mention thinking suppression); it is a transport detail behind the provider-agnostic `complete()` interface, so swapping providers is still a one-line env change.
 
+## Final decisions and deviations (T15) — 2026-10-07
+
+- **Lazy concept generation (deviation from a literal §4.3 "GENERATE (parallel)").** The setup stream stops after sources → skeleton → claims → verified + hero; concepts generate on demand via `/api/generate-concept` driven by a client scheduler (opened concept + next-in-prerequisite-order prefetch, in-flight ≤ 2, abort on switch, finished concepts cached). Reason: the §13.2 latency budget wants a fast first screen, and generating every concept up front spent provider budget on concepts the learner never opens. The verified source set is reused from a TTL (30 min) in-memory cache; on a cold instance the lazy route re-runs the stages and re-verifies, so §4.4 holds in every path.
+- **Demo topic: quantum superposition and measurement** (AGENTS.md §7 [DEFAULT], unchanged). Confirmed as the polish target; the generic input still works for any topic. Fallbacks (`Fourier transform`, `Bayes' theorem`) were not needed.
+- **Target persona (draft — owner must confirm; AGENTS.md §11 item 7).** A self-directed undergraduate revising a hard STEM topic before an assessment: comfortable searching, wants one interactive artifact that shows prerequisite structure, supports predict-then-test with sliders, and states honestly which claims came from where. Drafted by the agent in `README.md`; the owner supplies the final wording for the README and pitch.
+- **Eval harness (AGENTS.md §8, optional) was NOT built.** The scheduled window (Oct 4-5) went to the live pipeline, and §13.11 makes it optional. The pre/post test mode (§6) is the shipped evidence mechanism; the simulated-learner content-sufficiency check remains unbuilt.
+- **Hero sim is awaited before the stream's `done`** — a known contributor to the ~2.5 min setup wall. Logged in `BLOCKERS.md` as a post-freeze candidate (emit hero lazily, like concepts); not fixed before freeze.
+- **Deploy checklist** lives in `README.md` (Deploy section): `npm run check` green, keys in Vercel only, provider spend cap set, live demo topic loads, cached-run path verified with APIs unreachable, `maxDuration` matched to the plan.
+- **`.env.example` was corrected**: a stray `[TEMPLATE]` marker line (left by an earlier generated edit) was removed, and `LLM_DISABLE_THINKING` was documented.
+
 ## Cut list
 
-- (empty — nothing cut yet)
+- **T12 diagnostics screen** — moved to Stretch (S4) by owner instruction on 2026-10-05; not built. Reason: the agent-activity panel already covers the "show the agents working" need for the demo.
+- **Eval harness (§8)** — not built (optional per §13.11). Reason: prioritized the core pipeline and the pre/post test flow that produces real participant evidence.
+- **Extra sim templates / Socratic / explain-back (Stretch)** — not built. Reason: feature freeze; effort went to making the one core flow flawless (§0).
+- Nothing mandatory was cut: the verifier, adaptive loop, mastery mindmap, and the deployed link are all in place.
