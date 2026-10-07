@@ -53,6 +53,13 @@ export function LearningApp() {
           <p className="text-[12px] text-zinc-400">
             Agents search sources, extract claims, plan and generate a verified learning app.
           </p>
+          <a
+            href="/test"
+            className="text-[12px] text-zinc-400 underline decoration-zinc-300 underline-offset-4 transition-colors hover:text-violet-700"
+            data-testid="test-mode-link"
+          >
+            Test mode (pre-test → session → post-test)
+          </a>
         </main>
       </div>
     );
