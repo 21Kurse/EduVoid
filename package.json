@@ -13,6 +13,7 @@
     "probe:generate": "node --experimental-strip-types scripts/probe-generate.ts",
     "probe:verify": "node --experimental-strip-types scripts/probe-verify.ts",
     "bench:claims": "node --experimental-strip-types scripts/bench-claims.ts",
+    "capture:demo": "node --experimental-strip-types scripts/capture-demo.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "check": "npm run typecheck && npm run lint && npm run test && npm run build"

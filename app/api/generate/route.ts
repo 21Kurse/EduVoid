@@ -5,6 +5,8 @@ import { runVerifyStage } from "../../../lib/verify.ts";
 import { setVerifiedSource } from "../../../lib/source-cache.ts";
 import { toSseChunk, type PipelineEvent } from "../../../lib/pipeline-events.ts";
 import { defaultProvider } from "../../../lib/search.ts";
+import { rateLimitGuard } from "../../../lib/rate-limit.ts";
+import { checkTopicSafety, safetyRefusalResponse } from "../../../lib/safety.ts";
 import type { NextRequest } from "next/server";
 
 // Vercel fluid-compute ceiling; per-call timeouts keep us well inside it.
@@ -56,6 +58,14 @@ export async function POST(req: NextRequest) {
   if (!topic) {
     return Response.json({ error: "topic is required" }, { status: 400 });
   }
+  // §13.9: per-IP budget before any provider spend; clear 429, never a hang.
+  const limited = rateLimitGuard(req.headers, "generate");
+  if (limited) return limited;
+  // §13.9: deterministic refusal for clearly harmful topics — no lesson, no crash.
+  const safety = checkTopicSafety(topic);
+  if (!safety.ok) return safetyRefusalResponse(safety);
+  // T14: client cancellation aborts the in-flight provider calls.
+  const signal = req.signal;
   const provider = defaultProvider();
   if (!provider) {
     return Response.json(
@@ -84,7 +94,7 @@ export async function POST(req: NextRequest) {
     const allPassages = search.sources.flatMap((s) =>
       s.passages.map((p) => ({ id: p.id, text: p.text, url: s.url, sourceId: s.id })),
     );
-    const claimsPromise = runClaimsStage(topic, search.sources, { timeoutMs: 45_000 })
+    const claimsPromise = runClaimsStage(topic, search.sources, { timeoutMs: 45_000, signal })
       .then(async (c) => {
         emit({
           type: "claims",
@@ -93,7 +103,10 @@ export async function POST(req: NextRequest) {
           passages: allPassages,
           atMs: 0,
         });
-        const v = await runVerifyStage({ claims: c.claims, passages: search.sources.flatMap((s) => s.passages) });
+        const v = await runVerifyStage(
+          { claims: c.claims, passages: search.sources.flatMap((s) => s.passages) },
+          { signal },
+        );
         emit({
           type: "verified",
           supported: v.supported,
@@ -118,7 +131,7 @@ export async function POST(req: NextRequest) {
       });
 
     emit({ type: "status", stage: "plan", message: "Planning concepts", atMs: 0 });
-    const plan = await runPlanStage(topic, level, search.sources, { timeoutMs: 45_000 });
+    const plan = await runPlanStage(topic, level, search.sources, { timeoutMs: 45_000, signal });
     if (!plan.ok) {
       emit({ type: "error", detail: `plan failed: ${plan.detail}`, atMs: 0 });
       return;
@@ -156,7 +169,7 @@ export async function POST(req: NextRequest) {
     // failure simply drops the hero event detail into the activity feed —
     // never a crash (§3).
     const heroConcept = plan.spec.concepts[0];
-    const heroPromise = generateHeroSim(topic, heroConcept, composed, { timeoutMs: 60_000 })
+    const heroPromise = generateHeroSim(topic, heroConcept, composed, { timeoutMs: 60_000, signal })
       .then((h) => {
         emit({
           type: "hero",

@@ -166,3 +166,7 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Capture scratch (resumable partials for `npm run capture:demo`)
+# data/cached/qm-superposition.json IS committed (the demo-safe cached run)
+data/cached/.partial-*.json

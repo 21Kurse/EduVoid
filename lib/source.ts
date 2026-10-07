@@ -148,7 +148,7 @@ export async function runSearchStage(
 export async function runClaimsStage(
   topic: string,
   sources: SourceRecord[],
-  opts: { timeoutMs?: number; concurrency?: number } = {},
+  opts: { timeoutMs?: number; concurrency?: number; signal?: AbortSignal } = {},
 ): Promise<Pick<SourceResult, "claims" | "contradictions" | "timings"> & { sources: SourceRecord[] }> {
   const withPassages = sources.filter((s) => s.passages.length > 0);
 
@@ -165,6 +165,7 @@ export async function runClaimsStage(
       temperature: 0.1,
       maxTokens: 900,
       timeoutMs: opts.timeoutMs ?? 45_000,
+      signal: opts.signal,
       rateLimit: { baseMs: 1500, maxRetries: 2 },
     });
     return { source: s, result: r };
@@ -224,7 +225,7 @@ export async function runClaimsStage(
 export async function runSourceStage(
   topic: string,
   provider: SearchProvider,
-  opts: { timeoutMs?: number; concurrency?: number } = {},
+  opts: { timeoutMs?: number; concurrency?: number; signal?: AbortSignal } = {},
 ): Promise<SourceResult> {
   const cached = inMemoryCache.get(topic);
   if (cached) return cached;

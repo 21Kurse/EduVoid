@@ -4,6 +4,8 @@ import { runVerifyStage } from "../../../lib/verify.ts";
 import { getVerifiedSource, setVerifiedSource } from "../../../lib/source-cache.ts";
 import { defaultProvider } from "../../../lib/search.ts";
 import { MODALITY_CYCLE } from "../../../lib/mastery.ts";
+import { rateLimitGuard } from "../../../lib/rate-limit.ts";
+import { checkTopicSafety, safetyRefusalResponse } from "../../../lib/safety.ts";
 import type { NextRequest } from "next/server";
 
 export const maxDuration = 120;
@@ -20,6 +22,13 @@ export async function POST(req: NextRequest) {
   if (!topic || !concept.id || !concept.title) {
     return Response.json({ error: "topic and concept {id,title} are required" }, { status: 400 });
   }
+  // §13.9: same abuse + safety gates as the setup route (the lazy path is a
+  // second door to provider spend, so it needs its own guard).
+  const limited = rateLimitGuard(req.headers, "generate-concept");
+  if (limited) return limited;
+  const safety = checkTopicSafety(topic);
+  if (!safety.ok) return safetyRefusalResponse(safety);
+  const signal = req.signal;
   // T11: optional modality hint for adaptive regeneration (validated against
   // the fixed cycle — anything else falls back to the default generation).
   const modality =
@@ -36,11 +45,14 @@ export async function POST(req: NextRequest) {
   // holds in every path.
   let source: SourceResult | null = getVerifiedSource(topic);
   if (!source) {
-    const raw = await runSourceStage(topic, provider, { timeoutMs: 45_000 });
-    const v = await runVerifyStage({
-      claims: raw.claims,
-      passages: raw.sources.flatMap((s) => s.passages),
-    });
+    const raw = await runSourceStage(topic, provider, { timeoutMs: 45_000, signal });
+    const v = await runVerifyStage(
+      {
+        claims: raw.claims,
+        passages: raw.sources.flatMap((s) => s.passages),
+      },
+      { signal },
+    );
     source = { ...raw, claims: v.claims };
     setVerifiedSource(topic, source);
   }
@@ -48,7 +60,7 @@ export async function POST(req: NextRequest) {
     topic,
     { id: concept.id, title: concept.title, summary: concept.summary ?? "" },
     source,
-    { timeoutMs: 60_000, modality },
+    { timeoutMs: 60_000, modality, signal },
   );
   if (!g.ok) {
     // One fresh-conversation retry: the error-feedback chain inside
@@ -59,7 +71,7 @@ export async function POST(req: NextRequest) {
       topic,
       { id: concept.id, title: concept.title, summary: concept.summary ?? "" },
       source,
-      { timeoutMs: 60_000, modality },
+      { timeoutMs: 60_000, modality, signal },
     );
   }
   if (!g.ok) {

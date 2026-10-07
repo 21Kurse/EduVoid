@@ -146,7 +146,7 @@ export async function generateConcept(
   topic: string,
   concept: { id: string; title: string; summary: string },
   source: SourceResult,
-  opts: { timeoutMs?: number; modality?: string } = {},
+  opts: { timeoutMs?: number; modality?: string; signal?: AbortSignal } = {},
 ): Promise<GeneratedConcept> {
   const t0 = Date.now();
   const hint = opts.modality ? MODALITY_HINT[opts.modality] : undefined;
@@ -162,6 +162,7 @@ export async function generateConcept(
       temperature: 0.4,
       maxTokens: 2000,
       timeoutMs: opts.timeoutMs ?? 60_000,
+      signal: opts.signal,
       rateLimit: { baseMs: 1500, maxRetries: 2 },
     });
   const latencyMs = () => Date.now() - t0;
@@ -199,7 +200,11 @@ export async function generateHeroSim(
   topic: string,
   concept: Concept,
   source: SourceResult,
-  opts: { timeoutMs?: number; rateLimit?: { baseMs?: number; maxRetries?: number } } = {},
+  opts: {
+    timeoutMs?: number;
+    rateLimit?: { baseMs?: number; maxRetries?: number };
+    signal?: AbortSignal;
+  } = {},
 ): Promise<{ ok: true; conceptId: string; spec: HeroSimSpec } | { ok: false; conceptId: string; detail: string }> {
   const claimBlock = source.claims
     .filter((c) => c.status === "supported")
@@ -218,6 +223,7 @@ export async function generateHeroSim(
     schema: heroSimSchema,
     maxTokens: 1400,
     timeoutMs: opts.timeoutMs,
+    signal: opts.signal,
     rateLimit: opts.rateLimit,
   });
   if (!r.ok) return { ok: false, conceptId: concept.id, detail: r.detail };

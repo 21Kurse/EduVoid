@@ -1,0 +1,1804 @@
+{
+  "topic": "quantum superposition and measurement",
+  "capturedAt": "2026-10-07T23:30:49.899Z",
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "note": "Captured from a real live pipeline run. Used only when live generation fails; always labeled \"cached run\".",
+  "spec": {
+    "topic": "quantum superposition and measurement",
+    "level": "beginner",
+    "concepts": [
+      {
+        "id": "quantum-state",
+        "title": "Quantum State",
+        "summary": "A quantum system's condition described by a wavefunction encoding all possible states.",
+        "claims": [
+          {
+            "id": "claim-quantum-superposition-an-1",
+            "text": "Between measurements, a quantum system exists in all possible superposed states simultaneously.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-2",
+            "text": "Upon measurement, the quantum system is found to occupy a definite state.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-3",
+            "text": "After measurement, the quantum fidelity becomes unity for the definite state and zero for other states in the superposition.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-6",
+            "text": "The observer assigns weighted probabilities based on overlap before measurement due to ignorance.",
+            "passageIds": [
+              "src-1-p2"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-7",
+            "text": "Measuring a quantum state forces it to be in one of the measurement outcomes, such as raw or burnt, due to the disruptive nature of measurement.",
+            "passageIds": [
+              "src-2-p1"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-8",
+            "text": "In quantum mechanics, measurement causes the superposition to collapse into a definite state.",
+            "passageIds": [
+              "src-2-p1"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-12",
+            "text": "Subsequent measurements on the same system yield the same outcome after the first measurement.",
+            "passageIds": [
+              "src-2-p1"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          }
+        ],
+        "components": [
+          {
+            "type": "explainer",
+            "markdown": "A quantum system's condition is described by a wavefunction that encodes all possible states it can occupy. Between measurements, the system exists in a superposition of all possible states simultaneously. Upon measurement, the system is found to occupy a definite state, and the superposition collapses. After measurement, the fidelity for the measured state becomes unity while all other states in the superposition have zero fidelity. The observer assigns probabilities to outcomes based on the overlap of the state with each possible outcome prior to measurement, reflecting ignorance of the exact state. Measuring the system forces it into one of the measurement outcomes due to the disruptive nature of measurement. Subsequent measurements on the same system yield the same outcome as the first measurement."
+          },
+          {
+            "type": "quiz",
+            "questions": [
+              {
+                "id": "quantum-state-q1",
+                "prompt": "What happens to a quantum system's state when a measurement is performed?",
+                "options": [
+                  "It remains in a superposition of all possible states",
+                  "It collapses into a definite state corresponding to the measurement outcome",
+                  "It randomly selects a state unrelated to the superposition",
+                  "It splits into multiple independent systems"
+                ],
+                "answer": 1,
+                "explanation": "Upon measurement, the quantum system is found to occupy a definite state, as the superposition collapses due to the measurement process.",
+                "passageIds": [
+                  "src-1-p1"
+                ]
+              },
+              {
+                "id": "quantum-state-q2",
+                "prompt": "Why do identical quantum systems in the same superposition state yield different measurement outcomes upon repeated experiments?",
+                "options": [
+                  "Because the systems are not actually identical",
+                  "Due to inherent randomness in quantum measurement, with probabilities determined by the superposition weights",
+                  "Because measurement devices are faulty",
+                  "Because the superposition changes between measurements"
+                ],
+                "answer": 1,
+                "explanation": "When measuring quantum objects in identical superposition states, different outcomes are observed with various probabilities, as the outcome is probabilistic based on the state's composition prior to measurement.",
+                "passageIds": [
+                  "src-1-p1"
+                ]
+              }
+            ]
+          },
+          {
+            "type": "flashcards",
+            "cards": [
+              {
+                "front": "What is the fidelity of a quantum state for the measured outcome immediately after measurement?",
+                "back": "Unity (1)"
+              },
+              {
+                "front": "What does the term 'superposition' mean in quantum mechanics?",
+                "back": "Obtaining a new state by adding together multiple states, such as |raw⟩ and |burnt⟩."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "superposition",
+        "title": "Superposition",
+        "summary": "A quantum state combining multiple basis states simultaneously until measured.",
+        "claims": [
+          {
+            "id": "claim-quantum-superposition-an-1",
+            "text": "Between measurements, a quantum system exists in all possible superposed states simultaneously.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-2",
+            "text": "Upon measurement, the quantum system is found to occupy a definite state.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-3",
+            "text": "After measurement, the quantum fidelity becomes unity for the definite state and zero for other states in the superposition.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-6",
+            "text": "The observer assigns weighted probabilities based on overlap before measurement due to ignorance.",
+            "passageIds": [
+              "src-1-p2"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-8",
+            "text": "In quantum mechanics, measurement causes the superposition to collapse into a definite state.",
+            "passageIds": [
+              "src-2-p1"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-10",
+            "text": "A superposition state is formed by adding together multiple states, such as |raw⟩ and |burnt⟩.",
+            "passageIds": [
+              "src-2-p2"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-11",
+            "text": "When measuring quantum objects in identical superposition states, different outcomes are observed with various probabilities.",
+            "passageIds": [
+              "src-2-p1"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-12",
+            "text": "Subsequent measurements on the same system yield the same outcome after the first measurement.",
+            "passageIds": [
+              "src-2-p1"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          }
+        ],
+        "components": [
+          {
+            "type": "explainer",
+            "markdown": "A quantum system in superposition exists in multiple basis states simultaneously between measurements, such as a qubit being in a combination of |0⟩ and |1⟩ states. Upon measurement, the superposition collapses to a single definite state, and subsequent measurements yield the same outcome. Before measurement, probabilities are assigned based on the overlap of the state with each basis outcome, reflecting ignorance of which result will occur."
+          },
+          {
+            "type": "quiz",
+            "questions": [
+              {
+                "id": "superposition-q1",
+                "prompt": "What happens to a quantum system in superposition when it is measured?",
+                "options": [
+                  "It remains in superposition with unchanged probabilities",
+                  "It collapses to a definite state corresponding to the measurement outcome",
+                  "It splits into multiple independent systems",
+                  "It emits radiation and returns to ground state"
+                ],
+                "answer": 1,
+                "explanation": "Measurement causes the superposition to collapse into a single definite state, as the system is found to occupy a specific outcome upon measurement.",
+                "passageIds": [
+                  "src-1-p1"
+                ]
+              },
+              {
+                "id": "superposition-q2",
+                "prompt": "Why do identical quantum systems in the same superposition state yield different measurement outcomes across trials?",
+                "options": [
+                  "Due to experimental error in equipment calibration",
+                  "Because the superposition implies inherent probabilistic outcomes upon measurement",
+                  "Because measurement changes the system's Hamiltonian over time",
+                  "Due to external gravitational interference"
+                ],
+                "answer": 1,
+                "explanation": "Even when prepared identically, quantum systems in superposition yield different outcomes with probabilities determined by the state's coefficients, reflecting the fundamental probabilistic nature of quantum measurement.",
+                "passageIds": [
+                  "src-1-p1"
+                ]
+              }
+            ]
+          },
+          {
+            "type": "flashcards",
+            "cards": [
+              {
+                "front": "What is the state of a quantum system between measurements if it is in superposition?",
+                "back": "The system exists in all possible superposed states simultaneously."
+              },
+              {
+                "front": "What is the result of measuring a quantum system that was in superposition?",
+                "back": "The system collapses to a definite state, and subsequent measurements yield the same outcome."
+              }
+            ]
+          },
+          {
+            "type": "sim",
+            "template": "two-state-prob",
+            "params": {
+              "values": {
+                "p": 0.7,
+                "n": 10
+              }
+            },
+            "predictPrompt": "If a qubit is in a superposition state with probability 0.7 of measuring |0⟩ and 0.3 of measuring |1⟩, and we perform 10 measurements, what is the most likely number of times we will observe |0⟩?"
+          }
+        ]
+      },
+      {
+        "id": "measurement",
+        "title": "Measurement",
+        "summary": "The process that yields a single outcome and collapses the superposition.",
+        "claims": [
+          {
+            "id": "claim-quantum-superposition-an-1",
+            "text": "Between measurements, a quantum system exists in all possible superposed states simultaneously.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-2",
+            "text": "Upon measurement, the quantum system is found to occupy a definite state.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-3",
+            "text": "After measurement, the quantum fidelity becomes unity for the definite state and zero for other states in the superposition.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-7",
+            "text": "Measuring a quantum state forces it to be in one of the measurement outcomes, such as raw or burnt, due to the disruptive nature of measurement.",
+            "passageIds": [
+              "src-2-p1"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-8",
+            "text": "In quantum mechanics, measurement causes the superposition to collapse into a definite state.",
+            "passageIds": [
+              "src-2-p1"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-9",
+            "text": "Before measurement, a cake can be described as being in a superposition of raw and burnt states.",
+            "passageIds": [
+              "src-2-p2"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-10",
+            "text": "A superposition state is formed by adding together multiple states, such as |raw⟩ and |burnt⟩.",
+            "passageIds": [
+              "src-2-p2"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-11",
+            "text": "When measuring quantum objects in identical superposition states, different outcomes are observed with various probabilities.",
+            "passageIds": [
+              "src-2-p1"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-12",
+            "text": "Subsequent measurements on the same system yield the same outcome after the first measurement.",
+            "passageIds": [
+              "src-2-p1"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          }
+        ],
+        "components": [
+          {
+            "type": "explainer",
+            "markdown": "Measurement in quantum mechanics is the process that yields a single definite outcome and causes the superposition to collapse. Before measurement, a system exists in a superposition of multiple states simultaneously, such as a qubit being in a combination of |0⟩ and |1⟩ or a cake being described as both raw and burnt. Upon measurement, the system is found in one definite state, and the superposition is destroyed. After measurement, subsequent measurements on the same system yield the same outcome because the state has collapsed to that definite state."
+          },
+          {
+            "type": "quiz",
+            "questions": [
+              {
+                "id": "measurement-q1",
+                "prompt": "What happens to a quantum system's superposition when it is measured?",
+                "options": [
+                  "It remains unchanged and continues to evolve",
+                  "It splits into multiple parallel universes",
+                  "It collapses into a single definite state",
+                  "It becomes entangled with the measuring device"
+                ],
+                "answer": 2,
+                "explanation": "Measurement causes the superposition to collapse into a single definite state, as the system is found to occupy one specific outcome upon measurement.",
+                "passageIds": [
+                  "src-1-p1"
+                ]
+              },
+              {
+                "id": "measurement-q2",
+                "prompt": "If a quantum system is measured twice in succession without any evolution between measurements, what is expected for the second measurement outcome?",
+                "options": [
+                  "It will be random and unrelated to the first",
+                  "It will always be the same as the first outcome",
+                  "It will be the opposite of the first outcome",
+                  "It will be a superposition of both outcomes"
+                ],
+                "answer": 1,
+                "explanation": "After the first measurement collapses the system into a definite state, subsequent measurements yield the same outcome because the system remains in that collapsed state.",
+                "passageIds": [
+                  "src-1-p1"
+                ]
+              }
+            ]
+          },
+          {
+            "type": "flashcards",
+            "cards": [
+              {
+                "front": "What is the effect of measurement on a quantum superposition?",
+                "back": "Measurement causes the superposition to collapse into a single definite state."
+              },
+              {
+                "front": "After a quantum system is measured and collapses to a definite state, what do subsequent measurements yield?",
+                "back": "Subsequent measurements yield the same outcome as the first measurement."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "probabilistic-outcome",
+        "title": "Probabilistic Outcome",
+        "summary": "Measurement results occur with probabilities determined by the superposition coefficients.",
+        "claims": [
+          {
+            "id": "claim-quantum-superposition-an-1",
+            "text": "Between measurements, a quantum system exists in all possible superposed states simultaneously.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-2",
+            "text": "Upon measurement, the quantum system is found to occupy a definite state.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-3",
+            "text": "After measurement, the quantum fidelity becomes unity for the definite state and zero for other states in the superposition.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-6",
+            "text": "The observer assigns weighted probabilities based on overlap before measurement due to ignorance.",
+            "passageIds": [
+              "src-1-p2"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-7",
+            "text": "Measuring a quantum state forces it to be in one of the measurement outcomes, such as raw or burnt, due to the disruptive nature of measurement.",
+            "passageIds": [
+              "src-2-p1"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-8",
+            "text": "In quantum mechanics, measurement causes the superposition to collapse into a definite state.",
+            "passageIds": [
+              "src-2-p1"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-9",
+            "text": "Before measurement, a cake can be described as being in a superposition of raw and burnt states.",
+            "passageIds": [
+              "src-2-p2"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-10",
+            "text": "A superposition state is formed by adding together multiple states, such as |raw⟩ and |burnt⟩.",
+            "passageIds": [
+              "src-2-p2"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-11",
+            "text": "When measuring quantum objects in identical superposition states, different outcomes are observed with various probabilities.",
+            "passageIds": [
+              "src-2-p1"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-12",
+            "text": "Subsequent measurements on the same system yield the same outcome after the first measurement.",
+            "passageIds": [
+              "src-2-p1"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          }
+        ],
+        "components": [
+          {
+            "type": "explainer",
+            "markdown": "Before measurement, a quantum system exists in a superposition of possible states, such as |raw⟩ and |burnt⟩, formed by adding these states together. Upon measurement, the system is found in a definite state due to the disruptive nature of measurement, which causes the superposition to collapse. The probability of each outcome is determined by the squared magnitude of the superposition coefficients, reflecting the weighted probabilities assigned based on overlap before measurement. After measurement, subsequent measurements on the same system yield the same outcome, as the state has collapsed and fidelity becomes unity for the measured state."
+          },
+          {
+            "type": "quiz",
+            "questions": [
+              {
+                "id": "probabilistic-outcome-q1",
+                "prompt": "What determines the probability of obtaining a specific outcome when measuring a quantum system in superposition?",
+                "options": [
+                  "The number of states in the superposition",
+                  "The squared magnitude of the superposition coefficients",
+                  "The time elapsed since the system was prepared",
+                  "The temperature of the environment"
+                ],
+                "answer": 1,
+                "explanation": "The probability of each measurement outcome is determined by the squared magnitude of the coefficient associated with that state in the superposition, as derived from the Born rule in quantum mechanics.",
+                "passageIds": [
+                  "src-1-p1"
+                ]
+              },
+              {
+                "id": "probabilistic-outcome-q2",
+                "prompt": "What happens to the quantum state after a measurement yields a definite outcome?",
+                "options": [
+                  "It returns to the original superposition",
+                  "It remains in a superposition but with altered coefficients",
+                  "It collapses to the measured state and remains there for subsequent measurements",
+                  "It becomes entangled with the measuring device"
+                ],
+                "answer": 2,
+                "explanation": "After measurement, the quantum state collapses to the definite state corresponding to the outcome, and subsequent measurements on the same system yield the same result, as the state is no longer in superposition.",
+                "passageIds": [
+                  "src-1-p1"
+                ]
+              }
+            ]
+          },
+          {
+            "type": "flashcards",
+            "cards": [
+              {
+                "front": "What is the effect of measurement on a quantum system in superposition?",
+                "back": "Measurement causes the superposition to collapse into a definite state, and the system is found in that state with probability determined by the superposition coefficients."
+              },
+              {
+                "front": "How are probabilities assigned to outcomes in a quantum superposition before measurement?",
+                "back": "Probabilities are assigned based on the squared magnitude of the overlap (coefficients) of each state in the superposition, reflecting the likelihood of each outcome upon measurement."
+              }
+            ]
+          },
+          {
+            "type": "sim",
+            "template": "two-state-prob",
+            "params": {
+              "values": {
+                "p": 0.36,
+                "n": 50
+              }
+            },
+            "predictPrompt": "If a qubit is in a superposition state where the probability of measuring |0⟩ is 0.36, how many times would you expect to measure |0⟩ in 50 identical trials?"
+          }
+        ]
+      },
+      {
+        "id": "state-collapse",
+        "title": "State Collapse",
+        "summary": "After measurement, the quantum state reduces to the observed eigenstate.",
+        "claims": [
+          {
+            "id": "claim-quantum-superposition-an-1",
+            "text": "Between measurements, a quantum system exists in all possible superposed states simultaneously.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-2",
+            "text": "Upon measurement, the quantum system is found to occupy a definite state.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-3",
+            "text": "After measurement, the quantum fidelity becomes unity for the definite state and zero for other states in the superposition.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-9",
+            "text": "Before measurement, a cake can be described as being in a superposition of raw and burnt states.",
+            "passageIds": [
+              "src-2-p2"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-quantum-superposition-an-12",
+            "text": "Subsequent measurements on the same system yield the same outcome after the first measurement.",
+            "passageIds": [
+              "src-2-p1"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          }
+        ],
+        "components": [
+          {
+            "type": "explainer",
+            "markdown": "Before measurement, a quantum system exists in a superposition of possible states, such as a cake being both raw and burnt simultaneously. Upon measurement, the system collapses to a single definite state, and the fidelity becomes unity for that state and zero for others. Subsequent measurements on the same system yield the same outcome, as the state remains in the collapsed eigenstate."
+          },
+          {
+            "type": "quiz",
+            "questions": [
+              {
+                "id": "state-collapse-q1",
+                "prompt": "What happens to the quantum state immediately after a measurement yields a definite outcome?",
+                "options": [
+                  "It remains in a superposition of all possible states",
+                  "It collapses to the observed eigenstate",
+                  "It becomes a mixed state with equal probabilities",
+                  "It evolves according to the Schrödinger equation without change"
+                ],
+                "answer": 1,
+                "explanation": "After measurement, the quantum state reduces to the observed eigenstate, as measurement causes the superposition to collapse into a definite state.",
+                "passageIds": [
+                  "src-1-p1"
+                ]
+              },
+              {
+                "id": "state-collapse-q2",
+                "prompt": "If a quantum system is measured twice in succession with no evolution between measurements, what is the expected outcome of the second measurement?",
+                "options": [
+                  "A random outcome, possibly different from the first",
+                  "The same outcome as the first measurement",
+                  "A superposition of the first and second possible outcomes",
+                  "No outcome, as the system becomes undefined"
+                ],
+                "answer": 1,
+                "explanation": "Subsequent measurements on the same system yield the same outcome after the first measurement, as the state has collapsed and remains in that eigenstate.",
+                "passageIds": [
+                  "src-1-p1"
+                ]
+              }
+            ]
+          },
+          {
+            "type": "flashcards",
+            "cards": [
+              {
+                "front": "What is the fidelity of a quantum state for the measured eigenstate immediately after measurement?",
+                "back": "Unity (1)"
+              },
+              {
+                "front": "What does measurement do to a quantum superposition state?",
+                "back": "Measurement causes the superposition to collapse into a definite eigenstate."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "edges": [
+      {
+        "from": "quantum-state",
+        "to": "superposition"
+      },
+      {
+        "from": "superposition",
+        "to": "measurement"
+      },
+      {
+        "from": "measurement",
+        "to": "probabilistic-outcome"
+      },
+      {
+        "from": "probabilistic-outcome",
+        "to": "state-collapse"
+      }
+    ],
+    "sources": [
+      {
+        "id": "src-1",
+        "title": "Quantum superpositions and the measurement problem",
+        "url": "http://philsci-archive.pitt.edu/18904/1/cat.pdf",
+        "authority": "university",
+        "passages": [
+          {
+            "id": "src-1-p1",
+            "label": "extracted",
+            "text": "Quantum superpositions and the measurement problem 5 system, in between measurements, simultaneously ex-ist in all possible superposed states in the quantum en-semble. When the measurement is made, the system is found to occupy a deﬁnite state, either it being the state preparation or any of the members of the quan-tum ensemble. At this instant, the quantum ﬁdelity is updated to unity for the deﬁnite state and to zero for the other states in the superposition. This is no diﬀerent as compared to [...] (will be inserted by the editor) Quantum superpositions and the measurement problem Andreas Henriksson To Birthe Received: date / Accepted: date Abstract The measurement problem is addressed from the viewpoint that it is the distinguishability between the state preparation and its quantum ensemble, i.e."
+          },
+          {
+            "id": "src-1-p2",
+            "label": "extracted",
+            "text": "the set of states with which it has a non-zero overlap, that is at the heart of the diﬀerence between classical and quantum measurements. The measure for the degree of distinguishability between [...] The same is true for the superposition of states in quan-tum mechanics. The problem of wave-function collapse, i.e. how a deﬁnite state of the system can be realized upon measurement when the system supposedly ’exist’ in a superposition of states before measurement, is thus seen to not constitute a problem at all. The observer is ignorant before the measurement is made and hence assign weighted probabilities, depending on the overlap between the state preparation and the members of the quantum"
+          }
+        ]
+      },
+      {
+        "id": "src-2",
+        "title": "HQI Blog - Chapter 1: Superposition and Measurement",
+        "url": "https://www.hqi-blog.com/guides/quantum-explainers/chapter-1-superposition-and-measurement",
+        "authority": "other",
+        "passages": [
+          {
+            "id": "src-2-p1",
+            "label": "extracted",
+            "text": "This model, though bizarre to our classical intuition, completely explains the result of real-life experiments: when measuring quantum objects prepared in identical superposition states, we find different outcomes with various probabilities and subsequent measurements yield the same outcome. Can you come up with another model — another description of what is happening — that is consistent with the experimental results? [...] How is it then that we measure the cake to be in different states (raw/burnt) with some probability? Another subtly lies in the word “measure.” In quantum mechanics, measuring a state (e.g. checking if the cake is raw or burnt with a toothpick) is a disruptive process. Measuring a state changes, i.e. forces, the state to be in one of the measurement outcomes: either |raw⟩ or |burnt⟩. In other words, we say that measurement “collapses” the superposition."
+          },
+          {
+            "id": "src-2-p2",
+            "label": "extracted",
+            "text": "[...] In the language of quantum mechanics, right before we open the oven to check if the cakes are properly baked, we describe the condition of a cake as being in a superposition of raw and burnt. The term “superposition” means obtaining a new state by adding together multiple states. If we use the symbol |raw⟩ to represent an undercooked cake and the symbol |burnt⟩ to represent an overcooked cake, then the superposition state that we have prepared is:"
+          }
+        ]
+      },
+      {
+        "id": "src-3",
+        "title": "Quantum superposition - Wikipedia",
+        "url": "https://en.wikipedia.org/wiki/Quantum_superposition",
+        "authority": "explainer",
+        "passages": [
+          {
+            "id": "src-3-p1",
+            "label": "extracted",
+            "text": "Other transformations express a quantum solution as a superposition of eigenvectors, each corresponding to a possible result of a measurement on the quantum system. An eigenvector {\\displaystyle \\psi _{i}} for a mathematical operator, {\\displaystyle {\\hat {A}}}, has the equation {\\displaystyle {\\hat {A}}\\psi _{i}=\\lambda _{i}\\psi _{i}} where {\\displaystyle \\lambda _{i}} is one possible measured quantum value for the observable {\\displaystyle A}. A superposition of these eigenvectors can [...] the system in the {\\displaystyle |0\\rangle } or {\\displaystyle |1\\rangle } state are given by {\\displaystyle |c_{0}|^{2}} and {\\displaystyle |c_{1}|^{2}} respectively (see the Born rule). Before the measurement occurs the qubit is in a superposition of both states."
+          },
+          {
+            "id": "src-3-p2",
+            "label": "extracted",
+            "text": "[...] | Fundamentals Bra–ket notation Complementarity \"Complementarity (physics)\") Entanglement Energy level Hamiltonian \"Hamiltonian (quantum mechanics)\") Measurement Nonlocality Quantum number State Superposition Symmetry Tunnelling Uncertainty Wave function + Collapse | | Experiments Bell's inequality Davisson–Germer Double-slit Elitzur–Vaidman Franck–Hertz Mach–Zehnder Delayed-choice quantum eraser Stern–Gerlach Rutherford |"
+          }
+        ]
+      },
+      {
+        "id": "src-4",
+        "title": "Superposition and entanglement - Quantum Inspire",
+        "url": "https://www.quantum-inspire.com/kbase/superposition-and-entanglement",
+        "authority": "other",
+        "passages": [
+          {
+            "id": "src-4-p1",
+            "label": "extracted",
+            "text": "Qubits can be in a superposition of both the basis states ∣0⟩ and ∣1⟩. When a qubit is measured (to be more precise: only observables can be measured), the qubit will collapse to one of its eigenstates and the measured value will reflect that state. For example, when a qubit is in a superposition state of equal weights, a measurement will make it collapse to one of its two basis states ∣0⟩ and ∣1⟩ with an equal probability of 50%. ∣0⟩ is the state that when measured, and therefore collapsed, [...] One of the properties that sets a qubit apart from a classical bit is that it can be in superposition. Superposition is one of the fundamental principles of quantum mechanics. In classical physics, a wave describing a musical tone can be seen as several waves with different frequencies that are added together, superposed."
+          },
+          {
+            "id": "src-4-p2",
+            "label": "extracted",
+            "text": "Similarly, a quantum state in superposition can be seen as a linear combination of other distinct quantum states. This quantum state in superposition forms a new valid quantum [...] When two qubits are entangled there exists a special connection between them. The entanglement will become clear from the results of measurements. The outcome of the measurements on the individual qubits could be 0 or 1. However, the outcome of the measurement on one qubit will always be correlated to the measurement on the other qubit. This is always the case, even if the particles are separated from each other by a large distance. Examples of such states are the Bell states."
+          }
+        ]
+      },
+      {
+        "id": "src-5",
+        "title": "Quantum Superposition - Quantum Computing Explained",
+        "url": "https://www.quandela.com/resources/quantum-computing-glossary/quantum-superposition",
+        "authority": "other",
+        "passages": [
+          {
+            "id": "src-5-p1",
+            "label": "extracted",
+            "text": "Probabilistic Outcomes: Measurement yields a single result with a probability based on the superposition State Collapse: The act of measurement typically destroys the superposition Quantum State Tomography: Technique to reconstruct a quantum state from multiple measurements Weak Measurement: Allows for partial extraction of information without fully collapsing the superposition ## Frequently Asked Questions About Superposition [...] Linear Combination: A superposition state is a linear combination of basis states Probability Amplitudes: Each component state has an associated complex probability amplitude Collapse upon Measurement: Measuring a superposition forces it into one of its component states Quantum Entanglement: Superposition is closely related to entanglement in multi-particle systems ## Superposition in Quantum Computing [...] Qubit Representation: Qubits can exist in a superpo"
+          },
+          {
+            "id": "src-5-p2",
+            "label": "extracted",
+            "text": "sition of |0⟩ and |1⟩ states Quantum Algorithms: It is a key ingredient in quantum speedup in algorithms like Grover’s search and Shor’s algorithm Quantum Interference: Different components of a superposition can interfere with each other to amplify the probability of correct outcomes Quantum Gates: Many quantum gates create or manipulate superposition states ## Measurement and Superposition"
+          }
+        ]
+      },
+      {
+        "id": "src-6",
+        "title": "Is Superposition Really an \"OR\"?",
+        "url": "https://profmattstrassler.com/2025/04/14/is-superposition-really-an-or",
+        "authority": "other",
+        "passages": [
+          {
+            "id": "src-6-p1",
+            "label": "extracted",
+            "text": "This is not what I find in Quantum Mechanics textbooks. There is an abstract something called the “Quantum State” represented by a basis independent vector, a ket. Only when this vector is expanded in a specific basis derived from the eigenfunctions of a measurement operator can it be called a “wave function”. Then these wave functions are in a superposition of possible measurement outcomes. [...] The main place that I differ from the most common Dirac-style quantum mechanics textbooks (but not from some other presentations) is that “measurement” is not a separate process from other processes that occur in nature. The standard use of an abstract vector for the wave function and an abstract projection-operator for the measurement process seems to me to favor math over physics."
+          },
+          {
+            "id": "src-6-p2",
+            "label": "extracted",
+            "text": "Instead the measurement device should be within the abstract vector, and it must be explained, in physics [...] 1) If I know that either (HL NL) is true or (HR NR) is true, I know this is the case now even if I don’t do a measurement. I know that my friend could tell me which it was if I can just get ahold of him or her. No measurement is necessary. The experimental consequence is that if I join the two boxes as in Fig. 6, no quantum interference will be observed, because the quantum state contained only one possibility (even though I didn’t know which it was) at all times."
+          }
+        ]
+      },
+      {
+        "id": "src-7",
+        "title": "Superposition Explained (Schrödinger's Cat) | Perimeter Institute for Theoretical Physics",
+        "url": "https://www.youtube.com/watch?v=IHDMJqJHCQg",
+        "authority": "other",
+        "passages": [
+          {
+            "id": "src-7-p1",
+            "label": "extracted",
+            "text": "[1:04] Add up all those paths and you get something that looks like a wave. [1:07] In a sense, superpositions are just a way of talking about quantum uncertainty. In quantum mechanics, we can't know any property of a particle with 100% certainty. [1:17] Not because our measurements aren't good enough, but because quantum mechanics simply doesn't allow it. [1:23] So if we can't say if the particle is over here or over here, then for all practical purposes, it's in both places at the same time. [...] [2:18] The prevailing interpretation at the time was that any isolated quantum system is always in a superposition up until the moment it interacts with the world outside. [2:27] You could do an experiment inside a sealed box."
+          },
+          {
+            "id": "src-7-p2",
+            "label": "extracted",
+            "text": "[2:30] And as long as the experiment involves quantum uncertainty, the result is in a superposition until the box is opened and observed, no matter what else is in the box. [...] [4:49] That's the beauty of quantum mechanics. It forces us, it’s a huge cultural revolution, to rethink what is reality from scratch. [4:55] Quantum superposition doesn't pose any actual danger to cats or to the human beings who love them. In fact, we can use superposition to our advantage in our technology. [5:05] In quantum computing superposition is how a qubit, a quantum bit can be both one and zero at the same time."
+          }
+        ]
+      },
+      {
+        "id": "src-8",
+        "title": "5 Concepts Can Help You Understand Quantum Mechanics and Technology — Without Math! | NIST",
+        "url": "https://www.nist.gov/blogs/taking-measure/5-concepts-can-help-you-understand-quantum-mechanics-and-technology-without",
+        "authority": "other",
+        "passages": [
+          {
+            "id": "src-8-p1",
+            "label": "extracted",
+            "text": "You can imagine superposition as being similar to a pendulum swinging between positions (one at the far left and one at the far right). When oscillating, the pendulum is at neither position but oscillating from one position to the other. The “swinging” back and forth between the platforms is the oscillation that forms the clock signal, just like the oscillation of a pendulum, just way faster! ### Heisenberg Uncertainty Principle in Measurement [...] Likewise, \"wave-particle duality\", also known as \"wave-particle complementarity, is a long obsolete idea; superposition doesn't mean \"ontic and\"; the HUP is (firstly) about the intrinsic uncertainty in quantum systems rather than about uncertainty caused by measurement disturbance (); and other than in \"hidden variable\" alternative theories to QM, entanglement doesn't entail instantaneous influence (not even the non-signaling kind)."
+          },
+          {
+            "id": "src-8-p2",
+            "label": "extracted",
+            "text": "[...] animated gif showing superposition by using skateboarders. ## Superposition in action Superposition is extremely useful in quantum technologies. For instance, superposition is used to make atoms oscillate in atomic clocks. It’s also important to note that physicists have quite a bit of control over superposition in well-controlled systems like atomic clocks. Physicists can control the atom to be in one electronic state or another. Or they can create a superposition of both states."
+          }
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "src-1",
+      "title": "Quantum superpositions and the measurement problem",
+      "url": "http://philsci-archive.pitt.edu/18904/1/cat.pdf",
+      "authority": "university",
+      "passages": [
+        {
+          "id": "src-1-p1",
+          "label": "extracted",
+          "text": "Quantum superpositions and the measurement problem 5 system, in between measurements, simultaneously ex-ist in all possible superposed states in the quantum en-semble. When the measurement is made, the system is found to occupy a deﬁnite state, either it being the state preparation or any of the members of the quan-tum ensemble. At this instant, the quantum ﬁdelity is updated to unity for the deﬁnite state and to zero for the other states in the superposition. This is no diﬀerent as compared to [...] (will be inserted by the editor) Quantum superpositions and the measurement problem Andreas Henriksson To Birthe Received: date / Accepted: date Abstract The measurement problem is addressed from the viewpoint that it is the distinguishability between the state preparation and its quantum ensemble, i.e."
+        },
+        {
+          "id": "src-1-p2",
+          "label": "extracted",
+          "text": "the set of states with which it has a non-zero overlap, that is at the heart of the diﬀerence between classical and quantum measurements. The measure for the degree of distinguishability between [...] The same is true for the superposition of states in quan-tum mechanics. The problem of wave-function collapse, i.e. how a deﬁnite state of the system can be realized upon measurement when the system supposedly ’exist’ in a superposition of states before measurement, is thus seen to not constitute a problem at all. The observer is ignorant before the measurement is made and hence assign weighted probabilities, depending on the overlap between the state preparation and the members of the quantum"
+        }
+      ]
+    },
+    {
+      "id": "src-2",
+      "title": "HQI Blog - Chapter 1: Superposition and Measurement",
+      "url": "https://www.hqi-blog.com/guides/quantum-explainers/chapter-1-superposition-and-measurement",
+      "authority": "other",
+      "passages": [
+        {
+          "id": "src-2-p1",
+          "label": "extracted",
+          "text": "This model, though bizarre to our classical intuition, completely explains the result of real-life experiments: when measuring quantum objects prepared in identical superposition states, we find different outcomes with various probabilities and subsequent measurements yield the same outcome. Can you come up with another model — another description of what is happening — that is consistent with the experimental results? [...] How is it then that we measure the cake to be in different states (raw/burnt) with some probability? Another subtly lies in the word “measure.” In quantum mechanics, measuring a state (e.g. checking if the cake is raw or burnt with a toothpick) is a disruptive process. Measuring a state changes, i.e. forces, the state to be in one of the measurement outcomes: either |raw⟩ or |burnt⟩. In other words, we say that measurement “collapses” the superposition."
+        },
+        {
+          "id": "src-2-p2",
+          "label": "extracted",
+          "text": "[...] In the language of quantum mechanics, right before we open the oven to check if the cakes are properly baked, we describe the condition of a cake as being in a superposition of raw and burnt. The term “superposition” means obtaining a new state by adding together multiple states. If we use the symbol |raw⟩ to represent an undercooked cake and the symbol |burnt⟩ to represent an overcooked cake, then the superposition state that we have prepared is:"
+        }
+      ]
+    },
+    {
+      "id": "src-3",
+      "title": "Quantum superposition - Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Quantum_superposition",
+      "authority": "explainer",
+      "passages": [
+        {
+          "id": "src-3-p1",
+          "label": "extracted",
+          "text": "Other transformations express a quantum solution as a superposition of eigenvectors, each corresponding to a possible result of a measurement on the quantum system. An eigenvector {\\displaystyle \\psi _{i}} for a mathematical operator, {\\displaystyle {\\hat {A}}}, has the equation {\\displaystyle {\\hat {A}}\\psi _{i}=\\lambda _{i}\\psi _{i}} where {\\displaystyle \\lambda _{i}} is one possible measured quantum value for the observable {\\displaystyle A}. A superposition of these eigenvectors can [...] the system in the {\\displaystyle |0\\rangle } or {\\displaystyle |1\\rangle } state are given by {\\displaystyle |c_{0}|^{2}} and {\\displaystyle |c_{1}|^{2}} respectively (see the Born rule). Before the measurement occurs the qubit is in a superposition of both states."
+        },
+        {
+          "id": "src-3-p2",
+          "label": "extracted",
+          "text": "[...] | Fundamentals Bra–ket notation Complementarity \"Complementarity (physics)\") Entanglement Energy level Hamiltonian \"Hamiltonian (quantum mechanics)\") Measurement Nonlocality Quantum number State Superposition Symmetry Tunnelling Uncertainty Wave function + Collapse | | Experiments Bell's inequality Davisson–Germer Double-slit Elitzur–Vaidman Franck–Hertz Mach–Zehnder Delayed-choice quantum eraser Stern–Gerlach Rutherford |"
+        }
+      ]
+    },
+    {
+      "id": "src-4",
+      "title": "Superposition and entanglement - Quantum Inspire",
+      "url": "https://www.quantum-inspire.com/kbase/superposition-and-entanglement",
+      "authority": "other",
+      "passages": [
+        {
+          "id": "src-4-p1",
+          "label": "extracted",
+          "text": "Qubits can be in a superposition of both the basis states ∣0⟩ and ∣1⟩. When a qubit is measured (to be more precise: only observables can be measured), the qubit will collapse to one of its eigenstates and the measured value will reflect that state. For example, when a qubit is in a superposition state of equal weights, a measurement will make it collapse to one of its two basis states ∣0⟩ and ∣1⟩ with an equal probability of 50%. ∣0⟩ is the state that when measured, and therefore collapsed, [...] One of the properties that sets a qubit apart from a classical bit is that it can be in superposition. Superposition is one of the fundamental principles of quantum mechanics. In classical physics, a wave describing a musical tone can be seen as several waves with different frequencies that are added together, superposed."
+        },
+        {
+          "id": "src-4-p2",
+          "label": "extracted",
+          "text": "Similarly, a quantum state in superposition can be seen as a linear combination of other distinct quantum states. This quantum state in superposition forms a new valid quantum [...] When two qubits are entangled there exists a special connection between them. The entanglement will become clear from the results of measurements. The outcome of the measurements on the individual qubits could be 0 or 1. However, the outcome of the measurement on one qubit will always be correlated to the measurement on the other qubit. This is always the case, even if the particles are separated from each other by a large distance. Examples of such states are the Bell states."
+        }
+      ]
+    },
+    {
+      "id": "src-5",
+      "title": "Quantum Superposition - Quantum Computing Explained",
+      "url": "https://www.quandela.com/resources/quantum-computing-glossary/quantum-superposition",
+      "authority": "other",
+      "passages": [
+        {
+          "id": "src-5-p1",
+          "label": "extracted",
+          "text": "Probabilistic Outcomes: Measurement yields a single result with a probability based on the superposition State Collapse: The act of measurement typically destroys the superposition Quantum State Tomography: Technique to reconstruct a quantum state from multiple measurements Weak Measurement: Allows for partial extraction of information without fully collapsing the superposition ## Frequently Asked Questions About Superposition [...] Linear Combination: A superposition state is a linear combination of basis states Probability Amplitudes: Each component state has an associated complex probability amplitude Collapse upon Measurement: Measuring a superposition forces it into one of its component states Quantum Entanglement: Superposition is closely related to entanglement in multi-particle systems ## Superposition in Quantum Computing [...] Qubit Representation: Qubits can exist in a superpo"
+        },
+        {
+          "id": "src-5-p2",
+          "label": "extracted",
+          "text": "sition of |0⟩ and |1⟩ states Quantum Algorithms: It is a key ingredient in quantum speedup in algorithms like Grover’s search and Shor’s algorithm Quantum Interference: Different components of a superposition can interfere with each other to amplify the probability of correct outcomes Quantum Gates: Many quantum gates create or manipulate superposition states ## Measurement and Superposition"
+        }
+      ]
+    },
+    {
+      "id": "src-6",
+      "title": "Is Superposition Really an \"OR\"?",
+      "url": "https://profmattstrassler.com/2025/04/14/is-superposition-really-an-or",
+      "authority": "other",
+      "passages": [
+        {
+          "id": "src-6-p1",
+          "label": "extracted",
+          "text": "This is not what I find in Quantum Mechanics textbooks. There is an abstract something called the “Quantum State” represented by a basis independent vector, a ket. Only when this vector is expanded in a specific basis derived from the eigenfunctions of a measurement operator can it be called a “wave function”. Then these wave functions are in a superposition of possible measurement outcomes. [...] The main place that I differ from the most common Dirac-style quantum mechanics textbooks (but not from some other presentations) is that “measurement” is not a separate process from other processes that occur in nature. The standard use of an abstract vector for the wave function and an abstract projection-operator for the measurement process seems to me to favor math over physics."
+        },
+        {
+          "id": "src-6-p2",
+          "label": "extracted",
+          "text": "Instead the measurement device should be within the abstract vector, and it must be explained, in physics [...] 1) If I know that either (HL NL) is true or (HR NR) is true, I know this is the case now even if I don’t do a measurement. I know that my friend could tell me which it was if I can just get ahold of him or her. No measurement is necessary. The experimental consequence is that if I join the two boxes as in Fig. 6, no quantum interference will be observed, because the quantum state contained only one possibility (even though I didn’t know which it was) at all times."
+        }
+      ]
+    },
+    {
+      "id": "src-7",
+      "title": "Superposition Explained (Schrödinger's Cat) | Perimeter Institute for Theoretical Physics",
+      "url": "https://www.youtube.com/watch?v=IHDMJqJHCQg",
+      "authority": "other",
+      "passages": [
+        {
+          "id": "src-7-p1",
+          "label": "extracted",
+          "text": "[1:04] Add up all those paths and you get something that looks like a wave. [1:07] In a sense, superpositions are just a way of talking about quantum uncertainty. In quantum mechanics, we can't know any property of a particle with 100% certainty. [1:17] Not because our measurements aren't good enough, but because quantum mechanics simply doesn't allow it. [1:23] So if we can't say if the particle is over here or over here, then for all practical purposes, it's in both places at the same time. [...] [2:18] The prevailing interpretation at the time was that any isolated quantum system is always in a superposition up until the moment it interacts with the world outside. [2:27] You could do an experiment inside a sealed box."
+        },
+        {
+          "id": "src-7-p2",
+          "label": "extracted",
+          "text": "[2:30] And as long as the experiment involves quantum uncertainty, the result is in a superposition until the box is opened and observed, no matter what else is in the box. [...] [4:49] That's the beauty of quantum mechanics. It forces us, it’s a huge cultural revolution, to rethink what is reality from scratch. [4:55] Quantum superposition doesn't pose any actual danger to cats or to the human beings who love them. In fact, we can use superposition to our advantage in our technology. [5:05] In quantum computing superposition is how a qubit, a quantum bit can be both one and zero at the same time."
+        }
+      ]
+    },
+    {
+      "id": "src-8",
+      "title": "5 Concepts Can Help You Understand Quantum Mechanics and Technology — Without Math! | NIST",
+      "url": "https://www.nist.gov/blogs/taking-measure/5-concepts-can-help-you-understand-quantum-mechanics-and-technology-without",
+      "authority": "other",
+      "passages": [
+        {
+          "id": "src-8-p1",
+          "label": "extracted",
+          "text": "You can imagine superposition as being similar to a pendulum swinging between positions (one at the far left and one at the far right). When oscillating, the pendulum is at neither position but oscillating from one position to the other. The “swinging” back and forth between the platforms is the oscillation that forms the clock signal, just like the oscillation of a pendulum, just way faster! ### Heisenberg Uncertainty Principle in Measurement [...] Likewise, \"wave-particle duality\", also known as \"wave-particle complementarity, is a long obsolete idea; superposition doesn't mean \"ontic and\"; the HUP is (firstly) about the intrinsic uncertainty in quantum systems rather than about uncertainty caused by measurement disturbance (); and other than in \"hidden variable\" alternative theories to QM, entanglement doesn't entail instantaneous influence (not even the non-signaling kind)."
+        },
+        {
+          "id": "src-8-p2",
+          "label": "extracted",
+          "text": "[...] animated gif showing superposition by using skateboarders. ## Superposition in action Superposition is extremely useful in quantum technologies. For instance, superposition is used to make atoms oscillate in atomic clocks. It’s also important to note that physicists have quite a bit of control over superposition in well-controlled systems like atomic clocks. Physicists can control the atom to be in one electronic state or another. Or they can create a superposition of both states."
+        }
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "text": "Between measurements, a quantum system exists in all possible superposed states simultaneously.",
+      "passageIds": [
+        "src-1-p1"
+      ],
+      "sourceIds": [
+        "src-1"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-1"
+    },
+    {
+      "text": "Upon measurement, the quantum system is found to occupy a definite state.",
+      "passageIds": [
+        "src-1-p1"
+      ],
+      "sourceIds": [
+        "src-1"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-2"
+    },
+    {
+      "text": "After measurement, the quantum fidelity becomes unity for the definite state and zero for other states in the superposition.",
+      "passageIds": [
+        "src-1-p1"
+      ],
+      "sourceIds": [
+        "src-1"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-3"
+    },
+    {
+      "text": "The observer assigns weighted probabilities based on overlap before measurement due to ignorance.",
+      "passageIds": [
+        "src-1-p2"
+      ],
+      "sourceIds": [
+        "src-1"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-6"
+    },
+    {
+      "text": "Measuring a quantum state forces it to be in one of the measurement outcomes, such as raw or burnt, due to the disruptive nature of measurement.",
+      "passageIds": [
+        "src-2-p1"
+      ],
+      "sourceIds": [
+        "src-2"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-7"
+    },
+    {
+      "text": "In quantum mechanics, measurement causes the superposition to collapse into a definite state.",
+      "passageIds": [
+        "src-2-p1"
+      ],
+      "sourceIds": [
+        "src-2"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-8"
+    },
+    {
+      "text": "Before measurement, a cake can be described as being in a superposition of raw and burnt states.",
+      "passageIds": [
+        "src-2-p2"
+      ],
+      "sourceIds": [
+        "src-2"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-9"
+    },
+    {
+      "text": "A superposition state is formed by adding together multiple states, such as |raw⟩ and |burnt⟩.",
+      "passageIds": [
+        "src-2-p2"
+      ],
+      "sourceIds": [
+        "src-2"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-10"
+    },
+    {
+      "text": "When measuring quantum objects in identical superposition states, different outcomes are observed with various probabilities.",
+      "passageIds": [
+        "src-2-p1"
+      ],
+      "sourceIds": [
+        "src-2"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-11"
+    },
+    {
+      "text": "Subsequent measurements on the same system yield the same outcome after the first measurement.",
+      "passageIds": [
+        "src-2-p1"
+      ],
+      "sourceIds": [
+        "src-2"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-12"
+    },
+    {
+      "text": "The act of checking if a cake is raw or burnt with a toothpick is a disruptive measurement process.",
+      "passageIds": [
+        "src-2-p1"
+      ],
+      "sourceIds": [
+        "src-2"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-13"
+    },
+    {
+      "text": "The symbols |raw⟩ and |burnt⟩ represent undercooked and overcooked cake states, respectively.",
+      "passageIds": [
+        "src-2-p2"
+      ],
+      "sourceIds": [
+        "src-2"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-14"
+    },
+    {
+      "text": "An eigenvector for a mathematical operator satisfies the equation where the operator acting on the eigenvector equals a scalar times the eigenvector.",
+      "passageIds": [
+        "src-3-p1"
+      ],
+      "sourceIds": [
+        "src-3"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-15"
+    },
+    {
+      "text": "The scalar in the eigenvector equation represents a possible measured value of the observable associated with the operator.",
+      "passageIds": [
+        "src-3-p1"
+      ],
+      "sourceIds": [
+        "src-3"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-16"
+    },
+    {
+      "text": "A quantum system can be expressed as a superposition of eigenvectors, each corresponding to a possible measurement result.",
+      "passageIds": [
+        "src-3-p1"
+      ],
+      "sourceIds": [
+        "src-3"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-17"
+    },
+    {
+      "text": "The probabilities of finding a qubit in the |0⟩ or |1⟩ state are given by the squared magnitudes of their coefficients.",
+      "passageIds": [
+        "src-3-p1"
+      ],
+      "sourceIds": [
+        "src-3"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-18"
+    },
+    {
+      "text": "Before measurement, a qubit exists in a superposition of both |0⟩ and |1⟩ states.",
+      "passageIds": [
+        "src-3-p1"
+      ],
+      "sourceIds": [
+        "src-3"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-19"
+    },
+    {
+      "text": "A qubit can be in a superposition of the basis states |0⟩ and |1⟩.",
+      "passageIds": [
+        "src-4-p1"
+      ],
+      "sourceIds": [
+        "src-4"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-23"
+    },
+    {
+      "text": "When a qubit is measured, it collapses to one of its eigenstates and the measured value reflects that state.",
+      "passageIds": [
+        "src-4-p1"
+      ],
+      "sourceIds": [
+        "src-4"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-24"
+    },
+    {
+      "text": "For a qubit in an equal-weight superposition state, measurement collapses it to |0⟩ or |1⟩ with equal 50% probability.",
+      "passageIds": [
+        "src-4-p1"
+      ],
+      "sourceIds": [
+        "src-4"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-25"
+    },
+    {
+      "text": "One property distinguishing a qubit from a classical bit is its ability to be in superposition.",
+      "passageIds": [
+        "src-4-p1"
+      ],
+      "sourceIds": [
+        "src-4"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-26"
+    },
+    {
+      "text": "Superposition is a fundamental principle of quantum mechanics.",
+      "passageIds": [
+        "src-4-p1"
+      ],
+      "sourceIds": [
+        "src-4"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-27"
+    },
+    {
+      "text": "A quantum state in superposition can be seen as a linear combination of other distinct quantum states.",
+      "passageIds": [
+        "src-4-p2"
+      ],
+      "sourceIds": [
+        "src-4"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-28"
+    },
+    {
+      "text": "When two qubits are entangled, there exists a special connection between them.",
+      "passageIds": [
+        "src-4-p2"
+      ],
+      "sourceIds": [
+        "src-4"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-29"
+    },
+    {
+      "text": "The outcome of measuring one entangled qubit is always correlated to the measurement of the other, even when separated by large distance.",
+      "passageIds": [
+        "src-4-p2"
+      ],
+      "sourceIds": [
+        "src-4"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-30"
+    },
+    {
+      "text": "Measurement of a quantum state yields a single result with a probability determined by the superposition.",
+      "passageIds": [
+        "src-5-p1"
+      ],
+      "sourceIds": [
+        "src-5"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-31"
+    },
+    {
+      "text": "The act of measurement typically destroys the superposition state.",
+      "passageIds": [
+        "src-5-p1"
+      ],
+      "sourceIds": [
+        "src-5"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-32"
+    },
+    {
+      "text": "Quantum state tomography is a technique to reconstruct a quantum state from multiple measurements.",
+      "passageIds": [
+        "src-5-p1"
+      ],
+      "sourceIds": [
+        "src-5"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-33"
+    },
+    {
+      "text": "Weak measurement allows for partial extraction of information without fully collapsing the superposition.",
+      "passageIds": [
+        "src-5-p1"
+      ],
+      "sourceIds": [
+        "src-5"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-34"
+    },
+    {
+      "text": "A superposition state is a linear combination of basis states.",
+      "passageIds": [
+        "src-5-p1"
+      ],
+      "sourceIds": [
+        "src-5"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-35"
+    },
+    {
+      "text": "Each component state in a superposition has an associated complex probability amplitude.",
+      "passageIds": [
+        "src-5-p1"
+      ],
+      "sourceIds": [
+        "src-5"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-36"
+    },
+    {
+      "text": "Measuring a superposition forces it into one of its component states.",
+      "passageIds": [
+        "src-5-p1"
+      ],
+      "sourceIds": [
+        "src-5"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-37"
+    },
+    {
+      "text": "Qubits can exist in a superposition of |0⟩ and |1⟩ states.",
+      "passageIds": [
+        "src-5-p2"
+      ],
+      "sourceIds": [
+        "src-5"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-38"
+    },
+    {
+      "text": "The quantum state is represented by an abstract basis-independent vector (ket) in quantum mechanics.",
+      "passageIds": [
+        "src-6-p1"
+      ],
+      "sourceIds": [
+        "src-6"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-39"
+    },
+    {
+      "text": "A wave function is obtained only when the quantum state vector is expanded in a specific basis derived from the eigenfunctions of a measurement operator.",
+      "passageIds": [
+        "src-6-p1"
+      ],
+      "sourceIds": [
+        "src-6"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-40"
+    },
+    {
+      "text": "Wave functions represent a superposition of possible measurement outcomes.",
+      "passageIds": [
+        "src-6-p1"
+      ],
+      "sourceIds": [
+        "src-6"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-41"
+    },
+    {
+      "text": "Measurement is not a separate process from other natural processes, contrary to the standard Dirac-style presentation in most quantum mechanics textbooks.",
+      "passageIds": [
+        "src-6-p1"
+      ],
+      "sourceIds": [
+        "src-6"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-42"
+    },
+    {
+      "text": "The standard use of an abstract vector for the wave function and an abstract projection operator for measurement favors mathematical formalism over physical explanation.",
+      "passageIds": [
+        "src-6-p1"
+      ],
+      "sourceIds": [
+        "src-6"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-43"
+    },
+    {
+      "text": "The measurement device should be considered part of the abstract vector and must be explained in physical terms.",
+      "passageIds": [
+        "src-6-p2"
+      ],
+      "sourceIds": [
+        "src-6"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-44"
+    },
+    {
+      "text": "If one knows that either (HL NL) or (HR NR) is true, then the state is determined even without performing a measurement.",
+      "passageIds": [
+        "src-6-p2"
+      ],
+      "sourceIds": [
+        "src-6"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-45"
+    },
+    {
+      "text": "No quantum interference will be observed when joining two boxes if the quantum state contained only one possibility at all times, even if unknown.",
+      "passageIds": [
+        "src-6-p2"
+      ],
+      "sourceIds": [
+        "src-6"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-46"
+    },
+    {
+      "text": "Superpositions are a way of talking about quantum uncertainty.",
+      "passageIds": [
+        "src-7-p1"
+      ],
+      "sourceIds": [
+        "src-7"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-47"
+    },
+    {
+      "text": "In quantum mechanics, we cannot know any property of a particle with 100% certainty.",
+      "passageIds": [
+        "src-7-p1"
+      ],
+      "sourceIds": [
+        "src-7"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-48"
+    },
+    {
+      "text": "If we cannot say whether a particle is in one location or another, then for all practical purposes, it is in both places at the same time.",
+      "passageIds": [
+        "src-7-p1"
+      ],
+      "sourceIds": [
+        "src-7"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-49"
+    },
+    {
+      "text": "The prevailing interpretation at the time was that any isolated quantum system is always in a superposition until it interacts with the outside world.",
+      "passageIds": [
+        "src-7-p1"
+      ],
+      "sourceIds": [
+        "src-7"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-50"
+    },
+    {
+      "text": "As long as an experiment involves quantum uncertainty, the result remains in a superposition until the box is opened and observed, regardless of other contents in the box.",
+      "passageIds": [
+        "src-7-p2"
+      ],
+      "sourceIds": [
+        "src-7"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-51"
+    },
+    {
+      "text": "Quantum superposition does not pose any actual danger to cats or humans.",
+      "passageIds": [
+        "src-7-p2"
+      ],
+      "sourceIds": [
+        "src-7"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-52"
+    },
+    {
+      "text": "Superposition can be used to our advantage in technology.",
+      "passageIds": [
+        "src-7-p2"
+      ],
+      "sourceIds": [
+        "src-7"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-53"
+    },
+    {
+      "text": "In quantum computing, superposition allows a qubit to be both one and zero at the same time.",
+      "passageIds": [
+        "src-7-p2"
+      ],
+      "sourceIds": [
+        "src-7"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-54"
+    },
+    {
+      "text": "Superposition can be visualized as a pendulum oscillating between two positions, similar to how a clock signal is formed by oscillation.",
+      "passageIds": [
+        "src-8-p1"
+      ],
+      "sourceIds": [
+        "src-8"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-55"
+    },
+    {
+      "text": "The Heisenberg Uncertainty Principle is primarily about intrinsic uncertainty in quantum systems, not uncertainty caused by measurement disturbance.",
+      "passageIds": [
+        "src-8-p1"
+      ],
+      "sourceIds": [
+        "src-8"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-56"
+    },
+    {
+      "text": "Wave-particle duality is a long-obsolete idea and superposition does not mean 'ontic and'.",
+      "passageIds": [
+        "src-8-p1"
+      ],
+      "sourceIds": [
+        "src-8"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-57"
+    },
+    {
+      "text": "Superposition is used in quantum technologies to make atoms oscillate in atomic clocks.",
+      "passageIds": [
+        "src-8-p2"
+      ],
+      "sourceIds": [
+        "src-8"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-59"
+    },
+    {
+      "text": "Physicists have significant control over superposition in well-controlled systems like atomic clocks.",
+      "passageIds": [
+        "src-8-p2"
+      ],
+      "sourceIds": [
+        "src-8"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-60"
+    },
+    {
+      "text": "Physicists can control an atom to be in one electronic state or another, or create a superposition of both states.",
+      "passageIds": [
+        "src-8-p2"
+      ],
+      "sourceIds": [
+        "src-8"
+      ],
+      "status": "supported",
+      "id": "claim-quantum-superposition-an-61"
+    }
+  ],
+  "passages": [
+    {
+      "id": "src-1-p1",
+      "text": "Quantum superpositions and the measurement problem 5 system, in between measurements, simultaneously ex-ist in all possible superposed states in the quantum en-semble. When the measurement is made, the system is found to occupy a deﬁnite state, either it being the state preparation or any of the members of the quan-tum ensemble. At this instant, the quantum ﬁdelity is updated to unity for the deﬁnite state and to zero for the other states in the superposition. This is no diﬀerent as compared to [...] (will be inserted by the editor) Quantum superpositions and the measurement problem Andreas Henriksson To Birthe Received: date / Accepted: date Abstract The measurement problem is addressed from the viewpoint that it is the distinguishability between the state preparation and its quantum ensemble, i.e.",
+      "url": "http://philsci-archive.pitt.edu/18904/1/cat.pdf",
+      "sourceId": "src-1"
+    },
+    {
+      "id": "src-1-p2",
+      "text": "the set of states with which it has a non-zero overlap, that is at the heart of the diﬀerence between classical and quantum measurements. The measure for the degree of distinguishability between [...] The same is true for the superposition of states in quan-tum mechanics. The problem of wave-function collapse, i.e. how a deﬁnite state of the system can be realized upon measurement when the system supposedly ’exist’ in a superposition of states before measurement, is thus seen to not constitute a problem at all. The observer is ignorant before the measurement is made and hence assign weighted probabilities, depending on the overlap between the state preparation and the members of the quantum",
+      "url": "http://philsci-archive.pitt.edu/18904/1/cat.pdf",
+      "sourceId": "src-1"
+    },
+    {
+      "id": "src-2-p1",
+      "text": "This model, though bizarre to our classical intuition, completely explains the result of real-life experiments: when measuring quantum objects prepared in identical superposition states, we find different outcomes with various probabilities and subsequent measurements yield the same outcome. Can you come up with another model — another description of what is happening — that is consistent with the experimental results? [...] How is it then that we measure the cake to be in different states (raw/burnt) with some probability? Another subtly lies in the word “measure.” In quantum mechanics, measuring a state (e.g. checking if the cake is raw or burnt with a toothpick) is a disruptive process. Measuring a state changes, i.e. forces, the state to be in one of the measurement outcomes: either |raw⟩ or |burnt⟩. In other words, we say that measurement “collapses” the superposition.",
+      "url": "https://www.hqi-blog.com/guides/quantum-explainers/chapter-1-superposition-and-measurement",
+      "sourceId": "src-2"
+    },
+    {
+      "id": "src-2-p2",
+      "text": "[...] In the language of quantum mechanics, right before we open the oven to check if the cakes are properly baked, we describe the condition of a cake as being in a superposition of raw and burnt. The term “superposition” means obtaining a new state by adding together multiple states. If we use the symbol |raw⟩ to represent an undercooked cake and the symbol |burnt⟩ to represent an overcooked cake, then the superposition state that we have prepared is:",
+      "url": "https://www.hqi-blog.com/guides/quantum-explainers/chapter-1-superposition-and-measurement",
+      "sourceId": "src-2"
+    },
+    {
+      "id": "src-3-p1",
+      "text": "Other transformations express a quantum solution as a superposition of eigenvectors, each corresponding to a possible result of a measurement on the quantum system. An eigenvector {\\displaystyle \\psi _{i}} for a mathematical operator, {\\displaystyle {\\hat {A}}}, has the equation {\\displaystyle {\\hat {A}}\\psi _{i}=\\lambda _{i}\\psi _{i}} where {\\displaystyle \\lambda _{i}} is one possible measured quantum value for the observable {\\displaystyle A}. A superposition of these eigenvectors can [...] the system in the {\\displaystyle |0\\rangle } or {\\displaystyle |1\\rangle } state are given by {\\displaystyle |c_{0}|^{2}} and {\\displaystyle |c_{1}|^{2}} respectively (see the Born rule). Before the measurement occurs the qubit is in a superposition of both states.",
+      "url": "https://en.wikipedia.org/wiki/Quantum_superposition",
+      "sourceId": "src-3"
+    },
+    {
+      "id": "src-3-p2",
+      "text": "[...] | Fundamentals Bra–ket notation Complementarity \"Complementarity (physics)\") Entanglement Energy level Hamiltonian \"Hamiltonian (quantum mechanics)\") Measurement Nonlocality Quantum number State Superposition Symmetry Tunnelling Uncertainty Wave function + Collapse | | Experiments Bell's inequality Davisson–Germer Double-slit Elitzur–Vaidman Franck–Hertz Mach–Zehnder Delayed-choice quantum eraser Stern–Gerlach Rutherford |",
+      "url": "https://en.wikipedia.org/wiki/Quantum_superposition",
+      "sourceId": "src-3"
+    },
+    {
+      "id": "src-4-p1",
+      "text": "Qubits can be in a superposition of both the basis states ∣0⟩ and ∣1⟩. When a qubit is measured (to be more precise: only observables can be measured), the qubit will collapse to one of its eigenstates and the measured value will reflect that state. For example, when a qubit is in a superposition state of equal weights, a measurement will make it collapse to one of its two basis states ∣0⟩ and ∣1⟩ with an equal probability of 50%. ∣0⟩ is the state that when measured, and therefore collapsed, [...] One of the properties that sets a qubit apart from a classical bit is that it can be in superposition. Superposition is one of the fundamental principles of quantum mechanics. In classical physics, a wave describing a musical tone can be seen as several waves with different frequencies that are added together, superposed.",
+      "url": "https://www.quantum-inspire.com/kbase/superposition-and-entanglement",
+      "sourceId": "src-4"
+    },
+    {
+      "id": "src-4-p2",
+      "text": "Similarly, a quantum state in superposition can be seen as a linear combination of other distinct quantum states. This quantum state in superposition forms a new valid quantum [...] When two qubits are entangled there exists a special connection between them. The entanglement will become clear from the results of measurements. The outcome of the measurements on the individual qubits could be 0 or 1. However, the outcome of the measurement on one qubit will always be correlated to the measurement on the other qubit. This is always the case, even if the particles are separated from each other by a large distance. Examples of such states are the Bell states.",
+      "url": "https://www.quantum-inspire.com/kbase/superposition-and-entanglement",
+      "sourceId": "src-4"
+    },
+    {
+      "id": "src-5-p1",
+      "text": "Probabilistic Outcomes: Measurement yields a single result with a probability based on the superposition State Collapse: The act of measurement typically destroys the superposition Quantum State Tomography: Technique to reconstruct a quantum state from multiple measurements Weak Measurement: Allows for partial extraction of information without fully collapsing the superposition ## Frequently Asked Questions About Superposition [...] Linear Combination: A superposition state is a linear combination of basis states Probability Amplitudes: Each component state has an associated complex probability amplitude Collapse upon Measurement: Measuring a superposition forces it into one of its component states Quantum Entanglement: Superposition is closely related to entanglement in multi-particle systems ## Superposition in Quantum Computing [...] Qubit Representation: Qubits can exist in a superpo",
+      "url": "https://www.quandela.com/resources/quantum-computing-glossary/quantum-superposition",
+      "sourceId": "src-5"
+    },
+    {
+      "id": "src-5-p2",
+      "text": "sition of |0⟩ and |1⟩ states Quantum Algorithms: It is a key ingredient in quantum speedup in algorithms like Grover’s search and Shor’s algorithm Quantum Interference: Different components of a superposition can interfere with each other to amplify the probability of correct outcomes Quantum Gates: Many quantum gates create or manipulate superposition states ## Measurement and Superposition",
+      "url": "https://www.quandela.com/resources/quantum-computing-glossary/quantum-superposition",
+      "sourceId": "src-5"
+    },
+    {
+      "id": "src-6-p1",
+      "text": "This is not what I find in Quantum Mechanics textbooks. There is an abstract something called the “Quantum State” represented by a basis independent vector, a ket. Only when this vector is expanded in a specific basis derived from the eigenfunctions of a measurement operator can it be called a “wave function”. Then these wave functions are in a superposition of possible measurement outcomes. [...] The main place that I differ from the most common Dirac-style quantum mechanics textbooks (but not from some other presentations) is that “measurement” is not a separate process from other processes that occur in nature. The standard use of an abstract vector for the wave function and an abstract projection-operator for the measurement process seems to me to favor math over physics.",
+      "url": "https://profmattstrassler.com/2025/04/14/is-superposition-really-an-or",
+      "sourceId": "src-6"
+    },
+    {
+      "id": "src-6-p2",
+      "text": "Instead the measurement device should be within the abstract vector, and it must be explained, in physics [...] 1) If I know that either (HL NL) is true or (HR NR) is true, I know this is the case now even if I don’t do a measurement. I know that my friend could tell me which it was if I can just get ahold of him or her. No measurement is necessary. The experimental consequence is that if I join the two boxes as in Fig. 6, no quantum interference will be observed, because the quantum state contained only one possibility (even though I didn’t know which it was) at all times.",
+      "url": "https://profmattstrassler.com/2025/04/14/is-superposition-really-an-or",
+      "sourceId": "src-6"
+    },
+    {
+      "id": "src-7-p1",
+      "text": "[1:04] Add up all those paths and you get something that looks like a wave. [1:07] In a sense, superpositions are just a way of talking about quantum uncertainty. In quantum mechanics, we can't know any property of a particle with 100% certainty. [1:17] Not because our measurements aren't good enough, but because quantum mechanics simply doesn't allow it. [1:23] So if we can't say if the particle is over here or over here, then for all practical purposes, it's in both places at the same time. [...] [2:18] The prevailing interpretation at the time was that any isolated quantum system is always in a superposition up until the moment it interacts with the world outside. [2:27] You could do an experiment inside a sealed box.",
+      "url": "https://www.youtube.com/watch?v=IHDMJqJHCQg",
+      "sourceId": "src-7"
+    },
+    {
+      "id": "src-7-p2",
+      "text": "[2:30] And as long as the experiment involves quantum uncertainty, the result is in a superposition until the box is opened and observed, no matter what else is in the box. [...] [4:49] That's the beauty of quantum mechanics. It forces us, it’s a huge cultural revolution, to rethink what is reality from scratch. [4:55] Quantum superposition doesn't pose any actual danger to cats or to the human beings who love them. In fact, we can use superposition to our advantage in our technology. [5:05] In quantum computing superposition is how a qubit, a quantum bit can be both one and zero at the same time.",
+      "url": "https://www.youtube.com/watch?v=IHDMJqJHCQg",
+      "sourceId": "src-7"
+    },
+    {
+      "id": "src-8-p1",
+      "text": "You can imagine superposition as being similar to a pendulum swinging between positions (one at the far left and one at the far right). When oscillating, the pendulum is at neither position but oscillating from one position to the other. The “swinging” back and forth between the platforms is the oscillation that forms the clock signal, just like the oscillation of a pendulum, just way faster! ### Heisenberg Uncertainty Principle in Measurement [...] Likewise, \"wave-particle duality\", also known as \"wave-particle complementarity, is a long obsolete idea; superposition doesn't mean \"ontic and\"; the HUP is (firstly) about the intrinsic uncertainty in quantum systems rather than about uncertainty caused by measurement disturbance (); and other than in \"hidden variable\" alternative theories to QM, entanglement doesn't entail instantaneous influence (not even the non-signaling kind).",
+      "url": "https://www.nist.gov/blogs/taking-measure/5-concepts-can-help-you-understand-quantum-mechanics-and-technology-without",
+      "sourceId": "src-8"
+    },
+    {
+      "id": "src-8-p2",
+      "text": "[...] animated gif showing superposition by using skateboarders. ## Superposition in action Superposition is extremely useful in quantum technologies. For instance, superposition is used to make atoms oscillate in atomic clocks. It’s also important to note that physicists have quite a bit of control over superposition in well-controlled systems like atomic clocks. Physicists can control the atom to be in one electronic state or another. Or they can create a superposition of both states.",
+      "url": "https://www.nist.gov/blogs/taking-measure/5-concepts-can-help-you-understand-quantum-mechanics-and-technology-without",
+      "sourceId": "src-8"
+    }
+  ],
+  "contradictions": [],
+  "verify": {
+    "supported": 55,
+    "total": 61,
+    "sources": 8,
+    "flagged": 6,
+    "degraded": false
+  },
+  "hero": {
+    "conceptId": "quantum-state",
+    "ok": true,
+    "code": "<canvas id=c width=200 height=100></canvas><script>const c=document.getElementById('c'),x=c.getContext('2d');let t=0,measuring=false;function draw(){x.clearRect(0,0,200,100);x.fillStyle=measuring?'#f00':'#0f0';x.beginPath();x.arc(100,50,40,0,2*Math.PI);x.fill();x.fillStyle='#000';x.font='12px sans-serif';x.textAlign='center';x.fillText(measuring?'Burnt':'Raw',100,55);x.fillText('|ψ⟩ = a|raw⟩ + b|burnt⟩',100,80);if(!measuring){x.fillStyle='rgba(0,0,0,0.3)';x.beginPath();x.arc(100,50,40,0,2*Math.PI);x.fill();}}function step(){t+=0.02;if(t>Math.PI&&!measuring){measuring=true;t=0;}if(measuring&&t>1){measuring=false;t=0;}draw();requestAnimationFrame(step);}step();</script>",
+    "fallback": {
+      "template": "two-state-prob",
+      "values": {
+        "p_raw": 0.7,
+        "p_burnt": 0.3
+      },
+      "predictPrompt": "Before measurement, the system is in superposition |ψ⟩ = √0.7 |raw⟩ + √0.3 |burnt⟩. What is the probability of measuring 'raw'?"
+    }
+  }
+}

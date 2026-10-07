@@ -82,7 +82,7 @@ export async function runPlanStage(
   topic: string,
   level: CurriculumSpec["level"],
   sources: SourceRecord[],
-  opts: { timeoutMs?: number } = {},
+  opts: { timeoutMs?: number; signal?: AbortSignal } = {},
 ): Promise<PlanResult> {
   const t0 = Date.now();
   const result = await complete({
@@ -93,6 +93,7 @@ export async function runPlanStage(
     temperature: 0.3,
     maxTokens: 1200,
     timeoutMs: opts.timeoutMs ?? 45_000,
+    signal: opts.signal,
     rateLimit: { baseMs: 1500, maxRetries: 2 },
   });
   const latencyMs = Date.now() - t0;

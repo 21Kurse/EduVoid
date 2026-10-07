@@ -6,7 +6,9 @@
  * generations complete; the activity panel tracks every stage.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { runLiveGeneration } from "@/lib/live-client";
+import { runLiveGeneration, TopicRefusedError } from "@/lib/live-client";
+import { cachedLessonView, getCachedLesson, isDemoTopic, type CachedLesson } from "@/lib/cached-run";
+import { CachedRunBanner, TopicRefusedPanel } from "./lesson-notices";
 import type { PipelineEvent } from "@/lib/pipeline-events";
 import { curriculumSpecSchema, type Concept, type CurriculumSpec } from "@/lib/spec";
 import type { SourceResult } from "@/lib/source";
@@ -35,6 +37,8 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
   const [hero, setHero] = useState<{ conceptId: string; code: string; fallback: HeroFallback } | null>(null);
   const [done, setDone] = useState(false);
   const [highlightClaim, setHighlightClaim] = useState<string | null>(null);
+  const [cachedAt, setCachedAt] = useState<string | null>(null);
+  const [refused, setRefused] = useState<string | null>(null);
   const { state, selectConcept } = useLearningState();
   const specRef = useRef<CurriculumSpec | null>(null);
 
@@ -55,6 +59,49 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
   const push = useCallback((m: string) => {
     setMessages((ms) => [...ms.slice(-30), m]);
   }, []);
+
+  // T14 demo-safe fallback (§7): ONLY on live failure, ONLY the demo topic,
+  // always labeled "cached run". Fills every state slot the live stream would
+  // have filled, so the scheduler never issues a live request afterwards.
+  const applyCachedLesson = useCallback(
+    (lesson: CachedLesson) => {
+      const v = cachedLessonView(lesson);
+      specRef.current = v.spec;
+      setSpec(v.spec);
+      setSources(v.sources);
+      setClaims(v.claims);
+      setPassages(v.passages);
+      setContradictions(v.contradictions);
+      setVerify(v.verify);
+      setClaimsRejected(v.flagged);
+      if (v.hero) setHero(v.hero);
+      setConceptStatus(v.conceptStatus);
+      if (v.selectedConceptId) selectConcept(v.selectedConceptId);
+      setStage("done");
+      setDone(true);
+      setCachedAt(lesson.capturedAt);
+      push("Live generation unavailable — loaded the cached run");
+    },
+    [push, selectConcept],
+  );
+
+  // T14: one fallback attempt per mounted lesson. Any live failure — a
+  // thrown fetch error or a streamed `error` event — falls back to the cached
+  // demo run for the demo topic, and to the normal error state otherwise.
+  const fellBackRef = useRef(false);
+  const failOrFallback = useCallback(
+    (detail: string) => {
+      if (fellBackRef.current) return;
+      fellBackRef.current = true;
+      const lesson = isDemoTopic(topic) ? getCachedLesson() : null;
+      if (lesson) {
+        applyCachedLesson(lesson);
+        return;
+      }
+      onFail(detail);
+    },
+    [topic, applyCachedLesson, onFail],
+  );
 
   // G3 F4: lazy per-concept generation (open + next prefetch, abort on
   // switch, cached concepts never re-requested).
@@ -108,7 +155,7 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
             const issue = parsed.error.issues[0];
             const detail = `skeleton failed validation: ${issue?.path.join(".")} ${issue?.message}`;
             console.error(detail, parsed.error.issues);
-            onFail(detail);
+            failOrFallback(detail);
           }
           break;
         }
@@ -158,7 +205,7 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
           break;
         case "error":
           push(`ERROR: ${e.detail}`);
-          onFail(e.detail);
+          failOrFallback(e.detail);
           break;
         case "done":
           setDone(true);
@@ -166,7 +213,7 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
           break;
       }
     },
-    [topic, push, selectConcept, onFail, patchConcept, buildScheduler, openConcept],
+    [topic, push, selectConcept, failOrFallback, patchConcept, buildScheduler, openConcept],
   );
 
   // Kick off generation exactly once per mounted lesson (run-once effect;
@@ -176,7 +223,12 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
     if (startedRef.current) return;
     startedRef.current = true;
     runLiveGeneration(topic, onEvent).catch((e: unknown) => {
-      onFail(e instanceof Error ? e.message : String(e));
+      if (e instanceof TopicRefusedError) {
+        // §13.9: friendly refusal — never a generic failure, never a lesson.
+        setRefused(e.message);
+        return;
+      }
+      failOrFallback(e instanceof Error ? e.message : String(e));
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -214,9 +266,12 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
       <ClaimsPanel claims={selectedConcept.claims} allClaims={claims} contradictions={contradictions} passages={passages} sources={sources} highlightClaim={highlightClaim} variant={variant} />
     ) : null;
 
+  if (refused) return <TopicRefusedPanel topic={topic} message={refused} />;
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <LessonHeader topic={topic} done={done} />
+      <LessonHeader topic={topic} done={done} cached={Boolean(cachedAt)} />
+      {cachedAt && <CachedRunBanner capturedAt={cachedAt} />}
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <LessonMap spec={spec} stage={stage} learning={state} onSelect={onSelect} feed={feed} />
         <div className="min-h-0 flex-1 overflow-y-auto lg:max-w-[52%] lg:border-l lg:border-border-subtle lg:bg-white">

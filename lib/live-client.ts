@@ -7,6 +7,20 @@
 import type { PipelineEvent } from "./pipeline-events";
 import type { Concept } from "./spec";
 
+/**
+ * Thrown when the server refused the topic on safety grounds (§13.9). The UI
+ * renders a friendly panel instead of a generic failure, and no lesson is
+ * generated.
+ */
+export class TopicRefusedError extends Error {
+  readonly category: string;
+  constructor(message: string, category: string) {
+    super(message);
+    this.name = "TopicRefusedError";
+    this.category = category;
+  }
+}
+
 export async function runLiveGeneration(
   topic: string,
   onEvent: (e: PipelineEvent) => void,
@@ -20,12 +34,17 @@ export async function runLiveGeneration(
   });
   if (!res.ok || !res.body) {
     let detail = `HTTP ${res.status}`;
+    let refused: { message: string; category: string } | null = null;
     try {
-      const j = (await res.json()) as { error?: string };
+      const j = (await res.json()) as { error?: string; refused?: boolean; category?: string };
       if (j.error) detail = j.error;
+      if (j.refused) {
+        refused = { message: j.error ?? detail, category: j.category ?? "harm" };
+      }
     } catch {
       // keep the HTTP status detail
     }
+    if (refused) throw new TopicRefusedError(refused.message, refused.category);
     throw new Error(detail);
   }
   const reader = res.body.getReader();
@@ -67,11 +86,14 @@ export async function retryConcept(
     ok?: boolean;
     concept?: { components: Concept["components"]; claims?: Concept["claims"] };
     detail?: string;
+    error?: string;
   };
   return {
     ok: Boolean(j.ok),
     components: j.concept?.components,
     claims: j.concept?.claims,
-    detail: j.detail,
+    // Surface route-level errors (rate limit, refusal) so the UI never
+    // shows a silent, detail-less failure.
+    detail: j.detail ?? j.error,
   };
 }

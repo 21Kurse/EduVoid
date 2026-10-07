@@ -80,7 +80,7 @@ function summarize(claims: ExtractedClaim[]): VerifySummary {
 
 export async function runVerifyStage(
   sourceResult: Pick<SourceResult, "claims"> & { passages: Passage[] },
-  opts: { timeoutMs?: number; batchSize?: number; concurrency?: number } = {},
+  opts: { timeoutMs?: number; batchSize?: number; concurrency?: number; signal?: AbortSignal } = {},
 ): Promise<VerifyResult> {
   const t0 = Date.now();
   const passageMap = new Map(sourceResult.passages.map((p) => [p.id, p.text]));
@@ -114,6 +114,7 @@ export async function runVerifyStage(
       temperature: 0,
       maxTokens: 800,
       timeoutMs: opts.timeoutMs ?? 45_000,
+      signal: opts.signal,
       rateLimit: { baseMs: 1500, maxRetries: 2 },
     });
     if (!r.ok) {

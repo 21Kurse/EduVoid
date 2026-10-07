@@ -7,7 +7,7 @@
  */
 
 import { extractJson } from "./extract.ts";
-import { envTransport, HttpError, modelForRole } from "./transport.ts";
+import { envTransport, HttpError, modelForRole, structuredBodyExtras } from "./transport.ts";
 import type {
   ChatResponse,
   CompleteInput,
@@ -16,7 +16,7 @@ import type {
   TokenUsage,
 } from "./types.ts";
 
-export { HttpError, modelForRole, openAiCompatibleTransport } from "./transport.ts";
+export { HttpError, modelForRole, openAiCompatibleTransport, structuredBodyExtras } from "./transport.ts";
 export { extractJson } from "./extract.ts";
 export type {
   ChatRequest,
@@ -118,8 +118,11 @@ export async function complete<T>(input: CompleteInput<T>): Promise<CompleteResu
         messages,
         temperature: input.temperature,
         maxTokens: input.maxTokens,
-        bodyExtras: input.bodyExtras,
+        // T14: keep structured calls out of the reasoning channel so JSON is
+        // returned directly (see structuredBodyExtras).
+        bodyExtras: structuredBodyExtras(Boolean(input.schema), input.bodyExtras),
         timeoutMs: input.timeoutMs,
+        signal: input.signal,
       });
     } catch (e) {
       // Retry only on 429/5xx, with exponential backoff, within a separate

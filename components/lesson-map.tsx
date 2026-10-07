@@ -10,13 +10,20 @@ import type { LearningState } from "@/lib/store";
 import { ActivityPanel, type ActivityFeed } from "./activity-panel";
 import { Mindmap } from "./mindmap";
 
-/** Full-width lesson header: topic + live badge (kept here for size). */
-export function LessonHeader({ topic, done }: { topic: string; done: boolean }) {
+/**
+ * Full-width lesson header: topic + status badge (kept here for size).
+ * `cached` must be set whenever the cached demo run is on screen, so the
+ * badge never claims live generation (§7, §15.3).
+ */
+export function LessonHeader({ topic, done, cached = false }: { topic: string; done: boolean; cached?: boolean }) {
   return (
     <div className="flex items-center gap-2 border-b border-border-subtle px-4 py-2 text-[12px]">
       <span className="font-medium text-zinc-700">{topic}</span>
-      <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-700" data-testid="live-badge">
-        live generation{done ? " · ready" : " · running"}
+      <span
+        className={`rounded-full px-2 py-0.5 ${cached ? "bg-amber-50 text-amber-800" : "bg-emerald-50 text-emerald-700"}`}
+        data-testid={cached ? "cached-badge" : "live-badge"}
+      >
+        {cached ? "cached run · ready" : `live generation${done ? " · ready" : " · running"}`}
       </span>
     </div>
   );

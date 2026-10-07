@@ -114,17 +114,27 @@ export const edgeSchema = z.object({
   to: z.string().min(1),
 });
 
-export const curriculumSpecSchema = z
-  .object({
-    topic: z.string().min(1),
-    level: z.enum(LEVELS),
-    concepts: z.array(conceptSchema).min(1),
-    edges: z.array(edgeSchema),
-    // No min(1): live skeleton specs are parsed client-side before the
-    // sources/claims events have been merged (fixture runs supply full
-    // sources; live runs carry them as separate SSE events).
-    sources: z.array(sourceSchema),
-  })
+const curriculumSpecShape = z.object({
+  topic: z.string().min(1),
+  level: z.enum(LEVELS),
+  concepts: z.array(conceptSchema).min(1),
+  edges: z.array(edgeSchema),
+  // No min(1): live skeleton specs are parsed client-side before the
+  // sources/claims events have been merged (fixture runs supply full
+  // sources; live runs carry them as separate SSE events).
+  sources: z.array(sourceSchema),
+});
+
+/**
+ * Structure-only variant: identical to curriculumSpecSchema minus the global
+ * uniqueness / cross-reference refinement. Use it for already-merged runtime
+ * state, where the same verified claim may legitimately ground two concepts
+ * (each concept keeps its own copy), which the planner-facing uniqueness rule
+ * would reject. Pure planner output must still use curriculumSpecSchema.
+ */
+export const curriculumSpecLooseSchema = curriculumSpecShape;
+
+export const curriculumSpecSchema = curriculumSpecShape
   .superRefine((spec, ctx) => {
     // ---- Global ID uniqueness --------------------------------------------
     const seen = new Set<string>();

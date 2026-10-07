@@ -42,6 +42,14 @@ Infrastructure added while probing (all unit-tested): exponential backoff with a
 
 Local runtime note: `deepseek-ai/deepseek-v4.1-flash` hangs indefinitely on chat completions for this key (curl exit 28 at 45 s, no response); excluded. `nvidia/llama-3.1-nemotron-ultra-253b-v1`, `nemotron-nano-3-30b-a3b`, and several other listed models return 404 "Not found for account" — listed but not provisioned for this key; excluded.
 
+## Structured calls skip the reasoning channel (T14) — 2026-10-07
+
+The G1 spike measured `nvidia/nemotron-3-super-120b-a12b` at 10/10 valid JSON, but in sustained use the claims stage stalled: every per-source extraction returned 3.5-4.4 KB of *reasoning prose* in `message.content`, truncated at `max_tokens`, with no JSON anywhere (`[llm] unparseable output` on repeat). Root cause: the model spends its throughput on the thinking channel for structured prompts and is cut off before it emits the answer. A minimal probe confirmed that `chat_template_kwargs: {enable_thinking: false}` returns the JSON directly (`finish_reason: "stop"`, `reasoning_tokens: 0`); `reasoning_effort: "none"` also worked.
+
+**Decision:** `complete()` injects `chat_template_kwargs: {enable_thinking: false}` for every *schema* call (`structuredBodyExtras`, `lib/transport.ts`); explicit caller `bodyExtras` still win. Opt out with `LLM_DISABLE_THINKING=0` for a provider that rejects the field. Documented in `.env.example`.
+
+**Effect (real numbers):** claims extraction on the demo topic went **0 → 61 claims** (55/61 verified), and the demo-safe cached capture completed in a single run after two prior runs failed entirely on this. This is a deviation from a literal reading of §3 (which does not mention thinking suppression); it is a transport detail behind the provider-agnostic `complete()` interface, so swapping providers is still a one-line env change.
+
 ## Cut list
 
 - (empty — nothing cut yet)

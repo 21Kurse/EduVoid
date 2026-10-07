@@ -26,13 +26,18 @@ export class HttpError extends Error {
 export async function openAiCompatibleTransport(
   req: ChatRequest & { baseUrl: string; apiKey: string },
 ): Promise<ChatResponse> {
+  // Combine the per-attempt timeout with caller cancellation (T14): when the
+  // client aborts, the upstream request aborts instead of running to
+  // completion and spending provider budget.
+  const timeout = AbortSignal.timeout(req.timeoutMs ?? 120_000);
+  const signal = req.signal ? AbortSignal.any([timeout, req.signal]) : timeout;
   const res = await fetch(`${req.baseUrl.replace(/\/$/, "")}/chat/completions`, {
     method: "POST",
     headers: {
       "content-type": "application/json",
       authorization: `Bearer ${req.apiKey}`,
     },
-    signal: AbortSignal.timeout(req.timeoutMs ?? 120_000),
+    signal,
     body: JSON.stringify({
       model: req.model,
       temperature: req.temperature ?? 0.2,
@@ -71,6 +76,25 @@ export async function openAiCompatibleTransport(
       }
     : undefined;
   return { text, usage };
+}
+
+/**
+ * T14: the configured reasoning models (NVIDIA NIM nemotron) spend their whole
+ * completion budget on a reasoning channel for structured prompts, then return
+ * truncated prose with no JSON — observed as repeated "unparseable output" and
+ * a stalled claims stage. For schema calls we ask the chat template to skip
+ * thinking so the JSON comes back directly. Set LLM_DISABLE_THINKING=0 to opt
+ * out (e.g. a provider that rejects `chat_template_kwargs`).
+ */
+export function structuredBodyExtras(
+  hasSchema: boolean,
+  extras: Record<string, unknown> | undefined,
+): Record<string, unknown> | undefined {
+  const v = (process.env.LLM_DISABLE_THINKING ?? "").trim().toLowerCase();
+  const optedOut = v === "0" || v === "false" || v === "off" || v === "no";
+  if (!hasSchema || optedOut) return extras;
+  // Explicit caller extras win over the default (last spread).
+  return { chat_template_kwargs: { enable_thinking: false }, ...(extras ?? {}) };
 }
 
 export function envTransport(): ((req: ChatRequest) => Promise<ChatResponse>) | null {

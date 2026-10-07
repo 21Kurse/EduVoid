@@ -31,6 +31,12 @@ export type CompleteInput<T> = {
   rateLimit?: { baseMs?: number; maxRetries?: number };
   /** Per-attempt transport timeout (added for models that hang); ms. */
   timeoutMs?: number;
+  /**
+   * Caller cancellation (T14). When the client aborts its request we abort
+   * the in-flight provider call too, so an abandoned generation stops
+   * spending provider budget (§13.9).
+   */
+  signal?: AbortSignal;
 };
 
 export type CompleteOk<T> = {
@@ -70,6 +76,8 @@ export type ChatRequest = {
   bodyExtras?: Record<string, unknown>;
   /** Abort the attempt after this many ms (guards against hanging models). */
   timeoutMs?: number;
+  /** Caller cancellation; combined with the per-attempt timeout. */
+  signal?: AbortSignal;
 };
 
 export type ChatResponse = { text: string; usage?: TokenUsage };
