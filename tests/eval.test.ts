@@ -57,20 +57,41 @@ describe("eval mode (T13)", () => {
       ).toBeNull();
     });
 
-    it("bundled owner file: not a sample, equal non-empty parts, a transfer item in each", () => {
+    it("bundled file is the real external instrument, not a labelled sample", () => {
+      // The real file carries NO `notice` key; that key is what raises the SAMPLE banner in
+      // components/test-mode.tsx, so this asserts the banner stays off in the shipped app.
       expect(bundledQuestions).not.toHaveProperty("notice");
       expect(bundled.notice).toBeUndefined();
-      expect(bundled.pre.length).toBeGreaterThan(0);
-      expect(bundled.post.length).toBeGreaterThan(0);
+    });
+
+    it("bundled file: paired parts of 3+ items each with unique ids and in-range keys", () => {
+      expect(bundled.pre.length).toBeGreaterThanOrEqual(3);
+      expect(bundled.post.length).toBeGreaterThanOrEqual(3);
       expect(bundled.pre.length).toBe(bundled.post.length);
-      // Transfer items are marked in the id (see data/eval/procedure.md §1) so the prompt text
-      // stays verbatim from the source; each part needs at least one.
+
+      const ids = [...bundled.pre, ...bundled.post].map((q) => q.id);
+      expect(new Set(ids).size).toBe(ids.length);
+
+      for (const q of [...bundled.pre, ...bundled.post]) {
+        expect(q.kind).toBe("mcq");
+        expect(q.options.length).toBeGreaterThanOrEqual(2);
+        expect(q.prompt.trim().length).toBeGreaterThan(0);
+        expect(q.explanation.trim().length).toBeGreaterThan(0);
+        expect(Number.isInteger(q.answer)).toBe(true);
+        expect(q.answer).toBeGreaterThanOrEqual(0);
+        expect(q.answer).toBeLessThan(q.options.length);
+      }
+    });
+
+    it("both parts contain a transfer item (applying the idea to a new setup)", () => {
+      // Transfer items are marked in the id (see data/eval/procedure.md §3) so the prompt text
+      // stays the source's own; each part needs at least one.
       const isTransfer = (q: { id: string }) => /transfer/i.test(q.id);
       expect(bundled.pre.some(isTransfer)).toBe(true);
       expect(bundled.post.some(isTransfer)).toBe(true);
-      for (const part of [bundled.pre, bundled.post]) {
-        expect(new Set(part.map((q) => q.id)).size).toBe(part.length);
-      }
+      expect(bundled.pre.filter(isTransfer).length).toBe(
+        bundled.post.filter(isTransfer).length,
+      );
     });
   });
 

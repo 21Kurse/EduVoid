@@ -212,82 +212,17 @@ Idea **I2** · transfer: no · `Answer key per <URL above>` · quality: **weak**
 
 ---
 
-## 3. Coverage and counts
+## 3. Status: superseded on 2026-10-08
 
-**7 items met every stated requirement** (2 from NPTEL, 5 from Wikiversity), **below the 8–10 goal**:
+This survey counted only **already-multiple-choice items with a published key**, which capped the
+result at 7 items and left ideas I1, I3, I4 (and every transfer slot) empty. The shipped instrument
+therefore also **adapted** items into multiple choice from the same licence-checked artifacts — MIT
+OCW 8.04 published *solutions* (PS4, PS8) and the LibreTexts *Essential Graduate Physics* §10.1
+section — keeping each source's own answer as the key, per the task brief's adaptation rule. That
+filled I1, I3, I4 and both transfer slots.
 
-| Idea | Items | Notes |
-|---|---|---|
-| **I1** Born rule / measurement probabilities | **C1, C2** | Both from one NPTEL item family; near-duplicate stems; NC license; non-normalized state (key = |c|²) |
-| **I2** interference vs classical mixture | **C3, C4, C5, C6, C7** | C3 + C7 are self-contained; C4/C5/C6 are tied to a video file |
-| **I3** measurement and state update | **0** | See §5 — the only item found on this idea (Wikiversity "observer is present") publishes a meta-answer ("all of these arguments have been used, the validity of some are 'uncertain'"), which cannot be scored |
-| **I4** superposition vs mixed state | **0** | No compliant item found anywhere |
-| **Transfer items** | **0 clean** | C1/C2 are transfer-flavoured but require outside knowledge and are arguably "hard recall" |
-
-Recommended subset if the owner wants the safest 4: **C1, C2, C3, C7** (self-contained, no video).
-There is no compliant fifth self-contained item.
-
-## 4. Proposed pre/post split
-
-The eval file wants a `pre` array and a `post` array of equal size. Given the shortage, only two
-splits are defensible:
-
-**Option 1 — same items in both parts (recommended).** Put the recommended 4 (C1, C2, C3, C7) in
-**both** `pre` and `post`, with distinct `id`s (e.g. `nptel-3.2` and `nptel-3.2-post`). The schema
-(`lib/eval.ts`) does not require the two arrays to differ, and a same-item pre/post design is the
-standard way to measure gain. It avoids the fairness problem below and keeps n = 4 questions per part.
-
-**Option 2 — different items, 2 + 2 (only if the owner insists on different surface items):**
-
-| Part | Idea 1 slot | Idea 2 slot |
-|---|---|---|
-| `pre` | C1 (NPTEL 3.2) | C3 (diffraction mechanism, 5 options) |
-| `post` | C2 (NPTEL 3.3) | C7 (Taylor 1909) |
-
-Stated problems with Option 2, so they are on the record:
-
-- C1 and C2 share a stem, so the post-test partially measures memory of the pre-test.
-- C3 (explain a mechanism) and C7 (recall a historical result) are **not difficulty-matched** even
-  though both are "idea 2" — the pairing is thematic, not psychometric.
-- **No pairing exists for I3 or I4**, because no candidate item exists for either idea.
-- **No transfer pair exists**, so the "≥1 transfer item per set" requirement cannot be met from these
-  sources. The only transfer-flavoured items (C1/C2) require the harmonic-oscillator spectrum.
-
-## 5. What was searched and rejected (the failure log)
-
-| Source checked | Why it is not in the list |
-|---|---|
-| **OpenStax** (Physics / College Physics "Multiple Choice" pages, e.g. `openstax.org/books/physics/pages/21-multiple-choice`) | Excluded by rule: OpenStax pages carry an AI-use/ingestion restriction, so its items were not evaluated further. All OpenStax-derived Quizbank sets were excluded with it. |
-| **Wikiversity "OpenStax University Physics / Quizbank attribution"** | Noted as the reason OpenStax-derived Quizbank sets stay out: a search-result snippet of that page says the set "is licensed (CC BY-NC-SA) … Download for free at http://cnx.org/content/col12074/latest/". The page itself was not fetched in full. |
-| **MIT OpenCourseWare** (8.04 lectures 4 and 10, "clicker bonanza"; 8.05) | MCQs exist only inside lecture **videos/transcripts**; no static item + key artifact to copy verbatim. |
-| **OpenLearn / Open University** ("Introduction to quantum computing", quiz section 8) | The quiz *does* embed a key in the page HTML (`data-correctanswer="2"`, hidden feedback divs) and contains one Born-rule item — but its options are **typeset-math images** (not text), so they cannot be copied verbatim; the question was excluded. The site also served 403 to non-browser clients (needed the browser harness), and the fetched page footer showed "©1999-2026. All rights reserved. The Open University" with no course-level CC statement in the HTML → license could not be verified. |
-| **Wikiversity "Wave-particle duality quiz" — the "observer is present" item** (on I3) | Key is published as `+ While all of these arguments have been used, the validity of some are "uncertain"(pun intended).` — a meta-statement, not a gradeable answer. Excluded; this is the closest anything came to idea I3. |
-| **MDPI *Education Sciences* 14(10):1113** (QPCS validation, CC BY 4.0) | Paper prints item-level statistics and some keys in prose (Q12→a, Q13→b, Q22→a, Q24→b, Q25→c) but **not the item texts**; the instrument itself is not reproduced. Excluded. |
-| **arXiv 2608.14459 — "…Quantum Computing Conceptual Survey" (QCCS), License: CC BY 4.0** | The paper states its license as CC BY 4.0 (so it passed the license test) and it targets exactly I1–I4 in qubit language — but it **does not print the instrument items** (Appendices are assessment objectives, pilot population, CTT statistics). Excluded for lack of verbatim items. Worth revisiting if the authors release the instrument. |
-| **arXiv 2602.22388v3 — phase-kickback QCCS item paper** | License is the arXiv perpetual non-exclusive license (**not** an open CC/PD license), the item is reproduced as a **figure image** ("Correct response: 'b'"), and the topic (phase kickback) is not one of the four ideas. Excluded. |
-| **UNLV (J. Secrest) quantum-course PDFs incl. "Answer Table for the Multiple-Choice Questions"; Ole Miss PHYS 451 final (15 MCQs)** | Real QM MCQ sets with keys, but the pages checked carry **no license statement** → all-rights-reserved by default. Excluded. |
-| **e-PG Pathshala (MHRD, India)** | `https://epgp.inflibnet.ac.in/` returns **HTTP 401** (auth required); module PDFs not reachable → nothing could be fetched verbatim. Excluded. |
-| **LibreTexts** (ADAPT Commons, phys.libretexts.org) | ADAPT Commons is a JS app requiring a session; the MindTouch search API returns `missing required token`; no MCQ page with a published key on these four ideas was found. Excluded. |
-| **H5P Studio (eCampusOntario)** | Catalogue search found no quantum-superposition/measurement question set. Excluded. |
-| **PhET** ("Quantum Wave Interference" teaching resources) | Page returned no readable text; no clicker-question bank with a published key exists on the site. Excluded. |
-| **Physics Stack Exchange / Wikipedia / Wikibooks QM pages** | CC BY-SA but no MCQ-with-key artifacts (user Q&A and prose only). Excluded. |
-| **CUNY OER portal (`opened.cuny.edu`)** | Indexes CC BY-NC-SA physics courses (including an OCW "Quantum Physics III"), but the underlying artifacts are OCW/course pages without MCQ banks. Nothing fetched verbatim. Excluded. |
-
-Not caused by the rules, but worth recording: the **NPTEL course page itself is not reachable**
-(`archive.nptel.ac.in/courses/115102023/` → 404, `/content/storage2/courses/115102023/` → 403), so the
-course title/instructor for the NPTEL MCQ set is unverified.
-
-## 6. Decisions the owner now has to make
-
-1. **NC license (NPTEL, C1 + C2):** accept CC BY-NC-SA (share-alike + non-commercial) or drop them?
-   Dropping them leaves only idea I2 items.
-2. **The non-normalized state in C1/C2:** accept the source's convention (key = |c|²) or drop.
-3. **Idea I3 and I4 have no candidates** and there are **no transfer items** — either accept a
-   2-idea / 4-item test, or source those items another way (the most promising unfound candidates are
-   the QCCS instrument items if the authors publish them, and any university exam archive released
-   under CC BY).
-4. **Video-dependent items (C4, C5, C6):** use only if the lesson will show `Wave-particle duality.ogv`.
-5. **C7 provenance:** confirm it is not OpenStax-derived before publishing.
-6. Nothing here has been copied into `data/eval/questions.json`; that file still holds the labelled
-   2-question SAMPLE. If these candidates are adopted, the sample-specific assertions in
-   `tests/eval.test.ts` must be rewritten and `BLOCKERS.md` updated, as previously agreed.
+Final shipped set: **10 items, 5 pre + 5 post**, covering all four ideas; source, licence, key and
+pairing tables are in `data/eval/procedure.md`. Only the two Wikiversity item families from
+section 2 above were copied in unchanged; the NPTEL items (section 1) were **dropped** (see
+`procedure.md` §6 — non-normalised source state). Everything in section 5 remains the record of what
+was searched and why it is not in the file.

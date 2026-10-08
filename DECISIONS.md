@@ -69,6 +69,16 @@ The owner reviewed the live app and asked "how can we make it more interactive?"
 - **Not chosen (offered, declined):** mindmap/quiz/flashcard micro-interactions, and the diagnostic unlock flow (still Stretch S4).
 - **Freeze note:** §0/§12 set a feature freeze after T15 (2026-10-07) and the schedule gives Oct 8 to real-user sessions. This was an explicit owner override made before the video is recorded (Oct 9). Scope stayed UI-only plus one isolated route; every new path has unit tests and a live browser check.
 
+## Freeze-period P1 (Oct 8) — external eval questions: source and licence choices
+
+The four choices below were not dictated by the task list; they are the conservative options taken where the brief left room.
+
+- **Verbatim first, adapted only to fill gaps (4 verbatim / 6 adapted).** The only source found that publishes real multiple-choice quantum items *with* a key under an open licence is the Wikiversity Quizbank pair (CC BY-SA 4.0). It yields 2 usable item families for this topic, so both parts use it, and the post twins are the source's own re-ordered variants (version A → D/E) rather than agent-written restatements. The remaining four ideas were adapted from published *solutions* and a published textbook section — never from memory — each keeping the source's own answer as the key with a short quote as justification.
+- **Licence posture accepted: CC BY-NC-SA 4.0 for the MIT OCW and LibreTexts items.** The task's allowed set explicitly includes NC, so the lecture/PS items were used non-commercially with attribution; MIT OCW's terms page additionally permits AI use subject to attribution + non-commercial + share-alike. This is the one choice with a plausible owner objection, so it is listed in `BLOCKERS.md` for confirmation (a fallback exists: drop the 3 NC pairs and re-source, at the cost of the numeric Born-rule and collapse items).
+- **NPTEL dropped even though it qualified on licence.** Its Born-rule item family has a published key, but the underlying state in the source is not normalised (Σ|c|² = 11/12), which makes the key arguable, and the typeset equations in the PDF could not be re-verified character-by-character in this session. Shipping a key we cannot defend would be worse than shipping fewer items.
+- **Transfer items marked in the id, not the prompt.** The prompts are the sources' own text (or minimally adapted), so tagging transfer-ness in the prompt would mean rewriting source wording. `transfer` in the id is documented in `procedure.md` and asserted by `tests/eval.test.ts`. Consequence: the eval UI does not *label* a question as transfer; the owner's pairing table does.
+- **`lib/eval.ts` schema kept as-is, including the optional `notice` field.** Removing it would be a code change for a content problem; with the real file the key is absent, so the SAMPLE banner is off, and the field remains the honest marker for any future placeholder.
+
 ## Cut list
 
 - **T12 diagnostics screen** — moved to Stretch (S4) by owner instruction on 2026-10-05; not built. Reason: the agent-activity panel already covers the "show the agents working" need for the demo.

@@ -1,16 +1,24 @@
 {
-  "title": "Quantum superposition & measurement (external items)",
+  "title": "Quantum superposition & measurement — external pre/post items",
   "pre": [
     {
-      "id": "transfer-nptel-3-2",
+      "id": "pre-transfer-energy-well",
       "kind": "mcq",
-      "prompt": "Let ψₙ(x) represents the normalized eigenfunctions corresponding to the linear harmonic oscillator problem n = 0,1,2,3,.... . Let Ψ(x,0) = (1/√3)·ψ₀(x) + (1/2)·ψ₅(x) + i·√(5/15)·ψ₉(x) represents the wavefunction at t = 0. If we make a measurement of energy, then the probability of finding the value 11/2 ħω will be",
-      "options": ["0", "1/4", "1/3", "1/2"],
+      "prompt": "A particle in an infinite potential well of width L is in the state ψA(x,0) = √(1/6)·φ0(x) + √(1/3)·φ1(x) + √(1/2)·φ2(x), where φn are the energy eigenfunctions with energies En. A single measurement of the energy is made. What is the probability that the result is E1?",
+      "options": ["1/6", "1/3", "√(1/3)", "1/2"],
       "answer": 1,
-      "explanation": "Answer key per https://archive.nptel.ac.in/content/storage2/courses/115102023/downloads/mcq%20for%20module3.pdf"
+      "explanation": "MIT 8.04 Spring 2013, Problem Set 4 solutions (3d): \"the probability of measuring energy En is given by |cn|2\" — here |c1|2 = (√(1/3))2 = 1/3. Answer key per https://ocw.mit.edu/courses/8-04-quantum-physics-i-spring-2013/resources/mit8_04s13_ps4_sol/"
     },
     {
-      "id": "wv-diffraction-mechanism",
+      "id": "pre-measurement-expectation",
+      "kind": "mcq",
+      "prompt": "For the same state ψA (a superposition of the energy eigenfunctions φ0, φ1 and φ2), a single measurement of the energy is made. What is the probability that the result equals the expectation value ⟨E⟩ of the energy in that state?",
+      "options": ["0", "1/6", "1/3", "1"],
+      "answer": 0,
+      "explanation": "MIT 8.04 Spring 2013, Problem Set 4 solutions (3c): \"The probability of measuring an energy equal to (E^) is zero.\" Only the eigenvalues E0, E1, E2 of the superimposed eigenstates can be measured. Answer key per https://ocw.mit.edu/courses/8-04-quantum-physics-i-spring-2013/resources/mit8_04s13_ps4_sol/"
+    },
+    {
+      "id": "pre-diffraction-mechanism",
       "kind": "mcq",
       "prompt": "An understanding of the diffraction pattern associated with particles is based on",
       "options": [
@@ -24,54 +32,95 @@
       "explanation": "Answer key per https://en.wikiversity.org/wiki/Quantum_mechanics/Course/Wave-particle_duality_quiz"
     },
     {
-      "id": "wv-taylor-1909",
+      "id": "pre-single-particle-1909",
       "kind": "mcq",
-      "prompt": "What was \"spooky\" about Taylor's 1909 experiment with wave interference?",
+      "prompt": "A \"spooky\" variation of the third (quantum) segment of Wave-particle duality.ogv occurs when the signal is so weak that only one particle is usually near the slit at any given time. This experiment was first performed by",
       "options": [
-        "The light was so dim that the photoelectric effect couldn't occur",
-        "The light was dim, but it didn't matter because he was blind.",
-        "The light was so dim that only one photon at a time was near the slits.",
-        "The interference pattern mysteriously disappeared."
+        "Davisson and Germer in 1925.",
+        "Newton in 1704.",
+        "Taylor in 1909.",
+        "Aspect in 1982.",
+        "Young in 1801."
       ],
       "answer": 2,
-      "explanation": "Answer key per https://en.wikiversity.org/wiki/How_things_work_college_course/Quantum_mechanics_timeline/Quiz"
+      "explanation": "Answer key per https://en.wikiversity.org/wiki/Quantum_mechanics/Course/Wave-particle_duality_quiz"
+    },
+    {
+      "id": "pre-coherence-vs-mixture",
+      "kind": "mcq",
+      "prompt": "A two-state quantum system has been coupled to its environment until it has fully dephased. How is its state best described?",
+      "options": [
+        "A coherent superposition of the two states with a definite relative phase.",
+        "A classical (incoherent) mixture, in which the system is in one or the other state with probabilities |α→|2 and |α←|2.",
+        "A superposition whose relative phase has been measured.",
+        "The original pure state, because the probabilities of the two outcomes are unchanged."
+      ],
+      "answer": 1,
+      "explanation": "Adapted from LibreTexts, Essential Graduate Physics — Quantum Mechanics (Likharev), 10.1 \"Quantum measurements\": the density matrix is \"gradually reduced to the diagonal form describing a classical mixture of two probability packets\". Answer key per https://phys.libretexts.org/Bookshelves/Quantum_Mechanics/Essential_Graduate_Physics_-_Quantum_Mechanics_(Likharev)/10%3A_Making_Sense_of_Quantum_Mechanics/10.01%3A_Quantum_measurements"
     }
   ],
   "post": [
     {
-      "id": "transfer-nptel-3-2",
+      "id": "post-transfer-momentum-collapse",
       "kind": "mcq",
-      "prompt": "Let ψₙ(x) represents the normalized eigenfunctions corresponding to the linear harmonic oscillator problem n = 0,1,2,3,.... . Let Ψ(x,0) = (1/√3)·ψ₀(x) + (1/2)·ψ₅(x) + i·√(5/15)·ψ₉(x) represents the wavefunction at t = 0. If we make a measurement of energy, then the probability of finding the value 11/2 ħω will be",
-      "options": ["0", "1/4", "1/3", "1/2"],
+      "prompt": "A free particle in three dimensions is in a superposition of momentum eigenstates. At t = 0 its momentum is measured, and the result is p = (ħ/L)(3, 5, 1). Which state describes the particle immediately after that measurement?",
+      "options": [
+        "The same superposition of momentum eigenstates it had before the measurement.",
+        "The momentum eigenstate corresponding to the measured momentum.",
+        "An equal-weight mixture of all the momentum eigenstates.",
+        "No state, until a second measurement is made."
+      ],
       "answer": 1,
-      "explanation": "Answer key per https://archive.nptel.ac.in/content/storage2/courses/115102023/downloads/mcq%20for%20module3.pdf"
+      "explanation": "MIT 8.04 Spring 2013, Problem Set 8 solutions (1d): \"Measuring pk = (3n, 5n, n)/L immediately collapses the wavefunction into the corresponding momentum eigenstate.\" Answer key per https://ocw.mit.edu/courses/8-04-quantum-physics-i-spring-2013/resources/mit8_04s13_ps8_sol/"
     },
     {
-      "id": "wv-diffraction-mechanism",
+      "id": "post-born-rule-probability",
+      "kind": "mcq",
+      "prompt": "A system is in a pure quantum state |α⟩ = Σj αj |aj⟩, where |aj⟩ are the eigenstates of an observable A with eigenvalues Aj. If A is measured, what is the probability of obtaining the outcome Aj?",
+      "options": ["αj", "|αj|2", "√|αj|", "Σj |αj|2"],
+      "answer": 1,
+      "explanation": "Adapted from LibreTexts, Essential Graduate Physics — Quantum Mechanics (Likharev), 10.1 \"Quantum measurements\": \"the j-th outcome probability equal to Wj = |αj|2\". Answer key per https://phys.libretexts.org/Bookshelves/Quantum_Mechanics/Essential_Graduate_Physics_-_Quantum_Mechanics_(Likharev)/10%3A_Making_Sense_of_Quantum_Mechanics/10.01%3A_Quantum_measurements"
+    },
+    {
+      "id": "post-diffraction-mechanism",
       "kind": "mcq",
       "prompt": "An understanding of the diffraction pattern associated with particles is based on",
       "options": [
-        "Forces that the De Broglie pilot wave exert on individual particles.",
-        "Interference between the component of the wave from each slit.",
         "Forces that the De Broglie pilot wave exert between pairs of particles.",
-        "All of these nearly equivalent models explain diffraction.",
-        "The fact that particles can make glancing collisions with the edge of a slit."
+        "Forces that the De Broglie pilot wave exert on individual particles.",
+        "The fact that particles can make glancing collisions with the edge of a slit.",
+        "Interference between the component of the wave from each slit.",
+        "All of these nearly equivalent models explain diffraction."
       ],
-      "answer": 1,
-      "explanation": "Answer key per https://en.wikiversity.org/wiki/Quantum_mechanics/Course/Wave-particle_duality_quiz"
+      "answer": 3,
+      "explanation": "Answer key per https://en.wikiversity.org/wiki/Quantum_mechanics/Course/Wave-particle_duality_quiz/Testbank (version D of the same item: identical stem, re-ordered options)"
     },
     {
-      "id": "wv-taylor-1909",
+      "id": "post-single-particle-1909",
       "kind": "mcq",
-      "prompt": "What was \"spooky\" about Taylor's 1909 experiment with wave interference?",
+      "prompt": "A \"spooky\" variation of the third (quantum) segment of Wave-particle duality.ogv occurs when the signal is so weak that only one particle is usually near the slit at any given time. This experiment was first performed by",
       "options": [
-        "The light was so dim that the photoelectric effect couldn't occur",
-        "The light was dim, but it didn't matter because he was blind.",
-        "The light was so dim that only one photon at a time was near the slits.",
-        "The interference pattern mysteriously disappeared."
+        "Taylor in 1909.",
+        "Newton in 1704.",
+        "Aspect in 1982.",
+        "Davisson and Germer in 1925.",
+        "Young in 1801."
+      ],
+      "answer": 0,
+      "explanation": "Answer key per https://en.wikiversity.org/wiki/Quantum_mechanics/Course/Wave-particle_duality_quiz/Testbank (version E of the same item: identical stem, re-ordered options)"
+    },
+    {
+      "id": "post-coherence-vs-mixture",
+      "kind": "mcq",
+      "prompt": "Two ensembles are prepared with the same two possible states and the same probabilities for each outcome. In one ensemble the two components are combined coherently; in the other they form a classical mixture. Which experiment distinguishes the coherent ensemble?",
+      "options": [
+        "Nothing can distinguish them: the two are identical in every experiment.",
+        "Counting how many systems are found in each state in a single measurement.",
+        "Interference between the two components, which the incoherent mixture cannot produce.",
+        "Measuring the total energy of the ensemble."
       ],
       "answer": 2,
-      "explanation": "Answer key per https://en.wikiversity.org/wiki/How_things_work_college_course/Quantum_mechanics_timeline/Quiz"
+      "explanation": "Adapted from LibreTexts, Essential Graduate Physics — Quantum Mechanics (Likharev), 10.1 \"Quantum measurements\": in the coherent stage \"the coherence between the two component states → and ← is still preserved\", while dephasing reduces the state to a classical mixture with no such coherence. Answer key per https://phys.libretexts.org/Bookshelves/Quantum_Mechanics/Essential_Graduate_Physics_-_Quantum_Mechanics_(Likharev)/10%3A_Making_Sense_of_Quantum_Mechanics/10.01%3A_Quantum_measurements"
     }
   ]
 }
