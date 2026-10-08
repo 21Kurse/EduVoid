@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import sampleQuestions from "../data/eval/questions.json";
+import bundledQuestions from "../data/eval/questions.json";
 import { buildEvalCsv, parseEvalQuestions } from "../lib/eval";
 import { addAnswer, finishPart, findRecord, upsertRecord } from "../lib/eval-store";
 
-/** The bundled SAMPLE file always validates (guards hand-edits). */
-const parsed = parseEvalQuestions(sampleQuestions);
-if (!parsed) throw new Error("bundled sample eval questions failed to validate");
-const sample = parsed;
+/** The bundled owner file always validates and is not the sample (guards hand-edits). */
+const parsed = parseEvalQuestions(bundledQuestions);
+if (!parsed) throw new Error("bundled eval questions failed to validate");
+const bundled = parsed;
 
 describe("eval mode (T13)", () => {
   describe("question file schema", () => {
@@ -57,11 +57,20 @@ describe("eval mode (T13)", () => {
       ).toBeNull();
     });
 
-    it("bundled sample: labeled, 2 questions, includes a transfer item", () => {
-      expect(sample.notice).toBeDefined();
-      expect(sample.pre.length + sample.post.length).toBe(2);
-      const all = [...sample.pre, ...sample.post];
-      expect(all.some((q) => /transfer/i.test(q.prompt))).toBe(true);
+    it("bundled owner file: not a sample, equal non-empty parts, a transfer item in each", () => {
+      expect(bundledQuestions).not.toHaveProperty("notice");
+      expect(bundled.notice).toBeUndefined();
+      expect(bundled.pre.length).toBeGreaterThan(0);
+      expect(bundled.post.length).toBeGreaterThan(0);
+      expect(bundled.pre.length).toBe(bundled.post.length);
+      // Transfer items are marked in the id (see data/eval/procedure.md §1) so the prompt text
+      // stays verbatim from the source; each part needs at least one.
+      const isTransfer = (q: { id: string }) => /transfer/i.test(q.id);
+      expect(bundled.pre.some(isTransfer)).toBe(true);
+      expect(bundled.post.some(isTransfer)).toBe(true);
+      for (const part of [bundled.pre, bundled.post]) {
+        expect(new Set(part.map((q) => q.id)).size).toBe(part.length);
+      }
     });
   });
 
