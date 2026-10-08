@@ -96,9 +96,15 @@ The ambiguous-topic run exposed two different problems; only one was fixed, and 
 - **Not fixed: thin grounding on a vague one-word topic.** The verifier's job is entailment against the cited passage, and it did that correctly — the passage really does support the sentence; the problem is that the passage itself is about a different sense of the word. Fixing it properly means a claim-to-concept relevance gate (or a "your topic is ambiguous" step), which is a *new* mechanism with prompt- and ranking-level blast radius. Adding it during a feature freeze, two days before recording, would risk the demo path for a case the video does not exercise. Logged in `BLOCKERS.md`-style prose in `PROGRESS.md`, answered honestly in `docs/QA.md`, and named in the README limitations as a known boundary.
 - **No safety relaxation:** the refusal run confirms the deterministic check still refuses a harmful construction request before any provider call (HTTP 422, <0.2 s), and the five allowed topics were unaffected.
 
-## Cut list
+## Cut list (final, 2026-10-08)
 
-- **T12 diagnostics screen** — moved to Stretch (S4) by owner instruction on 2026-10-05; not built. Reason: the agent-activity panel already covers the "show the agents working" need for the demo.
-- **Eval harness (§8)** — not built (optional per §13.11). Reason: prioritized the core pipeline and the pre/post test flow that produces real participant evidence.
-- **Extra sim templates / Socratic / explain-back (Stretch)** — partially built post-freeze: see the 2026-10-08 section below. `explain-back` (§5 item 4) is now built at the owner's request, and the two hand-built templates gained the slider interaction §5.2 calls for. Socratic mode (§5 item 5) and the unbuilt `slider-curve` / `vector-field` templates remain not built.
-- Nothing mandatory was cut: the verifier, adaptive loop, mastery mindmap, and the deployed link are all in place.
+| Item | Status | Why |
+|---|---|---|
+| **S1 — simulated-learner eval harness (§8)** | **Cut** (optional per §13.11) | The Oct 4-5 window went to the live pipeline; the pre/post test mode is the shipped evidence mechanism instead. Next to build. |
+| **S3 — Socratic mode (§5 item 5)** | **Cut** | Scope. Explain-back already covers "produce, don't recognise" with one bounded grader call. |
+| **S4 — diagnostics (2-3 questions that set level, was T12)** | **Cut** by owner instruction 2026-10-05 | The agent-activity panel covers the "agents working" need on camera, and a level step adds a second screen to a one-question home. Every lesson plans at `beginner`. |
+| **S2 — explain-back (§5 item 4)** | **Shipped** (post-freeze, owner request, 2026-10-08) | One new rate-limited grader route; counts and mastery computed deterministically. |
+| `slider-curve` / `vector-field` sim templates | **Not built** | Only the two hand-built templates ship; generation is now gated so a placeholder can never reach a learner (P2). |
+| **Claim-to-concept relevance gate** | **Deferred, logged** | Unseen-topic testing found vague one-word topics can ground on an unrelated-but-real passage; the fix is a new mechanism with ranking-level risk, so it is documented as a known boundary instead of a freeze-week change (P3). |
+
+Nothing mandatory was cut: the verifier, the adaptive loop, the mastery mindmap and the deployed link are all in place.
