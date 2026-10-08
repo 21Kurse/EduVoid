@@ -2,8 +2,7 @@
 
 /**
  * App shell: single-question home -> live run (T6 pipeline) with a visible
- * failure state. The fixture path remains available for tests/demo-safe
- * mode via ?fixture=1.
+ * failure state (the demo-safe "cached run" fallback lives inside LiveLesson, §7).
  */
 import { useState } from "react";
 import { LiveLesson } from "./live-lesson";
@@ -14,11 +13,9 @@ export function LearningApp() {
   const [phase, setPhase] = useState<Phase>("home");
   const [topic, setTopic] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [fixture, setFixture] = useState(false);
 
   function start(t: string) {
     setTopic(t);
-    setFixture(false);
     setPhase("loading");
   }
 

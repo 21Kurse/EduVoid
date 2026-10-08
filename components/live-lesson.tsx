@@ -14,6 +14,7 @@ import { curriculumSpecSchema, type Concept, type CurriculumSpec } from "@/lib/s
 import type { SourceResult } from "@/lib/source";
 import { mergeConcept } from "@/lib/merge-concept";
 import { useConceptLoader } from "@/lib/use-concept-loader";
+import { renderedQuizPrompts, withUniqueQuizzes } from "@/lib/quiz-dedupe";
 import { useLearningState } from "@/lib/store";
 import { useAdaptive } from "@/lib/use-adaptive";
 import { LessonHeader, LessonMap } from "./lesson-map";
@@ -42,23 +43,37 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
   const { state, selectConcept } = useLearningState();
   const specRef = useRef<CurriculumSpec | null>(null);
 
-  /** Patch one concept in the spec (components and/or claims), by id.
-   * mergeConcept changes only the named concept and never leaks an unknown
-   * id into the spec (G3 finding 3). */
-  const patchConcept = useCallback(
-    (conceptId: string, patch: { components?: Concept["components"]; claims?: Concept["claims"] }) => {
-      if (!specRef.current) return;
-      const next = mergeConcept(specRef.current, conceptId, patch);
-      if (!next) return;
-      specRef.current = next;
-      setSpec(next);
-    },
-    [],
-  );
-
   const push = useCallback((m: string) => {
     setMessages((ms) => [...ms.slice(-30), m]);
   }, []);
+
+  /** Patch one concept in the spec (components and/or claims), by id.
+   * mergeConcept changes only the named concept and never leaks an unknown
+   * id into the spec (G3 finding 3); withUniqueQuizzes then enforces the
+   * lesson-wide quiz rule, because concepts are generated in parallel and
+   * cannot see each other's questions (owner feedback, Oct 8). */
+  const patchConcept = useCallback(
+    (conceptId: string, patch: { components?: Concept["components"]; claims?: Concept["claims"] }) => {
+      if (!specRef.current) return;
+      const merged = mergeConcept(specRef.current, conceptId, patch);
+      if (!merged) return;
+      const asked = renderedQuizPrompts(merged.concepts);
+      const concepts = withUniqueQuizzes(merged.concepts);
+      const kept = renderedQuizPrompts(concepts);
+      if (kept.length < asked.length) {
+        // §13.10: a deterministic guardrail is worth showing in the panel —
+        // this is not a model judgement, it is the rule that prevents the
+        // same question being asked twice in one lesson.
+        push(
+          `Dropped ${asked.length - kept.length} repeated quiz question${asked.length - kept.length === 1 ? "" : "s"}`,
+        );
+      }
+      const next = { ...merged, concepts };
+      specRef.current = next;
+      setSpec(next);
+    },
+    [push],
+  );
 
   // T14 demo-safe fallback (§7): ONLY on live failure, ONLY the demo topic,
   // always labeled "cached run". Fills every state slot the live stream would
@@ -252,7 +267,20 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
     },
     [patchConcept],
   );
-  const { onAnswered, onDontGet, adaptations } = useAdaptive({ topic, getConcept, onRegenerated, push });
+  // Quiz hygiene: whatever the rest of the lesson already asks must not be
+  // asked again by a regenerated concept's quiz.
+  const avoidPromptsFor = useCallback(
+    (conceptId: string) =>
+      renderedQuizPrompts((specRef.current?.concepts ?? []).filter((c) => c.id !== conceptId)),
+    [],
+  );
+  const { onAnswered, onDontGet, adaptations, adapting } = useAdaptive({
+    topic,
+    getConcept,
+    onRegenerated,
+    push,
+    avoidPromptsFor,
+  });
 
   const feed: ActivityFeed = useMemo(
     () =>
@@ -288,6 +316,7 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
                 adaptation={
                   state.selectedConceptId ? (adaptations[state.selectedConceptId] ?? null) : null
                 }
+                adapting={state.selectedConceptId ? (adapting[state.selectedConceptId] ?? false) : false}
                 claimsNode={claimsFor("inline")}
                 onCite={setHighlightClaim}
                 onRetry={onRetry}

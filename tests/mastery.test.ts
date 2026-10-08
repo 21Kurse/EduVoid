@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   adaptReason,
   applyMasteryEvent,
+  deliveredModality,
   masteryLevel,
   MODALITY_CYCLE,
   nextModality,
@@ -69,5 +70,32 @@ describe("modality cycle (adaptive loop)", () => {
     s = applyMasteryEvent(s, { type: "quiz", correct: true });
     expect(masteryLevel(s)).toBe("mastered");
     expect(s.modalityHistory).toEqual(["sim"]);
+  });
+});
+
+describe("deliveredModality (the reason line must name what actually arrived)", () => {
+  const explainer = { type: "explainer" };
+  const flashcards = { type: "flashcards" };
+  const sim = { type: "sim" };
+  const quiz = { type: "quiz" };
+
+  it("names the new component even when a different modality was requested", () => {
+    // The real case from Oct 8: the cycle asked for flashcards, the concept
+    // already had them, and the sim was what the learner actually saw.
+    const before = [explainer, quiz, flashcards];
+    expect(deliveredModality(before, [explainer, quiz, flashcards, sim], "flashcards")).toBe("sim");
+  });
+
+  it("prefers sim, then quiz, then flashcards when several arrive", () => {
+    const before = [explainer];
+    expect(deliveredModality(before, [explainer, flashcards, quiz, sim], "explainer")).toBe("sim");
+    expect(deliveredModality(before, [explainer, flashcards, quiz], "explainer")).toBe("quiz");
+    expect(deliveredModality(before, [explainer, flashcards], "explainer")).toBe("flashcards");
+  });
+
+  it("falls back to the requested modality when only existing content was rewritten", () => {
+    const before = [explainer, sim];
+    expect(deliveredModality(before, [explainer, sim], "sim")).toBe("sim");
+    expect(deliveredModality(before, [explainer, sim], "explainer")).toBe("explainer");
   });
 });

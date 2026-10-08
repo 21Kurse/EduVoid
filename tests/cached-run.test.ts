@@ -73,6 +73,22 @@ describe("cached demo run", () => {
     expect(view.verify.sources).toBe(lesson.verify.sources);
   });
 
+  it("obeys the lesson's quiz rules after the capture (owner feedback)", () => {
+    // The capture predates one-question-per-concept, so parseCachedRun
+    // normalizes it through the same helper a live run uses. Without this the
+    // demo-safe fallback would still ask the repeated probability questions.
+    const lesson = getCachedLesson();
+    expect(lesson).not.toBeNull();
+    if (!lesson) return;
+    const quizzes = lesson.spec.concepts
+      .flatMap((c) => c.components)
+      .filter((c): c is Extract<typeof c, { type: "quiz" }> => c.type === "quiz");
+    expect(quizzes.length).toBeGreaterThan(0);
+    for (const quiz of quizzes) expect(quiz.questions.length).toBeLessThanOrEqual(1);
+    const prompts = quizzes.flatMap((q) => q.questions.map((x) => x.prompt));
+    expect(new Set(prompts).size).toBe(prompts.length);
+  });
+
   it("is labeled exactly \"cached run\"", () => {
     expect(CACHED_RUN_LABEL).toBe("cached run");
   });

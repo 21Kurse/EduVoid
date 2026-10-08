@@ -9,6 +9,11 @@ import { z } from "zod";
 import type { Claim, Concept } from "./spec.ts";
 import type { SourceResult } from "./source.ts";
 import { numberClaims, postProcessExplainer } from "./claim-numbers.ts";
+import {
+  MAX_QUIZ_PER_CONCEPT,
+  MAX_QUIZ_PER_PRACTICE_SET,
+  dedupeQuizItems,
+} from "./quiz-dedupe.ts";
 import { MODALITY_HINT, modalityFeedback, usableModality } from "./modality.ts";
 import { HERO_MESSAGES_SYSTEM, heroSimSchema, validateHeroCode, type HeroSimSpec } from "./hero-sim.ts";
 import { SIM_TEMPLATES } from "./sim-templates.ts";
@@ -43,8 +48,9 @@ const genSchema = z.object({
     .optional(),
 });
 
-const GEN_SYSTEM =
-  'You write study content for ONE concept. Output ONLY JSON of shape {"explainer":string,"grounding":[string],"quiz":[{"prompt":string,"options":[string],"answer":number,"explanation":string}],"flashcards":[{"front":string,"back":string}],"sim":optional({"template":"two-state-prob"|"double-slit","values":{string:number},"predictPrompt":string})}. Ground every statement in the cited claims given to you (paraphrase; quotes under 15 words). Use $...$ for inline math. 2 quiz questions, 1-2 flashcards. If a concrete numeric simulation of this concept fits one of the listed templates, include "sim" with 2-4 numeric values (two-state-prob: p in 0..1 and n shots; double-slit: slit separation d and wavelength lambda) and a prediction question; otherwise omit it. Cite as you write: after each sentence a claim supports, append the marker [[claim-id]] using the exact id from the claim pool. List every id you used in "grounding". NEVER write claim numbers or ids as prose (no "claim 9", no bare ids); the marker is the only citation form.';
+/** Exported for tests: the quiz rule lives in the prompt and in code. */
+export const GEN_SYSTEM =
+  'You write study content for ONE concept. Output ONLY JSON of shape {"explainer":string,"grounding":[string],"quiz":[{"prompt":string,"options":[string],"answer":number,"explanation":string}],"flashcards":[{"front":string,"back":string}],"sim":optional({"template":"two-state-prob"|"double-slit","values":{string:number},"predictPrompt":string})}. Ground every statement in the cited claims given to you (paraphrase; quotes under 15 words). Use $...$ for inline math. Exactly ONE quiz question whenever this concept teaches a testable fact (a definition, a rule, a number to predict) — phrase it about THAT fact, not about the topic in general; output "quiz":[] only when nothing in the concept can be tested. Never ask the generic "what happens when it is measured" / "why do outcomes vary" style question — other concepts in this lesson already cover it. 1-2 flashcards. If a concrete numeric simulation of this concept fits one of the listed templates, include "sim" with 2-4 numeric values (two-state-prob: p in 0..1 and n shots; double-slit: slit separation d and wavelength lambda) and a prediction question; otherwise omit it. Cite as you write: after each sentence a claim supports, append the marker [[claim-id]] using the exact id from the claim pool. List every id you used in "grounding". NEVER write claim numbers or ids as prose (no "claim 9", no bare ids); the marker is the only citation form.';
 
 /**
  * T11 (§13.7) + G3 F3: modality hints and enforcement live in modality.ts.
@@ -86,6 +92,8 @@ function buildConcept(
   concept: { id: string; title: string; summary: string },
   source: SourceResult,
   modality?: string,
+  /** Prompts already rendered elsewhere in this lesson (quiz hygiene). */
+  avoidPrompts: readonly string[] = [],
 ): Concept {
   // Concept -> claim assignment (G3 findings 1+2): the generator names the
   // ids it grounded on; only those (still verified) become this concept's
@@ -108,9 +116,22 @@ function buildConcept(
   const components: Concept["components"] = [
     { type: "explainer", markdown: numbered.markdown },
   ];
-  const quizItems = d.quiz
-    .filter((q) => q.prompt.trim() && q.options.length >= 2 && Number.isInteger(q.answer) && q.answer >= 0 && q.answer < q.options.length && q.explanation.trim())
-    .slice(0, 3);
+  // Owner feedback (Oct 8): ONE question per concept, and never a repeat of
+  // a question another concept already shows. The "practice quiz" modality
+  // is the deliberate exception — that adaptation IS a short question set.
+  const quizItems = dedupeQuizItems(
+    d.quiz.filter(
+      (q) =>
+        q.prompt.trim() &&
+        q.options.length >= 2 &&
+        Number.isInteger(q.answer) &&
+        q.answer >= 0 &&
+        q.answer < q.options.length &&
+        q.explanation.trim(),
+    ),
+    avoidPrompts,
+    modality === "quiz" ? MAX_QUIZ_PER_PRACTICE_SET : MAX_QUIZ_PER_CONCEPT,
+  );
   if (quizItems.length > 0) {
     components.push({
       type: "quiz",
@@ -146,7 +167,13 @@ export async function generateConcept(
   topic: string,
   concept: { id: string; title: string; summary: string },
   source: SourceResult,
-  opts: { timeoutMs?: number; modality?: string; signal?: AbortSignal } = {},
+  opts: {
+    timeoutMs?: number;
+    modality?: string;
+    signal?: AbortSignal;
+    /** Quiz prompts already on screen; a concept never repeats one. */
+    avoidPrompts?: readonly string[];
+  } = {},
 ): Promise<GeneratedConcept> {
   const t0 = Date.now();
   const hint = opts.modality ? MODALITY_HINT[opts.modality] : undefined;
@@ -171,7 +198,7 @@ export async function generateConcept(
   const r = await call(content);
   if (!r.ok) return fail(`${r.reason}: ${r.detail.slice(0, 200)}`);
   if (!r.data.explainer.trim()) return fail("generator returned an empty explainer");
-  let built = buildConcept(r.data, concept, source, opts.modality);
+  let built = buildConcept(r.data, concept, source, opts.modality, opts.avoidPrompts);
 
   // G3 F3 enforcement: the requested modality must actually exist, or the
   // banner would promise something the panel does not show. One stronger
@@ -181,7 +208,7 @@ export async function generateConcept(
     console.warn(`[generate] modality '${modality}' missing for ${concept.id}; retrying once`);
     const r2 = await call(`${content}\n\n${modalityFeedback(modality)}`);
     if (r2.ok && r2.data.explainer.trim()) {
-      const built2 = buildConcept(r2.data, concept, source, modality);
+      const built2 = buildConcept(r2.data, concept, source, modality, opts.avoidPrompts);
       if (usableModality(built2.components, modality)) built = built2;
     }
   }

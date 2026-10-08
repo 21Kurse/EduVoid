@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { generateConcept } from "../lib/generate";
+import { GEN_SYSTEM, generateConcept } from "../lib/generate";
 import { MODALITY_CYCLE } from "../lib/mastery";
 import { MODALITY_HINT } from "../lib/modality";
 import type { SourceResult } from "../lib/source";
@@ -218,6 +218,81 @@ describe("generateConcept", () => {
       const r = await generateConcept("t", CONCEPT, SOURCE, { modality: "sim" });
       expect(r.ok).toBe(false);
       if (!r.ok) expect(r.detail).toMatch(/no usable 'sim'/);
+    }));
+
+  it("asks for at most ONE concept-specific quiz question (owner feedback)", () => {
+    expect(GEN_SYSTEM).toMatch(/Exactly ONE quiz question whenever this concept teaches/);
+    expect(GEN_SYSTEM).toMatch(/Never ask the generic/);
+  });
+
+  it("keeps one question per concept even when the model sends more", () =>
+    withLlmEnv(async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue(
+          okResponse({
+            explainer: "E",
+            quiz: [
+              { prompt: "What does the no-cloning theorem forbid?", options: ["a", "b"], answer: 0, explanation: "x" },
+              { prompt: "Why must quantum algorithms limit measurements?", options: ["a", "b"], answer: 1, explanation: "y" },
+            ],
+            flashcards: [],
+          }),
+        ),
+      );
+      const r = await generateConcept("t", CONCEPT, SOURCE);
+      expect(r.ok).toBe(true);
+      if (r.ok) {
+        const quiz = r.concept.components.find((c) => c.type === "quiz");
+        expect(quiz?.type === "quiz" ? quiz.questions : []).toHaveLength(1);
+      }
+    }));
+
+  it("drops a question the lesson already asks, keeping the concept", () =>
+    withLlmEnv(async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue(
+          okResponse({
+            explainer: "E",
+            quiz: [
+              { prompt: "What happens to a quantum system's superposition when it is measured?", options: ["a", "b"], answer: 0, explanation: "x" },
+              { prompt: "What does the no-cloning theorem forbid?", options: ["a", "b"], answer: 0, explanation: "y" },
+            ],
+            flashcards: [{ front: "f", back: "b" }],
+          }),
+        ),
+      );
+      const r = await generateConcept("t", CONCEPT, SOURCE, {
+        avoidPrompts: ["What happens to a quantum system's state when a measurement is performed?"],
+      });
+      expect(r.ok).toBe(true);
+      if (r.ok) {
+        const quiz = r.concept.components.find((c) => c.type === "quiz");
+        expect(quiz?.type === "quiz" ? quiz.questions.map((q) => q.prompt) : []).toEqual([
+          "What does the no-cloning theorem forbid?",
+        ]);
+        // The rest of the concept is untouched by the rule.
+        expect(r.concept.components.some((c) => c.type === "flashcards")).toBe(true);
+      }
+    }));
+
+  it("renders a concept with no quiz when every question is a repeat", () =>
+    withLlmEnv(async () => {
+      const prompt = "What happens to a quantum system's superposition when it is measured?";
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue(
+          okResponse({
+            explainer: "E",
+            quiz: [{ prompt, options: ["a", "b"], answer: 0, explanation: "x" }],
+            flashcards: [],
+          }),
+        ),
+      );
+      const r = await generateConcept("t", CONCEPT, SOURCE, { avoidPrompts: [prompt] });
+      expect(r.ok).toBe(true);
+      if (r.ok) expect(r.concept.components.some((c) => c.type === "quiz")).toBe(false);
     }));
 
   it("has an adaptation hint for every modality in the cycle (T11)", () => {

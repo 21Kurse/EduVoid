@@ -94,6 +94,29 @@ export function nextModality(history: string[]): Modality {
   return MODALITY_CYCLE[(idx + 1) % MODALITY_CYCLE.length] ?? "sim";
 }
 
+/**
+ * What the learner actually GOT, for the visible reason line (§13.7). The
+ * requested modality and the delivered one can differ: asking for flashcards
+ * ("flashcards" is the next step in the cycle) can come back with a sim, and
+ * a banner that names the wrong thing is the same broken promise the owner
+ * reported on Oct 8 ("it just shows a message"). So: name a component type
+ * that was NOT there before, preferring sim over quiz over flashcards; fall
+ * back to the requested modality when the regeneration only rewrote what was
+ * already on screen.
+ */
+export function deliveredModality(
+  before: readonly { type: string }[],
+  after: readonly { type: string }[],
+  requested: Modality,
+): Modality {
+  const had = new Set(before.map((c) => c.type));
+  const arrived = new Set(after.map((c) => c.type).filter((t) => t !== "explainer" && !had.has(t)));
+  if (arrived.has("sim")) return "sim";
+  if (arrived.has("quiz")) return "quiz";
+  if (arrived.has("flashcards")) return "flashcards";
+  return requested;
+}
+
 /** The visible one-line reason (§13.7) shown when a concept regenerates. */
 export function adaptReason(modality: Modality, missed: boolean): string {
   const as: Record<Modality, string> = {

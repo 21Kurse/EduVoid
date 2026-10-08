@@ -5,7 +5,7 @@
  * placeholders. Live mode adds per-concept generating/failed states with
  * retry; the verify badge lights up in T7.
  */
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
@@ -97,6 +97,7 @@ export function ConceptPanel({
   onAnswered,
   onDontGet,
   adaptation = null,
+  adapting = false,
   claimsNode = null,
   onCite,
   onRetry,
@@ -109,6 +110,8 @@ export function ConceptPanel({
   onAnswered: (conceptId: string, correct: boolean) => void;
   onDontGet?: (conceptId: string) => void;
   adaptation?: string | null;
+  /** True while a regeneration is in flight (owner feedback: show progress). */
+  adapting?: boolean;
   /** Mobile claims section, rendered inline below the explainer (G3 F1). */
   claimsNode?: ReactNode;
   onCite?: (claimId: string) => void;
@@ -130,12 +133,24 @@ export function ConceptPanel({
               <p className="mt-1 text-[14px] text-zinc-500">{concept.summary}</p>
             </div>
 
-            {adaptation && (
+            {(adapting || adaptation) && (
               <div
                 className="rounded-xl border border-violet-200 bg-violet-50 px-4 py-2.5 text-[13px] text-violet-800"
                 data-testid="adaptation-banner"
+                data-adapting={adapting ? "true" : undefined}
+                aria-live="polite"
               >
-                ↻ {adaptation}
+                {adapting ? (
+                  <span className="inline-flex items-center gap-2">
+                    <span
+                      className="h-3 w-3 animate-spin rounded-full border-2 border-violet-300 border-t-violet-600"
+                      data-testid="adaptation-spinner"
+                    />
+                    Regenerating this concept a different way…
+                  </span>
+                ) : (
+                  <>↻ {adaptation}</>
+                )}
               </div>
             )}
 
@@ -144,10 +159,14 @@ export function ConceptPanel({
                 <button
                   type="button"
                   data-testid="dont-get"
+                  disabled={adapting}
                   onClick={() => onDontGet(concept.id)}
-                  className="rounded-lg border border-border-subtle px-3 py-1.5 text-[12px] text-zinc-600 transition-colors hover:border-violet-300 hover:bg-violet-50"
+                  className="inline-flex items-center gap-2 rounded-lg border border-border-subtle px-3 py-1.5 text-[12px] text-zinc-600 transition-colors hover:border-violet-300 hover:bg-violet-50 disabled:opacity-50 disabled:hover:border-border-subtle disabled:hover:bg-transparent"
                 >
-                  I don&apos;t get this
+                  {adapting && (
+                    <span className="h-3 w-3 animate-spin rounded-full border-2 border-zinc-300 border-t-violet-500" />
+                  )}
+                  {adapting ? "Adapting…" : "I don't get this"}
                 </button>
               </div>
             )}

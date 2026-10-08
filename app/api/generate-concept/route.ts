@@ -16,6 +16,8 @@ export async function POST(req: NextRequest) {
     topic?: string;
     concept?: { id?: string; title?: string; summary?: string };
     modality?: string;
+    /** Quiz prompts already on screen; this concept must not repeat one. */
+    avoidPrompts?: unknown;
   };
   const topic = (body.topic ?? "").trim().slice(0, 120);
   const concept = body.concept ?? {};
@@ -39,6 +41,14 @@ export async function POST(req: NextRequest) {
   if (!provider) {
     return Response.json({ error: "Live generation is not configured." }, { status: 503 });
   }
+  // Quiz hygiene (owner feedback): untrusted client input, so bound it —
+  // a bounded list can only ever drop a duplicated question.
+  const avoidPrompts = Array.isArray(body.avoidPrompts)
+    ? body.avoidPrompts
+        .filter((p): p is string => typeof p === "string")
+        .slice(0, 24)
+        .map((p) => p.slice(0, 300))
+    : [];
 
   // G3 F4: reuse the run's verified source set when warm; on a cold cache
   // re-run source + verify so §4.4 (flagged claims never ground generation)
@@ -60,7 +70,7 @@ export async function POST(req: NextRequest) {
     topic,
     { id: concept.id, title: concept.title, summary: concept.summary ?? "" },
     source,
-    { timeoutMs: 60_000, modality, signal },
+    { timeoutMs: 60_000, modality, signal, avoidPrompts },
   );
   if (!g.ok) {
     // One fresh-conversation retry: the error-feedback chain inside
@@ -71,7 +81,7 @@ export async function POST(req: NextRequest) {
       topic,
       { id: concept.id, title: concept.title, summary: concept.summary ?? "" },
       source,
-      { timeoutMs: 60_000, modality, signal },
+      { timeoutMs: 60_000, modality, signal, avoidPrompts },
     );
   }
   if (!g.ok) {

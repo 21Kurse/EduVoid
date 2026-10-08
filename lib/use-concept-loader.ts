@@ -11,6 +11,7 @@
 import { useCallback, useEffect, useRef, type Dispatch, type SetStateAction } from "react";
 import { createConceptScheduler, type ConceptScheduler } from "./concept-scheduler";
 import { retryConcept } from "./live-client";
+import { renderedQuizPrompts, stripDuplicateQuiz } from "./quiz-dedupe";
 import type { Concept, CurriculumSpec } from "./spec";
 import type { ConceptStatus } from "../components/concept-status";
 
@@ -44,14 +45,24 @@ export function useConceptLoader({
       setConceptStatus((s) => ({ ...s, [id]: { ok: false, loading: true } }));
       push(`Generating “${id}”…`);
       try {
+        // Quiz hygiene: tell the server which questions this lesson already
+        // shows, so it never spends a generation on a repeat.
+        const others = (getSpec()?.concepts ?? []).filter((c) => c.id !== id);
         const r = await retryConcept(
           topic,
           { id: concept.id, title: concept.title, summary: concept.summary },
           undefined,
           signal,
+          renderedQuizPrompts(others),
         );
         if (r.ok && r.components) {
-          patchConcept(id, { components: r.components, claims: r.claims });
+          // Race guard: the scheduler can have two requests in flight, so
+          // re-check against whatever landed meanwhile.
+          const seen = renderedQuizPrompts(
+            (getSpec()?.concepts ?? []).filter((c) => c.id !== id),
+          );
+          const shaped = stripDuplicateQuiz({ components: r.components as Concept["components"] }, seen);
+          patchConcept(id, { components: shaped.components, claims: r.claims });
           setConceptStatus((s) => ({ ...s, [id]: { ok: true } }));
           push(`Generated “${id}”`);
           return true;

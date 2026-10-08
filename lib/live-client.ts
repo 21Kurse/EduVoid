@@ -75,11 +75,13 @@ export async function retryConcept(
   concept: { id: string; title: string; summary: string },
   modality?: string,
   signal?: AbortSignal,
+  /** Quiz prompts already on screen; the server drops any repeat. */
+  avoidPrompts?: string[],
 ): Promise<{ ok: boolean; components?: Concept["components"]; claims?: Concept["claims"]; detail?: string }> {
   const res = await fetch("/api/generate-concept", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ topic, concept, modality }),
+    body: JSON.stringify({ topic, concept, modality, avoidPrompts }),
     signal,
   });
   const j = (await res.json().catch(() => ({}))) as {

@@ -10,6 +10,7 @@
  */
 import raw from "../data/cached/qm-superposition.json";
 import { curriculumSpecLooseSchema, type CurriculumSpec } from "./spec";
+import { normalizeQuizComponents } from "./quiz-dedupe";
 import type { Contradiction, ExtractedClaim } from "./source";
 
 export const DEMO_TOPIC = "quantum superposition and measurement";
@@ -70,12 +71,22 @@ export function parseCachedRun(data: unknown): CachedLesson | null {
   if (spec.data.concepts.length === 0) return null;
   if (!spec.data.concepts.some((c) => c.components.length > 0)) return null;
 
+  // Quiz hygiene (owner feedback, Oct 8): the capture predates the
+  // one-question-per-concept rule, so normalize it through the SAME helper a
+  // live run uses — otherwise the demo-safe fallback would still show the
+  // repeated measurement/probability questions the owner asked us to remove.
+  // Only quiz components are touched; every other byte of the capture stands.
+  const normalizedSpec: CurriculumSpec = {
+    ...spec.data,
+    concepts: normalizeQuizComponents(spec.data.concepts),
+  };
+
   const v = (d.verify ?? {}) as Record<string, unknown>;
   const heroRaw = d.hero as { conceptId?: string; ok?: boolean; code?: string; fallback?: unknown } | null;
   const hero: CachedHero | null =
     heroRaw && heroRaw.ok !== false && typeof heroRaw.code === "string" && heroRaw.fallback
       ? {
-          conceptId: heroRaw.conceptId ?? spec.data.concepts[0]!.id,
+          conceptId: heroRaw.conceptId ?? normalizedSpec.concepts[0]!.id,
           code: heroRaw.code,
           fallback: heroRaw.fallback as CachedHero["fallback"],
         }
@@ -85,7 +96,7 @@ export function parseCachedRun(data: unknown): CachedLesson | null {
     topic: typeof d.topic === "string" ? d.topic : spec.data.topic,
     capturedAt: typeof d.capturedAt === "string" ? d.capturedAt : "",
     model: typeof d.model === "string" ? d.model : "unknown",
-    spec: spec.data,
+    spec: normalizedSpec,
     sources: (d.sources as CachedLesson["sources"] | undefined) ?? [],
     claims: (d.claims as ExtractedClaim[] | undefined) ?? [],
     passages: (d.passages as CachedLesson["passages"] | undefined) ?? [],
