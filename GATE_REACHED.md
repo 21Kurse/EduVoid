@@ -1,31 +1,84 @@
-# T15 complete — FEATURE FREEZE. Loop stopped, awaiting owner.
+# READY FOR OWNER TESTING
 
-**Date:** 2026-10-07
-**Last commit:** T15 `README + DECISIONS + freeze` (see `git log -1`), pushed to `origin/main`.
+Freeze-period closeout (P1-P5) is complete: the app is deployed-ready, the eval instrument is real,
+the docs exist, and `npm run check` is green. What remains is owner-only work, listed at the bottom.
 
-## Feature freeze is in effect
+## State
 
-No new features from this point. **Bug fixes only.** Everything in `TASKS.md` through **T15** is done and verified.
+- **Branch:** `main`, working tree clean, `HEAD == origin/main` (see the `freeze-candidate` tag).
+- **Checks:** `npm run check` exit 0 — typecheck clean, `eslint .` clean, **214/214 tests across 28
+  files**, production build succeeds.
+- **Freeze rule still applies:** bug fixes only. Everything since T15 is a fix, a test, content, or
+  documentation (`DECISIONS.md` records the reasoning for each).
 
-## State at freeze
+## What was verified in this closeout (not just built)
 
-- **T14 Hardening** (`a002524`): per-IP rate limiting (clear 429 + `retry-after`, never a hang), deterministic topic-safety refusal (friendly 422, no lesson, no crash), client `AbortSignal` threaded to the upstream NIM fetch, and a **demo-safe cached run captured from a real pipeline run** (`data/cached/qm-superposition.json`) labeled exactly **"cached run"** and used only on live failure for the demo topic.
-- **T15 Docs** : `README.md` (problem, user, Mermaid architecture, run + deploy instructions, honest limitations), completed `DECISIONS.md` with a filled cut list, and `.env.example`.
-- Through T15: T0-T11, G3 findings F1-F4, T13 test mode (`ef25793`), T14 (`a002524`). T12 moved to Stretch (S4) by owner.
-- **`npm run check` exit 0 — 150/150 tests across 24 files**, production build succeeds.
-- **Root-cause fix logged this session:** nemotron-3-super was burning its completion budget on the reasoning channel for structured prompts and returning truncated prose with no JSON; schema calls now skip thinking, which took claims extraction from **0 → 61 claims** and unblocked the capture. See `DECISIONS.md`.
+- **Eval instrument (P1):** `data/eval/questions.json` is 10 external items (5 pre / 5 post) from
+  open-licensed artifacts fetched 2026-10-08 — 4 verbatim (Wikiversity, CC BY-SA 4.0) and 6 adapted
+  from MIT OCW 8.04 solutions and LibreTexts (CC BY-NC-SA 4.0), each keeping the source's own answer
+  as the key with a quoted justification (`data/eval/procedure.md`). Browser round trip with the
+  real file: no SAMPLE banner, 5 pre + 5 post answered, records saved with timestamps, and the real
+  Export-CSV button produced two correct rows (`CHECK1,pre,…,5,4,0.800` / `CHECK1,post,…,5,3,0.600`).
+- **Placeholder sims (P2):** live generation, the cached run and the hero fallback all pass through
+  one implemented-template gate; a non-physics topic rendered explainer + quiz + flashcards with no
+  placeholder and no mismatched sim.
+- **Unseen topics (P3):** five topics run end-to-end (niche, ambiguous, non-STEM, one word, one
+  refusal) — no crashes, no hangs, all latencies inside budget; the one unfriendly state found (a
+  probability sim under a programming concept) is fixed and re-verified in both directions.
+- **Docs (P4):** `docs/DEMO.md` (~420 narration words), `docs/QA.md`, `docs/DEVPOST.md`, README
+  updated to the shipped app.
 
-## Open owner items (do not block the freeze)
+## `maxDuration` report (assumption stated)
 
-1. **Real `data/eval/questions.json`** — the file is still a clearly-labeled 2-question SAMPLE. Swap in the owner's external exam questions (`notice` field and `lib/eval.ts` cover the shape) without editing their content, then re-run the T13 tests.
-2. **Target persona** — `README.md` carries a draft persona; the owner supplies the final wording (AGENTS.md §11 item 7).
-3. **3-5 test participants** lined up for the pre/post sessions.
-4. **Deploy + spend cap** — keys in Vercel only, provider spend cap set (see the README deploy checklist).
+| Route | `maxDuration` | Verdict |
+|---|---|---|
+| `POST /api/generate` (SSE: sources → claims → verify → hero) | **300 s** | At the **Hobby maximum**, not over it |
+| `POST /api/generate-concept` (one concept) | **120 s** | Fine |
+| `POST /api/explain-back` (one grader call) | **60 s** | Fine |
 
-Post-freeze (optional, only if the owner asks): emit the hero sim lazily to cut the ~2.5 min setup wall; the eval harness (§8).
+**Assumption:** the project runs on the **Hobby** plan **with Fluid compute enabled** (default for new
+projects), where the documented default and maximum is **300 s** on Hobby (Vercel docs "Functions
+Limits", fetched 2026-10-08). If the project predates Fluid compute or is on a plan with the older
+60 s cap, `/api/generate`'s 300 s is above the limit and must be lowered — check your plan, because
+only you can see it. Measured set-up wall time is well inside either: 13-24 s on the five unseen
+topics (2026-10-08) and 35-55 s on the demo topic in the owner's Oct 5 notes; the streaming design
+means the mindmap appears before the stream finishes regardless.
 
-## Next: real-user testing (D1-D4)
+## Security scan
 
-Feature freeze means the app is now the **test subject**. Next is the scheduled real-user work — **pre-test → learning session → post-test on the owner's device, screen-recorded**, scores and CSV export collected in one place — followed by the demo script (D1), Q&A (D2), Devpost text (D3), and weird-input testing (D4). No feature work.
+- `git grep -nE "nvapi-|tvly-"` → matches only the **documentation lines in `PROGRESS.md` that quote
+  the scan command itself**; no key material.
+- `git log -p | grep -E "nvapi-|tvly-"` → the same single documentation line in one commit; **no key
+  values anywhere in tracked files or history**.
+- Keys live only in the gitignored `.env.local`. No secret was written to the repo, the docs, or a
+  commit in this session.
 
-Delete this file to clear the gate.
+## Owner-only tasks (in order)
+
+1. **Verify the six adapted answer keys** — `BLOCKERS.md` → "OWNER VERIFY" has a 5-minute table:
+   question id, key, and the source's own sentence justifying it. Also confirm you are comfortable
+   with the CC BY-NC-SA items (used non-commercially, with attribution, marked adapted).
+2. **Add the Vercel env var names and redeploy** — `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL_DEFAULT`
+   (+ optional per-role overrides), `SEARCH_PROVIDER`, `TAVILY_API_KEY`, optional
+   `LLM_DISABLE_THINKING`. Values are **not** in the repo; copy them from `.env.local` in your Vercel
+   project settings. Confirm the `maxDuration` assumption above and set your provider spend cap.
+3. **Test the live URL in an incognito window** — the demo topic, then one topic of your choice
+   (`docs/DEMO.md` names the safest: `the French Revolution`, 17.9 s setup in testing). Watch for the
+   "cached run" banner, which must never appear as live.
+4. **Run the participant sessions** (on your device, per §13.8): `/test` → pre-test → session →
+   post-test → Export CSV. Then replace every `[FILL IN AFTER SESSIONS]` marker — they are in
+   `docs/DEMO.md` (evidence beat), `docs/DEVPOST.md` (impact), `README.md` (limitations, test mode)
+   — with the real n, means and the mixed result, and put the CSV plus procedure notes in `data/`.
+5. **Rehearse and record** — `docs/DEMO.md` is the script and shot list; rehearsing with a timer 10×
+   is in the plan for Oct 9. Keep the cached run out of the live segment.
+6. **Cold-viewer review** (§15.6) before upload: someone who has never seen the project states in one
+   sentence what it does and who it is for. If they cannot, rewrite the hook, not the demo.
+7. **Submit by 09:00 EDT on Oct 10** (buffer only). The Devpost checklist is at the end of
+   `docs/DEVPOST.md`.
+
+## Known limitations to keep in front of you
+
+Two sim templates only (physics-flavoured) — other topics get explanations, quizzes and flashcards;
+verification is entailment, not truth; the safety check is deterministic and shallow; one-word
+ambiguous topics can be thinly grounded (a claim-relevance gate is the next build); participant
+evidence is a small demonstration, not a controlled study.
