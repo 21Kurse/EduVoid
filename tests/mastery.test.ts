@@ -39,6 +39,29 @@ describe("mastery rules", () => {
     expect(masteryLevel(s)).toBe("struggling");
   });
 
+  it("an explain-back that conveys the verified claims raises mastery", () => {
+    const s = applyMasteryEvent(undefined, { type: "explain-back", covered: 4, partial: 1, total: 5 });
+    expect(s.mastery).toBeCloseTo(0.8); // 0.5 base + 0.3, score = 4.5/5
+    expect(masteryLevel(s)).toBe("mastered");
+    expect(s.attempts).toBe(1);
+  });
+
+  it("a partial explain-back moves mastery only slightly, a poor one backwards", () => {
+    const partial = applyMasteryEvent(undefined, { type: "explain-back", covered: 2, partial: 1, total: 5 });
+    expect(partial.mastery).toBeCloseTo(0.55); // score 2.5/5 -> +0.05
+    const poor = applyMasteryEvent(undefined, { type: "explain-back", covered: 1, partial: 0, total: 5 });
+    expect(poor.mastery).toBeCloseTo(0.3); // score 0.2 -> −0.2
+    expect(masteryLevel(poor)).toBe("struggling");
+  });
+
+  it("explain-back mastery is clamped and never invents a score from zero claims", () => {
+    let s = applyMasteryEvent(undefined, { type: "explain-back", covered: 3, partial: 0, total: 3 });
+    s = applyMasteryEvent(s, { type: "explain-back", covered: 3, partial: 0, total: 3 });
+    expect(s.mastery).toBe(1);
+    const none = applyMasteryEvent(undefined, { type: "explain-back", covered: 0, partial: 0, total: 0 });
+    expect(none.mastery).toBeCloseTo(0.3); // treated as no coverage, not as a pass
+  });
+
   it("regeneration appends to the modality history (bounded)", () => {
     let s = applyMasteryEvent(undefined, { type: "regenerated", modality: "sim" });
     for (let i = 0; i < 10; i++) s = applyMasteryEvent(s, { type: "regenerated", modality: "quiz" });

@@ -11,10 +11,12 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import type { Component, CurriculumSpec } from "@/lib/spec";
 import type { LearningState } from "@/lib/store";
+import type { ExplainCoverage } from "@/lib/mastery";
 import type { ConceptStatus } from "./concept-status";
 import { Quiz, Flashcards, UnknownComponent } from "./widgets";
 import { Sim } from "./sims";
 import { HeroSim } from "./hero-sim";
+import { ExplainBack } from "./explain-back";
 
 export function VerifyBadge({
   supported,
@@ -96,6 +98,7 @@ export function ConceptPanel({
   hero = null,
   onAnswered,
   onDontGet,
+  onExplained,
   adaptation = null,
   adapting = false,
   claimsNode = null,
@@ -109,6 +112,8 @@ export function ConceptPanel({
   hero?: { conceptId: string; code: string; fallback: { template: string; values: Record<string, number | string | boolean>; predictPrompt: string } } | null;
   onAnswered: (conceptId: string, correct: boolean) => void;
   onDontGet?: (conceptId: string) => void;
+  /** Explain-back result → mastery (§5 item 4). */
+  onExplained?: (conceptId: string, coverage: ExplainCoverage) => void;
   adaptation?: string | null;
   /** True while a regeneration is in flight (owner feedback: show progress). */
   adapting?: boolean;
@@ -224,6 +229,17 @@ export function ConceptPanel({
                   return <UnknownComponent key={i} type={(comp as { type?: string }).type ?? "unknown"} />;
               }
             })}
+
+            {onExplained && (
+              <ExplainBack
+                topic={spec.topic}
+                conceptId={concept.id}
+                conceptTitle={concept.title}
+                summary={concept.summary}
+                claims={concept.claims}
+                onGraded={onExplained}
+              />
+            )}
           </>
         )}
       </div>

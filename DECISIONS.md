@@ -60,9 +60,18 @@ The G1 spike measured `nvidia/nemotron-3-super-120b-a12b` at 10/10 valid JSON, b
 - **Deploy checklist** lives in `README.md` (Deploy section): `npm run check` green, keys in Vercel only, provider spend cap set, live demo topic loads, cached-run path verified with APIs unreachable, `maxDuration` matched to the plan.
 - **`.env.example` was corrected**: a stray `[TEMPLATE]` marker line (left by an earlier generated edit) was removed, and `LLM_DISABLE_THINKING` was documented.
 
+## Post-freeze owner request: interactivity (Oct 8) — sim lab + explain-back
+
+The owner reviewed the live app and asked "how can we make it more interactive?", then chose two of the four offered options. Both are additive UI work: the pipeline (source → plan → generate → verify) is untouched, and the single new server route is a bounded, rate-limited grader call.
+
+- **Sim lab (option A, chosen).** The 2026-10-07 build shipped predict-then-reveal sims without the sliders §5.2 calls for — the learner could watch one frozen run but not manipulate anything. Now, after the prediction is committed, each hand-built template unlocks an explore lab: two-state probability gets P(A)/n sliders with single-shot measurement (one dot per click, judged against the binomial spread rather than a fixed tolerance — an earlier ±5-point copy was wrong at small n and was replaced), and double-slit gets d/λ sliders, single-electron firing, and a **which-path detector** switch that visibly stops fringes from building. All math is pure and seeded in `lib/sim-math.ts`; no model call and no network, so the lab cannot break on demo day. This closes a spec gap rather than adding a subsystem, and the reveal stays frozen so the prediction comparison cannot go stale.
+- **Explain-back (option B, chosen; §5 item 4).** The learner writes the concept in their own words; `POST /api/explain-back` (new route, `grader` role, its own 20 req / 10 min per-IP bucket) grades the explanation against that concept's VERIFIED claims only — the same claims the sources panel shows. The model returns flat per-claim verdicts; the counts, coverage score, gap fallback and mastery movement are computed deterministically in `lib/explain-back.ts` + `lib/mastery.ts`, so a hallucinated, duplicated or skipped verdict cannot over-credit the learner. Mastery: ≥⅔ of claims conveyed → +0.3, ≥⅓ → +0.05, less → −0.2 (§13.12 deterministic rules, no BKT).
+- **Not chosen (offered, declined):** mindmap/quiz/flashcard micro-interactions, and the diagnostic unlock flow (still Stretch S4).
+- **Freeze note:** §0/§12 set a feature freeze after T15 (2026-10-07) and the schedule gives Oct 8 to real-user sessions. This was an explicit owner override made before the video is recorded (Oct 9). Scope stayed UI-only plus one isolated route; every new path has unit tests and a live browser check.
+
 ## Cut list
 
 - **T12 diagnostics screen** — moved to Stretch (S4) by owner instruction on 2026-10-05; not built. Reason: the agent-activity panel already covers the "show the agents working" need for the demo.
 - **Eval harness (§8)** — not built (optional per §13.11). Reason: prioritized the core pipeline and the pre/post test flow that produces real participant evidence.
-- **Extra sim templates / Socratic / explain-back (Stretch)** — not built. Reason: feature freeze; effort went to making the one core flow flawless (§0).
+- **Extra sim templates / Socratic / explain-back (Stretch)** — partially built post-freeze: see the 2026-10-08 section below. `explain-back` (§5 item 4) is now built at the owner's request, and the two hand-built templates gained the slider interaction §5.2 calls for. Socratic mode (§5 item 5) and the unbuilt `slider-curve` / `vector-field` templates remain not built.
 - Nothing mandatory was cut: the verifier, adaptive loop, mastery mindmap, and the deployed link are all in place.

@@ -274,7 +274,7 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
       renderedQuizPrompts((specRef.current?.concepts ?? []).filter((c) => c.id !== conceptId)),
     [],
   );
-  const { onAnswered, onDontGet, adaptations, adapting } = useAdaptive({
+  const { onAnswered, onDontGet, onExplained, adaptations, adapting } = useAdaptive({
     topic,
     getConcept,
     onRegenerated,
@@ -313,6 +313,7 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
                 hero={hero}
                 onAnswered={onAnswered}
                 onDontGet={onDontGet}
+                onExplained={onExplained}
                 adaptation={
                   state.selectedConceptId ? (adaptations[state.selectedConceptId] ?? null) : null
                 }

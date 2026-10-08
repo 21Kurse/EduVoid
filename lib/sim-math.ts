@@ -35,10 +35,51 @@ export function twoStateCounts(
   return { a, b: shots - a };
 }
 
+/**
+ * The same n shots, in order, as single outcomes (T9 lab: "measure one at a
+ * time"). Revealing them one by one shows the running frequency converging
+ * on p — the Born rule as an experience, not a sentence. Shares the exact
+ * mulberry32 sequence of twoStateCounts, so the running count always equals
+ * twoStateCounts(p, k, seed).a after k reveals.
+ */
+export function twoStatePath(p: number, n: number, seed = 1): boolean[] {
+  const prob = clamp(Number.isFinite(p) ? p : 0.5, 0, 1);
+  const shots = Math.max(1, Math.round(n) || 1);
+  const rng = mulberry32(seed);
+  const out: boolean[] = [];
+  for (let i = 0; i < shots; i++) out.push(rng() < prob);
+  return out;
+}
+
 /** Typical 95% spread of a binomial count — for the prediction comparison. */
 export function binomialSpread(p: number, n: number): number {
   const prob = clamp(Number.isFinite(p) ? p : 0.5, 0, 1);
   return 2 * Math.sqrt(n * prob * (1 - prob));
+}
+
+/** Slit separation / wavelength ranges the templates clamp to. */
+export const SLIT_D_MIN = 0.5;
+export const SLIT_D_MAX = 5;
+export const SLIT_LAMBDA_MIN = 0.25;
+export const SLIT_LAMBDA_MAX = 2;
+
+/** Clamped (d, lambda) — one place so every pattern agrees on the ranges. */
+function slitParams(d: number, lambda: number): [number, number] {
+  return [
+    clamp(Number.isFinite(d) ? d : 2, SLIT_D_MIN, SLIT_D_MAX),
+    clamp(Number.isFinite(lambda) ? lambda : 1, SLIT_LAMBDA_MIN, SLIT_LAMBDA_MAX),
+  ];
+}
+
+/**
+ * Single-slit intensity envelope at screen position x (slit width a = d/4),
+ * the sinc^2 term alone. This is what remains when a which-path detector
+ * resolves the two paths: each slit's own spread, with no fringes (T9 lab).
+ */
+export function envelopeIntensity(x: number, d: number, lambda: number): number {
+  const [dd, lam] = slitParams(d, lambda);
+  const envPhase = (Math.PI * (dd / 4) * x) / lam;
+  return envPhase === 0 ? 1 : (Math.sin(envPhase) / envPhase) ** 2;
 }
 
 /**
@@ -47,11 +88,9 @@ export function binomialSpread(p: number, n: number): number {
  * single-slit envelope. L = 1 in these arbitrary units.
  */
 export function interferenceIntensity(x: number, d: number, lambda: number): number {
-  const phase = (Math.PI * d * x) / lambda;
-  const envPhase = (Math.PI * (d / 4) * x) / lambda;
-  const cos2 = Math.cos(phase) ** 2;
-  const env = envPhase === 0 ? 1 : (Math.sin(envPhase) / envPhase) ** 2;
-  return cos2 * env;
+  const [dd, lam] = slitParams(d, lambda);
+  const phase = (Math.PI * dd * x) / lam;
+  return Math.cos(phase) ** 2 * envelopeIntensity(x, dd, lam);
 }
 
 export type CurvePoint = { x: number; i: number };
@@ -74,6 +113,75 @@ export function interferenceCurve(
 /** Number of interference maxima (fringes) visible within the window. */
 export function fringeCount(d: number, lambda: number, halfWidth = 8): number {
   // Maxima of cos^2 occur every pi in phase: spacing dx = lambda/d.
-  const spacing = lambda / clamp(d, 0.25, 5);
+  const [dd, lam] = slitParams(d, lambda);
+  const spacing = lam / dd;
   return Math.max(1, Math.floor((2 * halfWidth) / spacing));
+}
+
+/** Sampled envelope curve — the no-interference (which-path) screen. */
+export function envelopeCurve(
+  d: number,
+  lambda: number,
+  points = 161,
+  halfWidth = 8,
+): CurvePoint[] {
+  const out: CurvePoint[] = [];
+  for (let k = 0; k < points; k++) {
+    const x = -halfWidth + (2 * halfWidth * k) / (points - 1);
+    out.push({ x, i: envelopeIntensity(x, d, lambda) });
+  }
+  return out;
+}
+
+/**
+ * Single-electron landing positions, in shot order, sampled from the screen
+ * intensity by inverse CDF over a fixed grid (deterministic under `seed`).
+ * With `whichPath: true` the samples follow the envelope instead — the lab's
+ * fringe build-up visibly stops happening.
+ */
+export function doubleSlitPath(
+  d: number,
+  lambda: number,
+  n: number,
+  seed = 1,
+  opts: { whichPath?: boolean; halfWidth?: number; gridPoints?: number } = {},
+): number[] {
+  const [dd, lam] = slitParams(d, lambda);
+  const shots = Math.max(1, Math.round(n) || 1);
+  const halfWidth = opts.halfWidth ?? 8;
+  const points = Math.max(32, opts.gridPoints ?? 401);
+  const intensity = opts.whichPath ? envelopeIntensity : interferenceIntensity;
+
+  const xs: number[] = [];
+  const cdf: number[] = [];
+  let acc = 0;
+  for (let k = 0; k < points; k++) {
+    const x = -halfWidth + (2 * halfWidth * k) / (points - 1);
+    xs.push(x);
+    acc += intensity(x, dd, lam);
+    cdf.push(acc);
+  }
+  if (acc <= 0) return new Array(shots).fill(0);
+
+  const rng = mulberry32(seed);
+  const out: number[] = [];
+  for (let s = 0; s < shots; s++) {
+    const target = rng() * acc;
+    // First grid index whose cumulative weight reaches the target…
+    let lo = 0;
+    let hi = points - 1;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (cdf[mid] < target) lo = mid + 1;
+      else hi = mid;
+    }
+    // …then interpolate inside that cell so positions are not quantized.
+    const i1 = lo;
+    const i0 = Math.max(0, lo - 1);
+    const c0 = cdf[i0];
+    const c1 = cdf[i1];
+    const frac = c1 > c0 ? clamp((target - c0) / (c1 - c0), 0, 1) : 0;
+    out.push(xs[i0] + (xs[i1] - xs[i0]) * frac);
+  }
+  return out;
 }

@@ -160,3 +160,25 @@ Owner review of the live app raised two defects; both are bug fixes inside the f
 - **Limitation:** the local fallback covers the two hand-built templates only (two-state probability, double-slit); a concept outside them degrades to the honest failure line rather than a fabricated sim.
 - Also removed a dead `?fixture=1` branch and its unused state in `components/learning-app.tsx` (the fixture is test-only now) — `eslint .` is warning-free for the first time.
 - **Tests:** `npm run check` exit 0 — **184/184 across 26 files** (177 before this pair of fixes; +7: `quiz-dedupe` regression cases incl. the real captured pair, `local-adapt`, `deliveredModality`).
+
+## Post-freeze: owner-requested interactivity — sim lab + explain-back (2026-10-08)
+
+Owner review asked how to make the app more interactive and chose two of four offered options. Both are additive; the pipeline stages are untouched, and the one new route is a bounded, rate-limited grader call. Full reasoning in `DECISIONS.md`.
+
+**1. Sim lab (§5.2 — the sliders the templates never had).** After the prediction is committed, each hand-built template unlocks an explore lab, so predict-then-reveal is preserved and the lab is a second act:
+
+- **Two-state:** P(A) and shot-count sliders, plus `Measure one` / `+10` / `Fire all` — each click adds one dot, and the running frequency is judged against the binomial spread at that sample size ("±28 points … consistent with the preparation") rather than a flattering fixed tolerance. `twoStatePath` shares the exact mulberry32 sequence of `twoStateCounts`, so a revealed prefix always equals the batch count for that k (test-enforced).
+- **Double-slit:** d and λ sliders that redraw the screen live, single-electron firing (`Fire one` / `+25` / `Fire all 300`) whose marks accumulate into fringes on the same SVG as the curve, and a **which-path detector** toggle that switches the screen to the single-slit envelope — the mark build-up visibly stops converging into fringes. The reveal curve and sentence stay frozen on the setup the learner predicted against, so changing the sliders can never make the earlier comparison lie.
+- Pure, seeded math in `lib/sim-math.ts` (`twoStatePath`, `doubleSlitPath` inverse-CDF, `envelopeCurve`, `envelopeIntensity`); no model call, no network, no new dependency.
+
+**2. Explain-back (§5 item 4, chosen from the stretch list).** `POST /api/explain-back` grades the learner's own words against that concept's VERIFIED claims only (`grader` role, 20 req / 10 min per IP, ≤12 claims × 400 chars, explanation ≤4000, <12 chars → 400). The model returns flat per-claim verdicts; `lib/explain-back.ts` computes the counts, the ½-weighted coverage score, invented-id filtering, duplicate-first precedence, missing→missed, and an honest gap fallback. `components/explain-back.tsx` renders idle → grading → result (✓/~/✗ per claim, gap, nudge) with a visible error state on any failure. Mastery moves deterministically via a new `explain-back` event in `lib/mastery.ts` (+0.3 / +0.05 / −0.2).
+
+**Verified (real numbers):**
+
+- `npm run check` exit 0 — **202/202 tests across 27 files** (190/26 before; +9 `explain-back`, +3 mastery, +6 sim-math), typecheck clean, eslint warning-free, production build passes.
+- Sim lab in the browser (dev page mounting both templates, since removed): 8 `Measure one` clicks → 8 dots and "A 0 / 8"; toggle ON → count resets to 0, curve and note switch to amber; `+25` → 25 amber marks; `Fire all 300` → 300 marks; d slider 2 → 2.8 reset the screen to 0 and changed only the lab note.
+- Which-path physics, unit-tested: at the first dark fringe (λ/2d) the no-detector intensity is <0.001 while the envelope is >0.9; 3000 seeded shots give <1% of marks there without the detector vs >3% with it.
+- In-lesson: `I don't get this` regenerated "Measurement and Collapse" as a sim (banner: "…so here it is as a hands-on simulation"); committing the prediction (70% preparation, 10 systems) revealed the lab; 11 measurements → "A 6 / 11 · 55% … typical fluctuation ±28 points, so the run is consistent with the preparation".
+- Explain-back live on "Quantum State" (4 supported claims): a deliberately patchy answer came back **3 of 4 covered**, the omitted wave-function claim marked missed, with gap + nudge naming exactly it — graded in **8.4 s**; the mastery store went to `quantum-state: mastery 0.8, attempts 1` and the mindmap node recoloured to mastered. A direct route POST returned 200 with the same summary shape.
+
+**Limitations:** the lab exists only for the two hand-built templates (LLM-chosen `slider-curve` / `vector-field` sims still render as labeled placeholders); explain-back needs the grader model, so during a cached-run outage it shows the honest error instead of a grade; and grading quality is the model's — the code guarantees only that the *counting* cannot be inflated.

@@ -25,6 +25,7 @@ import {
   applyMasteryEvent,
   deliveredModality,
   nextModality,
+  type ExplainCoverage,
   type MasteryEvent,
   type Modality,
 } from "./mastery";
@@ -54,6 +55,8 @@ export function useAdaptive({
 }): {
   onAnswered: (conceptId: string, correct: boolean) => void;
   onDontGet: (conceptId: string) => void;
+  /** Explain-back (§5 item 4) moved the mastery state — rules stay in lib/mastery.ts. */
+  onExplained: (conceptId: string, coverage: ExplainCoverage) => void;
   adaptations: Record<string, string>;
   adapting: Record<string, boolean>;
 } {
@@ -184,5 +187,12 @@ export function useAdaptive({
     [record, getConcept, regenerate],
   );
 
-  return { onAnswered, onDontGet, adaptations, adapting };
+  const onExplained = useCallback(
+    (conceptId: string, coverage: ExplainCoverage) => {
+      record(conceptId, { type: "explain-back", ...coverage });
+    },
+    [record],
+  );
+
+  return { onAnswered, onDontGet, onExplained, adaptations, adapting };
 }

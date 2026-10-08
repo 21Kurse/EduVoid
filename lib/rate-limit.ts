@@ -14,6 +14,8 @@ export const RATE_RULES: Record<string, RateLimitRule> = {
   generate: { limit: 6, windowMs: 10 * 60_000 },
   /** Lazy concepts: a lesson opens ~6 and prefetches, plus adaptations. */
   "generate-concept": { limit: 40, windowMs: 10 * 60_000 },
+  /** Explain-back grading: one bounded model call per submit. */
+  "explain-back": { limit: 20, windowMs: 10 * 60_000 },
 };
 
 /** Hard cap on tracked keys so a rotating-IP flood cannot grow memory. */

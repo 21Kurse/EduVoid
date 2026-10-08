@@ -49,11 +49,18 @@ export function emptyMastery(): MasteryState {
  * - quiz correct: +0.4 (two clean answers master an untouched concept)
  * - quiz wrong: −0.3, floored at 0; first miss on unseen starts at 0.5
  * - "I don't get this": collapse toward struggling (×0.4)
+ * - explain-back: the learner explained the concept and the grader checked it
+ *   against the verified claims (partial claims count half):
+ *   ≥ ⅔ conveyed → +0.3, ≥ ⅓ → +0.05, less → −0.2
  * - regenerated: record the new modality in the history
  */
+/** Coverage counts from one explain-back grade (§5 item 4). */
+export type ExplainCoverage = { covered: number; partial: number; total: number };
+
 export type MasteryEvent =
   | { type: "quiz"; correct: boolean }
   | { type: "dont-get" }
+  | ({ type: "explain-back" } & ExplainCoverage)
   | { type: "regenerated"; modality: string };
 
 export function applyMasteryEvent(
@@ -70,6 +77,14 @@ export function applyMasteryEvent(
     case "dont-get": {
       const base = s.mastery ?? 0.5;
       return { ...s, mastery: Math.max(0, base * 0.4) };
+    }
+    case "explain-back": {
+      const base = s.mastery ?? 0.5;
+      const score =
+        event.total > 0 ? (event.covered + 0.5 * event.partial) / event.total : 0;
+      const delta = score >= 2 / 3 ? 0.3 : score >= 1 / 3 ? 0.05 : -0.2;
+      const mastery = Math.min(1, Math.max(0, base + delta));
+      return { ...s, mastery, attempts: s.attempts + 1 };
     }
     case "regenerated": {
       return { ...s, modalityHistory: [...s.modalityHistory.slice(-5), event.modality] };
