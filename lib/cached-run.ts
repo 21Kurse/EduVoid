@@ -11,6 +11,7 @@
 import raw from "../data/cached/qm-superposition.json";
 import { curriculumSpecLooseSchema, type CurriculumSpec } from "./spec";
 import { normalizeQuizComponents } from "./quiz-dedupe";
+import { normalizeSimComponents } from "./sim-templates";
 import type { Contradiction, ExtractedClaim } from "./source";
 
 export const DEMO_TOPIC = "quantum superposition and measurement";
@@ -75,10 +76,11 @@ export function parseCachedRun(data: unknown): CachedLesson | null {
   // one-question-per-concept rule, so normalize it through the SAME helper a
   // live run uses — otherwise the demo-safe fallback would still show the
   // repeated measurement/probability questions the owner asked us to remove.
-  // Only quiz components are touched; every other byte of the capture stands.
+  // Sim templates go through the same gate so a capture can never carry a
+  // placeholder sim either (only the two hand-built templates are rendered).
   const normalizedSpec: CurriculumSpec = {
     ...spec.data,
-    concepts: normalizeQuizComponents(spec.data.concepts),
+    concepts: normalizeSimComponents(normalizeQuizComponents(spec.data.concepts)),
   };
 
   const v = (d.verify ?? {}) as Record<string, unknown>;

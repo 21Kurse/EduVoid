@@ -16,7 +16,7 @@ import {
 } from "./quiz-dedupe.ts";
 import { MODALITY_HINT, modalityFeedback, usableModality } from "./modality.ts";
 import { HERO_MESSAGES_SYSTEM, heroSimSchema, validateHeroCode, type HeroSimSpec } from "./hero-sim.ts";
-import { SIM_TEMPLATES } from "./sim-templates.ts";
+import { isImplementedSimTemplate } from "./sim-templates.ts";
 
 // Schema is deliberately permissive: per-item salvage happens in code so a
 // single bad quiz option does not burn a schema retry (and its tokens).
@@ -152,10 +152,14 @@ function buildConcept(
   if (cards.length > 0) {
     components.push({ type: "flashcards", cards });
   }
-  if (d.sim && (SIM_TEMPLATES as readonly string[]).includes(d.sim.template)) {
+  // Only the hand-built templates may ship (§13.6). The prompt offers just
+  // those two; a reserved id (`slider-curve` / `vector-field`) is dropped
+  // entirely — the concept keeps its explainer/quiz/flashcards rather than
+  // showing a learner a "coming soon" placeholder.
+  if (d.sim && isImplementedSimTemplate(d.sim.template)) {
     components.push({
       type: "sim",
-      template: d.sim.template as (typeof SIM_TEMPLATES)[number],
+      template: d.sim.template,
       params: { values: (d.sim.values ?? {}) as Record<string, number | string | boolean> },
       predictPrompt: d.sim.predictPrompt,
     });

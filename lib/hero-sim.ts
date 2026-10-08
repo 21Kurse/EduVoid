@@ -13,6 +13,9 @@ export const heroSimSchema = z.object({
   /** HTML fragment with exactly one <canvas> and inline script(s) only. */
   code: z.string().min(40),
   fallback: z.object({
+    // Permissive on purpose: a hero generated before the hand-built set was
+    // restricted still validates. `simTemplateOrDefault` coerces the id at
+    // render time, so a reserved template can never reach the UI.
     template: z.enum(SIM_TEMPLATES),
     values: z.record(z.string(), z.union([z.number(), z.string(), z.boolean()])),
     predictPrompt: z.string().min(1),
@@ -69,6 +72,6 @@ export function wrapHeroCode(code: string): string {
 
 export const HERO_MESSAGES_SYSTEM =
   "You write ONE interactive canvas demo for a learning app. Output ONLY JSON of shape " +
-    '{"code":string,"fallback":{"template":"two-state-prob"|"double-slit"|"slider-curve"|"vector-field","values":{string:number},"predictPrompt":string}}. ' +
+    '{"code":string,"fallback":{"template":"two-state-prob"|"double-slit","values":{string:number},"predictPrompt":string}}. ' +
     "code is an HTML fragment with exactly one <canvas> plus one inline <script> that draws a self-contained animation illustrating the concept (no network, no libraries, no external assets, no localStorage, no eval). " +
-    "Keep code under 60 lines. fallback is a simple template sim (with 2-3 numeric values and a prediction question) to show if the canvas demo fails.";
+    "Keep code under 60 lines. fallback is a simple template sim (with 2-3 numeric values and a prediction question) to show if the canvas demo fails; it must be one of the two templates listed above.";

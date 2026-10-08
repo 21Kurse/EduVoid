@@ -79,6 +79,15 @@ The four choices below were not dictated by the task list; they are the conserva
 - **Transfer items marked in the id, not the prompt.** The prompts are the sources' own text (or minimally adapted), so tagging transfer-ness in the prompt would mean rewriting source wording. `transfer` in the id is documented in `procedure.md` and asserted by `tests/eval.test.ts`. Consequence: the eval UI does not *label* a question as transfer; the owner's pairing table does.
 - **`lib/eval.ts` schema kept as-is, including the optional `notice` field.** Removing it would be a code change for a content problem; with the real file the key is absent, so the SAMPLE banner is off, and the field remains the honest marker for any future placeholder.
 
+## Freeze-period P2 (Oct 8) — placeholder sims: where the restriction lives
+
+Three options were available for keeping the unimplemented sim templates out of the UI; the conservative one was taken for each.
+
+- **Restriction in the generation paths, not in the schema.** Narrowing `componentSchema` to the two implemented ids would be the tidiest single gate, but the test fixture legitimately carries `slider-curve` (it was written before the hand-built set existed), so narrowing would either break the fixture or force a data edit outside this task's scope. Instead the schema stays permissive and every path that can put a sim in front of a learner (live generation, adaptation, cached run, hero fallback) passes through one shared guard, with a test asserting the schema and the shared id list cannot drift apart.
+- **A reserved sim is dropped, not neutralised.** The alternative was rendering it as a labelled "not available" box; an empty box on stage is still a placeholder a judge would see. Dropping the component leaves the concept's explainer/quiz/flashcards, which is what the task asked for ("skip the sim and use the explainer, quiz, flashcards or the validated hero sim").
+- **The hero prompt was tightened but its schema was left permissive.** A hero generated before this change still validates and still renders its canvas; only the *fallback* id is coerced at render time. Narrowing the hero schema would have invalidated the existing cached capture's hero for no user-visible benefit.
+- **A parse-time sim filter was added to the cached run even though today's capture has none.** `npm run capture:demo` runs the real pipeline, so the next capture could contain a reserved id the same way this one contains legacy quiz repetition; normalizing at parse time keeps the guarantee next to the equivalent quiz normalization that already exists there.
+
 ## Cut list
 
 - **T12 diagnostics screen** — moved to Stretch (S4) by owner instruction on 2026-10-05; not built. Reason: the agent-activity panel already covers the "show the agents working" need for the demo.

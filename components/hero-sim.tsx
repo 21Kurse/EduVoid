@@ -8,6 +8,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { HERO_READY_TIMEOUT_MS, wrapHeroCode } from "@/lib/hero-sim";
+import { simTemplateOrDefault } from "@/lib/sim-templates";
 import { Sim } from "./sims";
 import type { Component } from "@/lib/spec";
 
@@ -18,13 +19,11 @@ export type HeroFallback = {
 };
 
 function fallbackComponent(f: HeroFallback): Extract<Component, { type: "sim" }> {
-  const templates = ["two-state-prob", "double-slit", "slider-curve", "vector-field"] as const;
-  const template = (templates as readonly string[]).includes(f.template)
-    ? (f.template as (typeof templates)[number])
-    : "two-state-prob";
+  // A reserved template id (older captures) renders as the implemented
+  // two-state sim, never as a placeholder — the fallback must always work.
   return {
     type: "sim",
-    template,
+    template: simTemplateOrDefault(f.template),
     params: { values: f.values },
     predictPrompt: f.predictPrompt,
   };
