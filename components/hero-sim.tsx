@@ -29,7 +29,21 @@ function fallbackComponent(f: HeroFallback): Extract<Component, { type: "sim" }>
   };
 }
 
-export function HeroSim({ code, fallback }: { code: string; fallback: HeroFallback }) {
+export function HeroSim({
+  code,
+  fallback,
+  fallbackFits,
+}: {
+  code: string;
+  fallback: HeroFallback;
+  /**
+   * Does the paired template sim fit this concept? Decided by the caller with
+   * the same deterministic fit signal the "I don't get this" fallback uses
+   * (lib/local-adapt.ts). Wrong fit → an unrelated experiment appears under
+   * the concept, which is worse than showing no experiment at all.
+   */
+  fallbackFits: boolean;
+}) {
   // "checking" → "live" on a ready ping; anything else → "fallback".
   const [status, setStatus] = useState<"checking" | "live" | "fallback">("checking");
   const frameRef = useRef<HTMLIFrameElement | null>(null);
@@ -56,9 +70,11 @@ export function HeroSim({ code, fallback }: { code: string; fallback: HeroFallba
     return (
       <div data-testid="hero-fallback">
         <p className="mb-2 text-[11px] text-zinc-400">
-          The generated demo did not render cleanly — showing the reliable template sim instead.
+          {fallbackFits
+            ? "The generated demo did not render cleanly — showing the reliable template sim instead."
+            : "The generated demo did not render cleanly, and no template simulation fits this concept — it is shown without one."}
         </p>
-        <Sim component={fallbackComponent(fallback)} seed={7} />
+        {fallbackFits && <Sim component={fallbackComponent(fallback)} seed={7} />}
       </div>
     );
   }

@@ -88,6 +88,14 @@ Three options were available for keeping the unimplemented sim templates out of 
 - **The hero prompt was tightened but its schema was left permissive.** A hero generated before this change still validates and still renders its canvas; only the *fallback* id is coerced at render time. Narrowing the hero schema would have invalidated the existing cached capture's hero for no user-visible benefit.
 - **A parse-time sim filter was added to the cached run even though today's capture has none.** `npm run capture:demo` runs the real pipeline, so the next capture could contain a reserved id the same way this one contains legacy quiz repetition; normalizing at parse time keeps the guarantee next to the equivalent quiz normalization that already exists there.
 
+## Freeze-period P3 (Oct 8) — what unseen-topic testing changed, and what it did not
+
+The ambiguous-topic run exposed two different problems; only one was fixed, and the reasons are recorded here.
+
+- **Fixed: the hero sim's paired template could render under a concept no template fits.** That is a visible, wrong-looking artifact in a judge's own topic, it lives in one component, and the correct decision function already existed for the "I don't get this" fallback — so the fix reuses it rather than adding logic (`fitsLocalTemplate`). Two lines of rendering change plus four tests.
+- **Not fixed: thin grounding on a vague one-word topic.** The verifier's job is entailment against the cited passage, and it did that correctly — the passage really does support the sentence; the problem is that the passage itself is about a different sense of the word. Fixing it properly means a claim-to-concept relevance gate (or a "your topic is ambiguous" step), which is a *new* mechanism with prompt- and ranking-level blast radius. Adding it during a feature freeze, two days before recording, would risk the demo path for a case the video does not exercise. Logged in `BLOCKERS.md`-style prose in `PROGRESS.md`, answered honestly in `docs/QA.md`, and named in the README limitations as a known boundary.
+- **No safety relaxation:** the refusal run confirms the deterministic check still refuses a harmful construction request before any provider call (HTTP 422, <0.2 s), and the five allowed topics were unaffected.
+
 ## Cut list
 
 - **T12 diagnostics screen** — moved to Stretch (S4) by owner instruction on 2026-10-05; not built. Reason: the agent-activity panel already covers the "show the agents working" need for the demo.

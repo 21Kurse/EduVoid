@@ -43,11 +43,25 @@ function conceptText(concept: Concept, topic: string): string {
     .slice(0, 6000);
 }
 
+/**
+ * Does this template plausibly fit the concept? Deterministic, and the only
+ * place the fit signal is defined — used both to pick a local sim and to
+ * decide whether the hero sim's paired template sim is an appropriate safety
+ * net (an unrelated experiment is worse than no experiment).
+ */
+export function fitsLocalTemplate(
+  template: LocalSimTemplate,
+  concept: Concept,
+  topic: string,
+): boolean {
+  const text = conceptText(concept, topic);
+  return template === "double-slit" ? INTERFERENCE.test(text) : TWO_STATE.test(text);
+}
+
 /** Which hand-built template (if any) fits this concept's content. */
 export function pickLocalTemplate(concept: Concept, topic: string): LocalSimTemplate | null {
-  const text = conceptText(concept, topic);
-  if (INTERFERENCE.test(text)) return "double-slit";
-  if (TWO_STATE.test(text)) return "two-state-prob";
+  if (fitsLocalTemplate("double-slit", concept, topic)) return "double-slit";
+  if (fitsLocalTemplate("two-state-prob", concept, topic)) return "two-state-prob";
   return null;
 }
 

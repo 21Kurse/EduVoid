@@ -16,6 +16,8 @@ import type { ConceptStatus } from "./concept-status";
 import { Quiz, Flashcards, UnknownComponent } from "./widgets";
 import { Sim } from "./sims";
 import { HeroSim } from "./hero-sim";
+import { fitsLocalTemplate } from "@/lib/local-adapt";
+import { simTemplateOrDefault } from "@/lib/sim-templates";
 import { ExplainBack } from "./explain-back";
 
 export function VerifyBadge({
@@ -182,7 +184,14 @@ export function ConceptPanel({
               </div>
             )}
 
-            {hero && hero.conceptId === concept.id && <HeroSim code={hero.code} fallback={hero.fallback} />}
+            {/* §13.6: the paired template sim only shows when it fits this concept. */}
+            {hero && hero.conceptId === concept.id && (
+              <HeroSim
+                code={hero.code}
+                fallback={hero.fallback}
+                fallbackFits={fitsLocalTemplate(simTemplateOrDefault(hero.fallback.template), concept, spec.topic)}
+              />
+            )}
 
             {concept.components.length === 0 && !conceptStatus[concept.id]?.ok && (
               <div className="rounded-xl border border-border-subtle bg-zinc-50 p-4 text-[13px] text-zinc-500" data-testid="concept-generating">

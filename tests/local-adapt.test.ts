@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { LOCAL_FALLBACK_REASON, localSimAdaptation, pickLocalTemplate } from "../lib/local-adapt";
+import {
+  LOCAL_FALLBACK_REASON,
+  fitsLocalTemplate,
+  localSimAdaptation,
+  pickLocalTemplate,
+} from "../lib/local-adapt";
 import type { Concept } from "../lib/spec";
 
 const claim = (id: string, text: string) => ({
@@ -53,6 +58,63 @@ describe("pickLocalTemplate", () => {
     });
     expect(pickLocalTemplate(unrelated, "how photosynthesis works")).toBeNull();
     expect(localSimAdaptation(unrelated, "how photosynthesis works")).toBeNull();
+  });
+});
+
+describe("fitsLocalTemplate (guards the hero sim's paired fallback)", () => {
+  it("accepts the double-slit template for an interference concept under a fitting topic", () => {
+    const interference = concept({
+      id: "interference",
+      title: "Interference and the double slit",
+      summary: "Fringe spacing depends on wavelength.",
+      claims: [claim("c", "Bright fringes appear where the path difference is a whole wavelength.")],
+      components: [{ type: "explainer", markdown: "Two slits produce alternating bright and dark fringes." }],
+    });
+    expect(fitsLocalTemplate("double-slit", interference, "wave optics")).toBe(true);
+    expect(fitsLocalTemplate("two-state-prob", interference, "wave optics")).toBe(false);
+  });
+
+  it("accepts the two-state template for a probability concept", () => {
+    expect(fitsLocalTemplate("two-state-prob", concept(), "medical testing")).toBe(true);
+    expect(fitsLocalTemplate("double-slit", concept(), "medical testing")).toBe(false);
+  });
+
+  it("keeps the demo path working: the quantum topic itself fits two-state", () => {
+    // The fit signal includes the topic, so a concept inside a superposition
+    // lesson legitimately accepts the probability sim — the hero fallback on
+    // the demo topic must stay enabled.
+    expect(fitsLocalTemplate("two-state-prob", concept(), QUANTUM_TOPIC)).toBe(true);
+  });
+
+  it("rejects both templates for an unrelated concept", () => {
+    // Observed live (freeze-period P3): the ambiguous topic "loops" planned a
+    // programming lesson; its hero canvas failed and the paired probability sim
+    // rendered under a programming concept. No template belongs here.
+    const programming = concept({
+      id: "what-is-a-loop",
+      title: "What is a Loop",
+      summary: "A loop repeats a sequence of instructions multiple times.",
+      claims: [claim("c", "Loops Automation provides engineering and automation products.")],
+      components: [
+        {
+          type: "explainer",
+          markdown:
+            "A loop is a series of instructions that repeats a block of code until a condition is met, automating repetitive tasks.",
+        },
+      ],
+    });
+    expect(fitsLocalTemplate("two-state-prob", programming, "loops")).toBe(false);
+    expect(fitsLocalTemplate("double-slit", programming, "loops")).toBe(false);
+
+    const history = concept({
+      id: "storming-bastille",
+      title: "Storming of the Bastille",
+      summary: "The 14 July 1789 assault on the Paris prison.",
+      claims: [claim("c", "The French Revolution began in 1789.")],
+      components: [{ type: "explainer", markdown: "A Parisian crowd stormed the fortress-prison." }],
+    });
+    expect(fitsLocalTemplate("two-state-prob", history, "the French Revolution")).toBe(false);
+    expect(fitsLocalTemplate("double-slit", history, "the French Revolution")).toBe(false);
   });
 });
 
