@@ -63,7 +63,8 @@ engineering claims *are* checkable without the physics:
   the source link (`[authority] title ↗`). "Sources disagree" is rendered as its own state, never a
   silent average.
 - **The engineering surface:** `npm run check` (typecheck + eslint + **214 tests across 28 files** +
-  production build) is the same command run before every commit; per-IP rate limits guard every
+  production build, exit 0 at the Oct 8 closeout) is the single gate used at every green checkpoint;
+  per-IP rate limits guard every
   route that spends money (6 generation / 10 min, 40 concept / 10 min, 20 explain-back / 10 min);
   every failure path renders a visible state (concept retry, honest error, or the cached run
   labelled "cached run"); keys stay server-side; a deterministic topic safety check refuses harmful
