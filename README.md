@@ -30,6 +30,25 @@ EduVoid's answer is not "ask an LLM to write a study guide". It is an agent pipe
 8. **Explain-back:** write the concept in your own words; the grader compares your text against that concept's verified claims one by one and names the claim you left out. Mastery moves from the result.
 9. A built-in **test mode** (`/test`) runs a pre-test → learning session → post-test on **external** exam questions and exports per-participant scores as CSV.
 
+## How this answers the AI + Education prompt
+
+The track prompt asks for an AI-powered solution that helps learners move beyond memorization — to
+**understand concepts, make connections, and apply what they learn**. Each one is a shipped
+mechanic here:
+
+- **Understand concepts.** Explanations are generated only from claims the verifier judged against
+the passage they cite, and a missed quiz question regenerates the concept in a *different modality*
+instead of repeating the text that already failed.
+- **Make connections.** The planner emits a prerequisite graph and it streams as a mastery-coloured
+mindmap before any prose exists — the topic's structure and the learner's gaps are visible together.
+- **Apply what they learn.** Predict-then-reveal sims require a committed prediction before anything
+runs; the sim lab lets the learner fire the experiment (including the which-path detector);
+explain-back makes them produce the idea in their own words, graded against the concept's verified
+claims. The external pre/post test carries one explicit application/transfer item per part.
+
+The build timeline (first commit 2026-10-04, 38 commits, AI coding tools disclosed) and everything
+cached or adapted are stated in [`docs/DEVPOST.md`](docs/DEVPOST.md).
+
 ## Architecture
 
 ```mermaid

@@ -37,6 +37,17 @@ failure (the verifier rejecting a claim); no code editor or terminal; no "any qu
 | 3:10–3:25 | Tech + impact | Architecture diagram slide (README mermaid render) | "The architecture is four stages: source, plan, generate, verify — passage-level entailment, a fixed component library, and one sandboxed generated demo per topic. This is for the self-directed student who needs the prerequisite map and the sources, not another summary." (**41 words**) |
 | 3:25–3:30 | Close | Product name card | "EduVoid: one question in, a verified interactive lesson out." (**10 words**) |
 
+## How the script answers the AI + Education prompt
+
+The track asks for a solution that helps learners move beyond memorization — **understand concepts,
+make connections, apply what they learn**. These are the beats that carry each answer:
+
+| Prompt idea | Where in the script | What the viewer actually sees |
+|---|---|---|
+| Understand concepts | 0:52–1:10 · 1:10–1:30 · 2:15–2:35 | Generation grounded only in verified claims ("verified against 8 sources"); the clickable citation chain with the source passage; one claim the verifier rejected; a missed quiz regenerating the concept in a different modality, reason on screen |
+| Make connections | 0:35–0:52 · 2:15–2:35 | The prerequisite mindmap streams in before any prose exists; after a miss the node recolours, so structure and gaps are visible together |
+| Apply what they learn | 1:30–1:55 · 1:55–2:15 · 2:15–2:35 · 2:50–3:10 | A prediction committed before the sim runs; single-electron firing and the which-path detector in the sim lab; explain-back graded claim-by-claim against verified claims; pre/post scores from external questions (one application/transfer item per part) |
+
 **Word budget:** the narration lines above total ≈420 words including the fill-ins; if the
 evidence beat runs long, cut the "Sim lab" line about decoherence first, not the verifier beat.
 

@@ -96,6 +96,36 @@ The ambiguous-topic run exposed two different problems; only one was fixed, and 
 - **Not fixed: thin grounding on a vague one-word topic.** The verifier's job is entailment against the cited passage, and it did that correctly — the passage really does support the sentence; the problem is that the passage itself is about a different sense of the word. Fixing it properly means a claim-to-concept relevance gate (or a "your topic is ambiguous" step), which is a *new* mechanism with prompt- and ranking-level blast radius. Adding it during a feature freeze, two days before recording, would risk the demo path for a case the video does not exercise. Logged in `BLOCKERS.md`-style prose in `PROGRESS.md`, answered honestly in `docs/QA.md`, and named in the README limitations as a known boundary.
 - **No safety relaxation:** the refusal run confirms the deterministic check still refuses a harmful construction request before any provider call (HTTP 422, <0.2 s), and the five allowed topics were unaffected.
 
+## Docs alignment — track prompt, official rules and dates (Oct 8)
+
+The owner checked the official sources, so these are treated as verified and not re-researched here.
+**Track prompt (AI + Education):** an AI-powered solution that helps learners move beyond
+memorization to understand concepts, make connections, and apply what they learn; the Impact
+criterion requires projects to answer that prompt. **Rules:** repo must be publicly viewable; the
+project must be substantially created during the hackathon (began Oct 3, 12:00 PM EDT); AI coding
+tools are allowed; the video must be posted online. **Judging:** Real-World Impact & Relevance,
+Technical Implementation & AI Use (not just a wrapper), Innovation & Creativity, Execution &
+Completeness, Presentation & Communication.
+
+- **Pre-existing-work check: clean.** Repo first commit `95b1d23` is 2026-10-04 15:11 EDT — the day
+after the hackathon opened — and all application code was written in this repo on Oct 4-8 (38
+commits). No prior project code was imported.
+- **Repo visibility verified, not assumed:** `gh repo view 21Kurse/EduVoid` reported `PUBLIC` on
+  2026-10-08. (The video is recorded Oct 9; its public visibility is an owner step, listed in
+  `BLOCKERS.md`.)
+- **Docs-only change, no code:** `docs/DEVPOST.md` gained a prompt-mapping table, a "what to check
+  if you cannot check the physics" section aimed at non-physicist judges (agent-activity panel,
+  citation chain, 214 tests, rate limits, failure states, architecture), and a "Built during the
+  hackathon" section stating the first commit, the commit count and plainly disclosing AI coding
+tools — with the cached run and the adapted eval items named so nothing cached or adapted is
+presented as live or verbatim. `docs/DEMO.md` gained the beat-by-beat prompt mapping; `README.md`
+gained a short prompt mapping.
+- **Dates recorded (owner, from the official page):** hacking ends **Oct 10, 12:00 PM EDT**; public
+  voting Oct 10-11; winners announced Oct 12. This matches the §0 deadline.
+- **One thing the docs deliberately do not claim:** the share of *application/transfer* items in the
+  pre/post instrument is stated honestly (2 flagged in the ids; 5 of 10 by content) and flagged for
+  the owner to confirm in `BLOCKERS.md`, rather than inflated for the writeup.
+
 ## Cut list (final, 2026-10-08)
 
 | Item | Status | Why |

@@ -27,6 +27,27 @@ the Wikiversity items are **CC BY-SA 4.0**; the MIT OCW and LibreTexts items are
 (non-commercial), used here with attribution and marked adapted. MIT OCW's terms explicitly permit AI
 use subject to attribution + non-commercial + share-alike.
 
+## OWNER VERIFY — submission rules and eval mix (from the owner's rules check, Oct 8)
+
+1. **Repo public (rules: "publicly viewable").** Checked from this machine on 2026-10-08:
+   `gh repo view 21Kurse/EduVoid` → `visibility: PUBLIC`. Re-confirm on the submission screen and
+   don't flip it after the deadline.
+2. **Video public.** The rules require the video to be posted online. When you upload it, set
+   visibility to **Public** (not "Unlisted") and paste the URL into `docs/DEVPOST.md` and the
+   Devpost form.
+3. **Application/transfer share of the pre/post questions — confirm this mix is acceptable.** By the
+   explicit `transfer` marker: **2 of 10** (one per part) — `pre-transfer-energy-well` (apply the
+   Born rule to a given superposition) and `post-transfer-momentum-collapse` (apply the collapse
+   postulate). By content, my read is **5 of 10 application/discrimination** and 5
+   recall/recognition: the other three application items are `pre-measurement-expectation`
+   (an expectation value is not an outcome), `pre-coherence-vs-mixture` and
+   `post-coherence-vs-mixture` (coherent superposition vs classical ensemble); the recall items are
+   `pre/post-diffraction-mechanism` (same stem both parts, re-ordered), `pre/post-single-particle-1909`
+   (historical fact) and `post-born-rule-probability` (formula recall). The spec requires only ≥1
+   transfer item per part, which we exceed; if you want a stronger "apply" claim in the writeup,
+   say so before recording — swapping a recall pair for a new sourced applied item is the only way,
+   and it is not worth doing after the video.
+
 ## Open owner items (AGENTS.md §11)
 
 - **External quiz questions**: supplied and shipped (10 items, 5+5 paired). See the verification table

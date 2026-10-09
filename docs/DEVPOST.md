@@ -35,6 +35,44 @@ Miss a quiz question and the concept **regenerates in a different modality** wit
 Explain-back lets the learner write the idea in their own words; the grader compares them against
 the verified claims and names the gap.
 
+## How this answers the AI + Education prompt
+
+The track prompt asks for an AI-powered solution that helps learners move beyond memorization — to
+**understand concepts, make connections, and apply what they learn**. Each of the three is a shipped
+mechanic, not a slogan:
+
+| Prompt idea | Shipped mechanic | In the demo script |
+|---|---|---|
+| **Understand concepts** | Every explanatory statement is generated from claims the verifier judged against the passage they cite; unsupported claims never reach the screen. A missed quiz question **regenerates the concept in a different modality** with a one-line reason, instead of repeating the explanation that already failed. | 0:52–1:10 (verified badge), 1:10–1:30 (citations, one rejected claim), 2:15–2:35 (modality switch) |
+| **Make connections** | The planner emits a prerequisite graph, which streams as a mindmap whose node colour is the learner's mastery — the topic's structure and the learner's gaps are visible at once. | 0:35–0:52 (skeleton), 2:15–2:35 (node recolours after a miss) |
+| **Apply what they learn** | Predict-then-reveal simulations require a committed prediction before anything runs; the sim lab then lets the learner manipulate the experiment, including a which-path detector that visibly stops fringes from building. Explain-back makes the learner *produce* the idea, graded against that concept's verified claims. The external pre/post instrument carries one explicit application/transfer item per part. | 1:30–1:55 (prediction), 1:55–2:15 (sim lab), 2:15–2:35 (explain-back), 2:50–3:10 (pre/post evidence) |
+
+The anti-memorization claim is mechanical: recognition (multiple choice) is only one of the three
+interactions, and a failure moves the learner to a different representation rather than repeating
+the same text.
+
+## What to check if you cannot check the physics
+
+The demo topic is quantum superposition — most judges will not fact-check the content live. The
+engineering claims *are* checkable without the physics:
+
+- **Agent-activity panel** (on screen in the demo): sources found, claims extracted, claims
+  verified/rejected, and the stage currently running. The counts are live per run, and a rejected
+  claim is visible with the verifier's reason — a rejection the app chose to show.
+- **The citation chain is clickable end to end:** inline marker → claim row → the passage text →
+  the source link (`[authority] title ↗`). "Sources disagree" is rendered as its own state, never a
+  silent average.
+- **The engineering surface:** `npm run check` (typecheck + eslint + **214 tests across 28 files** +
+  production build) is the same command run before every commit; per-IP rate limits guard every
+  route that spends money (6 generation / 10 min, 40 concept / 10 min, 20 explain-back / 10 min);
+  every failure path renders a visible state (concept retry, honest error, or the cached run
+  labelled "cached run"); keys stay server-side; a deterministic topic safety check refuses harmful
+  topics before any provider call.
+- **Architecture diagram** in `README.md` (mermaid): the four stages and exactly where the cached
+  run can and cannot appear.
+- **Model spike with numbers:** 10/10 valid JSON, 10/10 planted factual errors caught, 5.1 s median
+  (`DECISIONS.md`).
+
 ## How it works (technical approach)
 
 ```
@@ -73,6 +111,30 @@ topic → diagnose* → SOURCE → PLAN → GENERATE (lazy, per concept) → VER
 `complete()` with role-based routing; Tavily for search + extraction; Next.js App Router on Vercel,
 no accounts and no database.
 
+## Built during the hackathon (Oct 4–10, 2026)
+
+The rules (checked by the owner) require a publicly viewable repo and a project **substantially
+created during the hackathon**, which began **Oct 3, 12:00 PM EDT**. AI coding tools are explicitly
+allowed.
+
+- **Repo first commit: `95b1d23`, 2026-10-04 15:11 EDT** — inside the window. **38 commits** through
+  2026-10-08, all of the application (pipeline, UI, tests, docs) written in this repo on Oct 4–8
+  (Oct 9–10 is reserved for recording and submission). No code from a prior project was imported.
+  Repo visibility verified public 2026-10-08.
+- **AI coding tools were used, disclosed plainly:** the application was built with a coding agent
+  (the Codebuff/Freebuff agent) doing most of the implementation under the owner's direction, with
+  the owner running acceptance checks, live browser drives and content fact verification. Stated so
+  no judge has to wonder.
+- **What is cached or adapted, and how it is labelled in the product:**
+  - `data/cached/qm-superposition.json` — a real pipeline run captured during the hackathon with
+    `npm run capture:demo`, used **only** when a live request fails and **only** on the demo topic,
+    always labelled "cached run" in the UI. Never the default path.
+  - `data/eval/questions.json` — the pre/post instrument: **4 items verbatim** from a CC BY-SA 4.0
+    Wikiversity question bank and **6 adapted** into multiple choice from CC BY-NC-SA 4.0 MIT OCW
+    published solutions and a LibreTexts textbook section. The app's own pipeline never generates
+    these questions; the adapted keys are listed for verification in `BLOCKERS.md`.
+  - `fixtures/qm-superposition.json` — a test-only fixture, labelled wherever it appears.
+
 ## Impact
 
 - **Real-user evidence.** Pre/post sessions on external exam questions (never generated by the
@@ -101,9 +163,10 @@ no accounts and no database.
 
 ## Submission checklist
 
-- [ ] Public repo with README (problem, users, architecture diagram, how to run, limitations).
+- [x] Public repo with README (problem, users, architecture diagram, how to run, limitations) — verified public 2026-10-08.
+- [x] Docs answer the track prompt explicitly (`docs/DEVPOST.md`, `README.md`, `docs/DEMO.md`).
 - [ ] Deployed Vercel link that works on arbitrary topics — tested in incognito.
-- [ ] 2-4 minute video: problem, live walkthrough, real-participant results (`docs/DEMO.md`).
+- [ ] 2-4 minute video: problem, live walkthrough, real-participant results (`docs/DEMO.md`); posted publicly online (rules).
 - [ ] `data/` in the repo: external quiz, per-participant scores, procedure.
 - [ ] `DECISIONS.md` with the model spike, deviations and the cut list.
 - [ ] Sample size stated honestly; `[FILL IN AFTER SESSIONS]` markers all replaced.
