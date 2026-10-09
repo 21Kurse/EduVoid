@@ -118,9 +118,10 @@ created during the hackathon**, which began **Oct 3, 12:00 PM EDT**. AI coding t
 allowed.
 
 - **Repo first commit: `95b1d23`, 2026-10-04 15:11 EDT** — inside the window. **38 commits** through
-  2026-10-08, all of the application (pipeline, UI, tests, docs) written in this repo on Oct 4–8
-  (Oct 9–10 is reserved for recording and submission). No code from a prior project was imported.
-  Repo visibility verified public 2026-10-08.
+  the Oct 8 closeout (commit `1399ba2`), plus this docs-only alignment on top — all of the
+  application (pipeline, UI, tests, docs) written in this repo on Oct 4–8; Oct 9–10 is reserved for
+  recording and submission. No code from a prior project was imported. Repo visibility verified
+  public 2026-10-08.
 - **AI coding tools were used, disclosed plainly:** the application was built with a coding agent
   (the Codebuff/Freebuff agent) doing most of the implementation under the owner's direction, with
   the owner running acceptance checks, live browser drives and content fact verification. Stated so

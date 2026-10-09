@@ -46,8 +46,8 @@ runs; the sim lab lets the learner fire the experiment (including the which-path
 explain-back makes them produce the idea in their own words, graded against the concept's verified
 claims. The external pre/post test carries one explicit application/transfer item per part.
 
-The build timeline (first commit 2026-10-04, 38 commits, AI coding tools disclosed) and everything
-cached or adapted are stated in [`docs/DEVPOST.md`](docs/DEVPOST.md).
+The build timeline (first commit 2026-10-04, 38 commits through the Oct 8 closeout, AI coding tools
+disclosed) and everything cached or adapted are stated in [`docs/DEVPOST.md`](docs/DEVPOST.md).
 
 ## Architecture
 

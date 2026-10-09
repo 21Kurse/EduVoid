@@ -109,7 +109,8 @@ Completeness, Presentation & Communication.
 
 - **Pre-existing-work check: clean.** Repo first commit `95b1d23` is 2026-10-04 15:11 EDT — the day
 after the hackathon opened — and all application code was written in this repo on Oct 4-8 (38
-commits). No prior project code was imported.
+commits through the Oct 8 closeout, plus this docs-only alignment commit). No prior project code was
+imported.
 - **Repo visibility verified, not assumed:** `gh repo view 21Kurse/EduVoid` reported `PUBLIC` on
   2026-10-08. (The video is recorded Oct 9; its public visibility is an owner step, listed in
   `BLOCKERS.md`.)
