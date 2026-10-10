@@ -92,6 +92,9 @@ export function FinalCheck({
   const answeredCount = Object.keys(picks).length;
   const correctCount = questions.reduce((n, q, i) => n + (picks[i] === q.answer ? 1 : 0), 0);
   const missed = questions.map((q, i) => ({ q, i })).filter(({ q, i }) => picks[i] !== undefined && picks[i] !== q.answer);
+  // Distinct concepts only: two missed questions about the same concept name
+  // it once (a live run listed the same concept five times).
+  const missedTitles = [...new Set(missed.map(({ q }) => titleOf(q.conceptId)))];
 
   return (
     <section
@@ -222,7 +225,7 @@ export function FinalCheck({
               <p className="mt-1 text-[12px] text-zinc-600">
                 {missed.length === 0
                   ? "Every concept held up under a harder question — the whole map should be violet."
-                  : `${missed.map(({ q }) => titleOf(q.conceptId)).join(", ")} ${missed.length === 1 ? "is" : "are"} already being rebuilt a different way — watch the mindmap colour change.`}
+                  : `${missedTitles.join(", ")} ${missedTitles.length === 1 ? "is" : "are"} already being rebuilt a different way — watch the mindmap colour change.`}
               </p>
               <button
                 type="button"

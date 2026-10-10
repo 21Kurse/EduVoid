@@ -1,10 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   FINAL_CHECK_MAX,
+  FINAL_CHECK_MIN,
+  FINAL_CHECK_PER_CONCEPT_CAP,
   FINAL_CHECK_SYSTEM,
   assembleFinalCheck,
   finalCheckPrompt,
   runFinalCheck,
+  spreadAcrossConcepts,
   type FinalCheckConcept,
 } from "../lib/final-check";
 
@@ -121,13 +124,54 @@ describe("deterministic assembly", () => {
     expect(out).toHaveLength(2);
   });
 
-  it("caps the set and preserves the model's order (hardest first)", () => {
+  it("spreads the set across concepts instead of asking one concept over and over", () => {
+    // Live defect (Oct 10): five plausible questions, all tagged with the same
+    // concept, so the "lesson-spanning" set tested one idea five times.
+    const mixed = [
+      q("conditional-probability", "Scenario 1"),
+      q("base-rates", "Scenario 2"),
+      q("conditional-probability", "Scenario 3"),
+      q("base-rates", "Scenario 4"),
+      q("conditional-probability", "Scenario 5"),
+    ];
+    const spread = spreadAcrossConcepts(mixed);
+    // Two per concept is the cap; the third conditional question is dropped.
+    expect(spread.map((x) => x.prompt)).toEqual(["Scenario 1", "Scenario 2", "Scenario 3", "Scenario 4"]);
+    for (const c of CONCEPTS) {
+      expect(spread.filter((x) => x.conceptId === c.id).length).toBeLessThanOrEqual(
+        FINAL_CHECK_PER_CONCEPT_CAP,
+      );
+    }
+
+    // A set that cannot span concepts still reaches the minimum length: the
+    // overflow tops it back up rather than leaving one question behind.
+    const same = Array.from({ length: 5 }, (_, i) => q("base-rates", `Scenario ${i + 1}`));
+    const topped = spreadAcrossConcepts(same);
+    expect(topped).toHaveLength(FINAL_CHECK_MIN);
+    expect(topped.every((x) => x.conceptId === "base-rates")).toBe(true);
+  });
+
+  it("tells the model to spread the set and never repeat a concept more than twice", () => {
+    expect(FINAL_CHECK_SYSTEM).toMatch(/never more than two questions about the same concept/i);
+  });
+
+  it("caps each concept and preserves the model's order (hardest first)", () => {
     const many = Array.from({ length: 9 }, (_, i) =>
-      q("base-rates", `Scenario ${i + 1}: a 1% prior with a 5% false-positive rate — what is the posterior?`),
+      q(
+        i % 2 === 0 ? "conditional-probability" : "base-rates",
+        `Scenario ${i + 1}: a 1% prior with a 5% false-positive rate — what is the posterior?`,
+      ),
     );
     const out = assembleFinalCheck({ questions: many }, CONCEPTS);
-    expect(out).toHaveLength(FINAL_CHECK_MAX);
-    expect(out[0]!.prompt).toContain("Scenario 1");
+    // Two concepts, at most two questions each.
+    expect(out).toHaveLength(2 * FINAL_CHECK_PER_CONCEPT_CAP);
+    expect(out.length).toBeLessThanOrEqual(FINAL_CHECK_MAX);
+    expect(out.map((x) => x.prompt.replace(/:.*/, ""))).toEqual([
+      "Scenario 1",
+      "Scenario 2",
+      "Scenario 3",
+      "Scenario 4",
+    ]);
   });
 });
 
