@@ -19,6 +19,9 @@ the docs exist, and `npm run check` is green. What remains is owner-only work, l
   as the key with a quoted justification (`data/eval/procedure.md`). Browser round trip with the
   real file: no SAMPLE banner, 5 pre + 5 post answered, records saved with timestamps, and the real
   Export-CSV button produced two correct rows (`CHECK1,pre,…,5,4,0.800` / `CHECK1,post,…,5,3,0.600`).
+  **Superseded 2026-10-10:** the in-app pre/post runner (page, components, store, tests) was deleted
+  at the owner's request; the question file and its procedure remain as the run-by-hand instrument,
+  and no participant results are claimed anywhere.
 - **Placeholder sims (P2):** live generation, the cached run and the hero fallback all pass through
   one implemented-template gate; a non-physics topic rendered explainer + quiz + flashcards with no
   placeholder and no mismatched sim.
@@ -63,12 +66,12 @@ means the mindmap appears before the stream finishes regardless.
    `LLM_DISABLE_THINKING`. Values are **not** in the repo; copy them from `.env.local` in your Vercel
    project settings. Confirm the `maxDuration` assumption above and set your provider spend cap.
 3. **Test the live URL in an incognito window** — the demo topic, then one topic of your choice
-   (`docs/DEMO.md` names the safest: `the French Revolution`, 17.9 s setup in testing). Watch for the
+   (`docs/DEMO.md` names the safest: `Bayes' theorem`, 23.0 s setup / 3.6 s skeleton in the 2026-10-10
+   probe; the French Revolution graph reads as a chronology — avoid it on camera). Watch for the
    "cached run" banner, which must never appear as live.
-4. **Run the participant sessions** (on your device, per §13.8): `/test` → pre-test → session →
-   post-test → Export CSV. Then replace every `[FILL IN AFTER SESSIONS]` marker — they are in
-   `docs/DEMO.md` (evidence beat), `docs/DEVPOST.md` (impact), `README.md` (limitations, test mode)
-   — with the real n, means and the mixed result, and put the CSV plus procedure notes in `data/`.
+4. ~~Run the participant sessions~~ — **cancelled 2026-10-10**: test mode was deleted (owner
+   decision) and no participant study is claimed. If you ever want one, `data/eval/questions.json`
+   plus `data/eval/procedure.md` are the instrument to administer by hand.
 5. **Rehearse and record** — `docs/DEMO.md` is the script and shot list; rehearsing with a timer 10×
    is in the plan for Oct 9. Keep the cached run out of the live segment.
 6. **Cold-viewer review** (§15.6) before upload: someone who has never seen the project states in one
@@ -80,5 +83,5 @@ means the mindmap appears before the stream finishes regardless.
 
 Two sim templates only (physics-flavoured) — other topics get explanations, quizzes and flashcards;
 verification is entailment, not truth; the safety check is deterministic and shallow; one-word
-ambiguous topics can be thinly grounded (a claim-relevance gate is the next build); participant
-evidence is a small demonstration, not a controlled study.
+ambiguous topics can be thinly grounded (a claim-relevance gate is the next build); no participant
+study is claimed — the pre/post instrument ships in `data/eval/` to be run by hand.

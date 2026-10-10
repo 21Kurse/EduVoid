@@ -2,6 +2,7 @@ import {
   EXPLAIN_BACK_MAX_CHARS,
   EXPLAIN_BACK_MAX_CLAIMS,
   EXPLAIN_BACK_MIN_CHARS,
+  explainTaskById,
   gradeExplanation,
 } from "../../../lib/explain-back.ts";
 import { rateLimitGuard } from "../../../lib/rate-limit.ts";
@@ -23,8 +24,12 @@ export async function POST(req: NextRequest) {
     conceptTitle?: unknown;
     summary?: unknown;
     explanation?: unknown;
+    taskId?: unknown;
     claims?: unknown;
   };
+  // The explain-back task varies per concept; an unknown or missing id falls
+  // back to the default task rather than failing the request.
+  const taskId = explainTaskById(typeof body.taskId === "string" ? body.taskId : undefined).id;
   const topic = String(body.topic ?? "").trim().slice(0, 120);
   const conceptTitle = String(body.conceptTitle ?? "").trim().slice(0, 200);
   const summary = String(body.summary ?? "").trim().slice(0, 400);
@@ -56,7 +61,7 @@ export async function POST(req: NextRequest) {
   if (limited) return limited;
 
   const r = await gradeExplanation(
-    { topic, conceptTitle, summary, claims, explanation },
+    { topic, conceptTitle, summary, claims, explanation, taskId },
     { signal: req.signal },
   );
   if (!r.ok) {

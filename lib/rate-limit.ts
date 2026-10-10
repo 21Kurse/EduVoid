@@ -16,6 +16,8 @@ export const RATE_RULES: Record<string, RateLimitRule> = {
   "generate-concept": { limit: 40, windowMs: 10 * 60_000 },
   /** Explain-back grading: one bounded model call per submit. */
   "explain-back": { limit: 20, windowMs: 10 * 60_000 },
+  /** Closing question set: at most a few per lesson, one call each. */
+  "final-check": { limit: 12, windowMs: 10 * 60_000 },
 };
 
 /** Hard cap on tracked keys so a rotating-IP flood cannot grow memory. */

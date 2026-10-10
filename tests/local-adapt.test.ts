@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  LOCAL_FALLBACK_REASON,
   fitsLocalTemplate,
   localSimAdaptation,
   pickLocalTemplate,
@@ -46,6 +45,20 @@ describe("pickLocalTemplate", () => {
 
   it("maps a probability concept to the two-state template", () => {
     expect(pickLocalTemplate(concept(), QUANTUM_TOPIC)).toBe("two-state-prob");
+  });
+
+  it("maps a Bayes concept to the bayes-update template, ahead of the generic probability one", () => {
+    const bayes = concept({
+      id: "posterior",
+      title: "Prior and posterior",
+      summary: "The posterior updates the prior with the likelihood of the evidence.",
+      claims: [claim("c", "A positive test for a rare condition leaves a low probability of disease.")],
+      components: [{ type: "explainer", markdown: "Bayes' rule divides by the evidence." }],
+    });
+    expect(pickLocalTemplate(bayes, "Bayes' theorem")).toBe("bayes-update");
+    expect(fitsLocalTemplate("bayes-update", bayes, "Bayes' theorem")).toBe(true);
+    // The generic probability template fits this text too — Bayes must win.
+    expect(fitsLocalTemplate("two-state-prob", bayes, "Bayes' theorem")).toBe(true);
   });
 
   it("returns null for a topic no template fits (no fabricated sim)", () => {
@@ -150,8 +163,11 @@ describe("localSimAdaptation", () => {
     expect(JSON.stringify(a)).toBe(JSON.stringify(b));
   });
 
-  it("says out loud that it is a fallback, not a live regeneration", () => {
-    expect(LOCAL_FALLBACK_REASON).toMatch(/unavailable/i);
-    expect(LOCAL_FALLBACK_REASON).toMatch(/simulation/i);
+  it("carries no announcement sentence — the learner sees the sim, not a claim about it", () => {
+    const out = localSimAdaptation(concept(), QUANTUM_TOPIC)![0];
+    // Owner feedback (Oct 10): the modality announcement above the concept was
+    // removed; the only prose left in the adaptation is the predict prompt.
+    expect(out.type).toBe("sim");
+    if (out.type === "sim") expect(out.predictPrompt).toMatch(/predict/i);
   });
 });

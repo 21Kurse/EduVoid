@@ -7,7 +7,12 @@
  * ready ping, or a failed static check swaps in the paired template sim.
  */
 import { useEffect, useRef, useState } from "react";
-import { HERO_READY_TIMEOUT_MS, wrapHeroCode } from "@/lib/hero-sim";
+import {
+  HERO_DEFAULT_HEIGHT,
+  HERO_READY_TIMEOUT_MS,
+  clampHeroHeight,
+  wrapHeroCode,
+} from "@/lib/hero-sim";
 import { simTemplateOrDefault } from "@/lib/sim-templates";
 import { Sim } from "./sims";
 import type { Component } from "@/lib/spec";
@@ -46,13 +51,21 @@ export function HeroSim({
 }) {
   // "checking" → "live" on a ready ping; anything else → "fallback".
   const [status, setStatus] = useState<"checking" | "live" | "fallback">("checking");
+  // The frame follows the demo's real content height (owner feedback: a
+  // canvas + sliders demo was clipped at the old fixed height).
+  const [height, setHeight] = useState(HERO_DEFAULT_HEIGHT);
   const frameRef = useRef<HTMLIFrameElement | null>(null);
 
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
       if (e.source !== frameRef.current?.contentWindow) return;
-      const data = e.data as { type?: string; status?: string } | null;
+      const data = e.data as { type?: string; status?: string; height?: number } | null;
       if (data?.type !== "hero-sim") return;
+      // Height pings carry no verdict — never let one flip the state machine.
+      if (data.status === "height") {
+        if (typeof data.height === "number") setHeight(clampHeroHeight(data.height));
+        return;
+      }
       if (data.status === "ready") setStatus("live");
       else setStatus("fallback");
     };
@@ -81,13 +94,17 @@ export function HeroSim({
 
   return (
     <div className="rounded-xl border border-violet-200 bg-white p-2" data-testid="hero-sim">
-      <p className="px-2 pb-1 text-[11px] uppercase tracking-wide text-violet-500">generated demo</p>
+      <div className="flex items-baseline justify-between px-2 pb-1">
+        <p className="text-[11px] uppercase tracking-wide text-violet-500">generated demo</p>
+        <p className="text-[10px] text-zinc-400">interactive — drag the controls inside</p>
+      </div>
       <iframe
         ref={frameRef}
         title="Hero simulation"
         sandbox="allow-scripts"
         srcDoc={wrapHeroCode(code)}
-        className="h-56 w-full rounded-lg border-0"
+        className="block w-full rounded-lg border-0"
+        style={{ height }}
       />
       {status === "checking" && (
         <p className="px-2 pt-1 text-[11px] text-zinc-400">validating generated demo…</p>

@@ -127,6 +127,101 @@ gained a short prompt mapping.
   pre/post instrument is stated honestly (2 flagged in the ids; 5 of 10 by content) and flagged for
   the owner to confirm in `BLOCKERS.md`, rather than inflated for the writeup.
 
+## Owner feedback round (Oct 10) — banner, answer reset, prediction gate, home button
+
+Four owner-reported UI defects, fixed after the freeze as bug fixes. One of them knowingly deviates
+from a spec line; the owner's instruction takes precedence and the deviation is recorded here.
+
+- **No announcement line after adapting (deviates from §13.7's "visible one-line reason").**
+  Clicking "I don't get this" (and a missed quiz question) used to print a sentence naming the new
+  modality — "here it is as a hands-on simulation", "a quick quiz". The owner asked for it to go.
+  Removed from both success paths: `adaptReason()` and `LOCAL_FALLBACK_REASON` are deleted, and the
+  banner that remains is reserved for real failures. §13.7's requirement is still met by other,
+  non-verbal means: the panel's content is rebuilt (a sim that was not there now leads the concept),
+  the mindmap node recolours, and the agent-activity panel logs the requested vs delivered modality
+  (`deliveredModality()` is unchanged and still feeds that log). The spinner while the call is in
+  flight is kept, so the click still has immediate feedback.
+- **Answers are cleared when a concept is regenerated.** Quiz picks, committed sim predictions,
+  flipped cards and explain-back drafts live in widget-local state and used to survive a
+  regeneration, so they were still on screen against content that no longer existed. `patchConcept`
+  — the single place where a concept's components are replaced (lazy generation, retry,
+  regeneration) — now bumps a per-concept revision, and that revision is part of each widget's key,
+  so React remounts them. Deterministic; no extra bookkeeping in the widgets themselves.
+- **A prediction prompt is no longer attached to every concept.** The generator force-fits the
+  `two-state-prob` template onto unrelated concepts, which put a random "commit to a prediction"
+  gate in front of learners. The template now only ships when the deterministic fit signal that
+  already existed (`fitsLocalTemplate` in `lib/local-adapt.ts` — the same one the local adaptation
+  fallback and the hero-sim safety net use) says it fits the concept's own text; otherwise the sim
+  is dropped and the explainer/quiz/flashcards are untouched. The generator prompt says the same
+  thing, and the adaptive loop skips the `sim` modality for a concept no template fits, so
+  "I don't get this" adapts to flashcards/quiz instead of failing. **Trade-off, deliberate:** on
+  topics the two hand-built templates do not serve, learners now see no sim at all — an honest
+  absence beats a simulation of something else.
+- **One way home.** The layout gained a top-left `EduVoid` wordmark linking to `/`, so a lesson page
+  no longer requires editing the URL to get back to the topic box.
+
+## Owner feedback round 2 (Oct 10) — test mode deleted, ordered generation, per-concept explain-back, writer prompt
+
+- **Test mode is deleted; the instrument stays.** Owner decision: the in-app pre/post runner
+  (`/test`, `components/test-mode.tsx`, `components/eval-question.tsx`, `lib/eval.ts`,
+  `lib/eval-store.ts`, `tests/eval.test.ts`) is removed, along with its link on the home screen. This
+  is a real deviation from §6/§10, which asked for a built-in pre/post test with CSV export — and it
+  removes the participant-evidence mechanism, so the docs had to change with it: `README.md`,
+  `docs/DEVPOST.md`, `docs/DEMO.md`, `docs/QA.md`, `BLOCKERS.md`, `GATE_REACHED.md` and
+  `data/eval/procedure.md` now say the app does **not** administer the instrument and that **no
+  participant study is claimed**. `data/eval/questions.json` + `data/eval/procedure.md` remain as the
+  external, run-by-hand question set (10 items, keys, provenance), and
+  `docs/eval-candidates.md` keeps the search record. The demo video's evidence beat was rewritten to
+  the engineering evidence that actually exists (10/10 planted-error verifier spike, 212 tests, five
+  unseen topics) rather than left pointing at participant numbers that will never exist.
+- **Concepts generate one at a time, in plan order.** Owner feedback: generation ran in parallel;
+  they want the first concept, then the second, and so on. `lib/concept-scheduler.ts` was rewritten:
+  a single in-flight request, plan order, and after each concept finishes the next one starts — so the
+  lesson fills in the order the mindmap shows it. Opening a concept still jumps the queue (aborting
+  the concept it interrupted, which comes back later in order); a cached concept never disturbs the
+  queue. The previous design (open + 1 prefetch, concurrency 2) is gone; its tests were replaced by
+  ordered-queue tests. Latency trade-off is in `README.md`: first concept unchanged, the rest fill in
+  behind it instead of racing it.
+- **Explain-back asks a different question per concept.** Owner feedback: the feature should be
+  different for every concept. `lib/explain-back.ts` now carries seven tasks (own words, teach a
+  beginner, an example of your own, predict a case, separate it from a look-alike, find a mistake,
+  one sentence). The task is chosen by the concept's POSITION in the lesson (rotating from a stable
+  offset), not by a hash of its id — a hash collided and gave two concepts the same task in a live
+  run, which is exactly what the owner asked not to happen. Position-based rotation makes every
+  concept in a lesson distinct (wrapping only past seven concepts) and still stable across reloads,
+  since the lesson order is stable. The label, helper text and placeholder change with the task, and the task
+  is passed to the grader (validated server-side, unknown ids fall back) so the gap and nudge match
+  what the learner was actually asked for. The grading rubric itself is unchanged: every task is
+  still judged against that concept's verified claims, which keeps the mastery rules comparable.
+- **The generator writes more, simpler, and decides whether an example is needed.** Owner feedback:
+  write more, write simply, build intuition, and identify whether an example is needed. `GEN_SYSTEM`
+  now asks for 4-7 short paragraphs (roughly 250-450 words) that start from what the learner knows,
+  define each technical term on first use, prefer one concrete picture over abstraction, and end with
+  the single idea to remember — plus ONE worked example (numbers carried through) only when the
+  concept involves a procedure, a calculation or a quantity, with an explicit instruction not to
+  invent numbers or pad a definition with a fake example. `maxTokens` went 2000 → 3200 and the
+  explainer cap 4000 → 8000 characters to leave room for it; this knowingly relaxes §13.5's
+  "keep per-call JSON small" for the generator call, which the owner chose. **Measured:** the cached
+  demo run (old prompt) has explainers of 62-123 words, mean **87**; a five-concept run on
+  `photoelectric effect` right after the change came back at roughly 115-207 words, mean **≈150**
+  (words derived from the rendered text; n = 5 concepts, one topic). The prompt asks for 250-450
+  words and the flash model under-delivers on that, so the wording of the target stays — the model
+  lands ~60% of it and the floor is clearly higher than before.
+- **Wall-of-text repair: a readability pass on the explainer.** The same live run showed the model
+  writing the whole explanation as ONE unbroken block — the longest was 1,317 characters and 12
+  sentences in a single paragraph — which contradicts "write simply" no matter how good the prose
+  is. `paragraphize()` in `lib/claim-numbers.ts` (pure, deterministic, runs inside
+  `postProcessExplainer`, so regeneration benefits too) now groups sentences into short paragraphs
+  when, and only when, the model gave no structure of its own: no blank lines, no line breaks, no
+  headings, no code fence, at least 300 characters and at least four sentences. Existing
+  paragraphs, lists and headings are returned untouched, abbreviations (i.e., e.g., etc.) never end a
+  paragraph, and only whitespace moves — verified on that exact 1,317-character model output, which
+  became four paragraphs (383/369/299/263 chars) with the words byte-for-byte preserved.
+- **Unrelated repair found while verifying:** `components/explain-back.tsx` read `Date.now()` twice
+  inside a component-scope function, which the React purity lint rule rejects; the client clock was
+  removed in favour of the server's own `latencyMs` (the route already returned it), so the query is
+  pure and the displayed time is the real grading time.
+
 ## Cut list (final, 2026-10-08)
 
 | Item | Status | Why |

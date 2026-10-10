@@ -94,19 +94,26 @@ export function applyMasteryEvent(
 
 /**
  * Modality cycle for regeneration (§6): text → sim → flashcards → quiz →
- * back to text. The next modality is the first one after the last used,
- * so a failed explainer regenerates as a simulation, etc.
+ * back to text. The next modality is the first one after the last used, so a
+ * failed explainer regenerates as a simulation, etc. Modalities in `skip` are
+ * passed over (the sim is skipped when no hand-built template fits the
+ * concept, so "I don't get this" never promises an experiment that cannot
+ * exist).
  */
 export const MODALITY_CYCLE = ["explainer", "sim", "flashcards", "quiz"] as const;
 export type Modality = (typeof MODALITY_CYCLE)[number];
 
-export function nextModality(history: string[]): Modality {
+export function nextModality(history: string[], skip: readonly Modality[] = []): Modality {
   // Every concept is initially presented explainer-led, so the first
-  // regeneration after a failure moves straight to a simulation.
-  if (history.length === 0) return "sim";
+  // regeneration after a failure starts at the simulation.
   const last = history[history.length - 1];
-  const idx = MODALITY_CYCLE.indexOf(last as Modality);
-  return MODALITY_CYCLE[(idx + 1) % MODALITY_CYCLE.length] ?? "sim";
+  const from = last === undefined ? MODALITY_CYCLE.indexOf("sim") : MODALITY_CYCLE.indexOf(last as Modality) + 1;
+  for (let i = 0; i < MODALITY_CYCLE.length; i++) {
+    const m = MODALITY_CYCLE[(from + i) % MODALITY_CYCLE.length]!;
+    if (!skip.includes(m)) return m;
+  }
+  // Everything skipped: a plain worked explanation is always available.
+  return "explainer";
 }
 
 /**
@@ -130,17 +137,4 @@ export function deliveredModality(
   if (arrived.has("quiz")) return "quiz";
   if (arrived.has("flashcards")) return "flashcards";
   return requested;
-}
-
-/** The visible one-line reason (§13.7) shown when a concept regenerates. */
-export function adaptReason(modality: Modality, missed: boolean): string {
-  const as: Record<Modality, string> = {
-    explainer: "a worked explanation",
-    sim: "a hands-on simulation",
-    flashcards: "flashcards",
-    quiz: "a quick quiz",
-  };
-  return missed
-    ? `You missed a question, so here it is again as ${as[modality]}.`
-    : `You said this didn't land, so here it is as ${as[modality]}.`;
 }

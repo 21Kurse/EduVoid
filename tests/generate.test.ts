@@ -225,6 +225,97 @@ describe("generateConcept", () => {
     expect(GEN_SYSTEM).toMatch(/Never ask the generic/);
   });
 
+  it("tells the model that most concepts get no sim at all (owner feedback)", () => {
+    expect(GEN_SYSTEM).toMatch(/MOST concepts must have NO sim/);
+    expect(GEN_SYSTEM).toMatch(/A sim with a prediction the concept does not cover is worse than no sim/);
+  });
+
+  it("drops a force-fitted sim, keeping the rest of the concept (no random prediction prompt)", () =>
+    withLlmEnv(async () => {
+      // Owner feedback (Oct 10): prediction questions were showing up on
+      // concepts that have nothing to simulate. The model's sim only ships
+      // when the hand-built template genuinely fits the concept's own text.
+      const offTopic = {
+        id: "gradient-descent",
+        title: "Gradient descent",
+        summary: "Follow the negative gradient downhill to lower the loss.",
+      };
+      // Same shape as a real lesson's source set, for a topic the two
+      // hand-built templates do not serve.
+      const offTopicSource: SourceResult = { ...SOURCE, topic: "neural networks" };
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue(
+          okResponse({
+            explainer: "Gradient descent steps downhill on the loss surface.",
+            quiz: [
+              { prompt: "Which direction does one step move?", options: ["downhill", "uphill"], answer: 0, explanation: "Against the gradient." },
+            ],
+            flashcards: [{ front: "Step?", back: "Move against the gradient." }],
+            sim: { template: "two-state-prob", values: { p: 0.5, n: 40 }, predictPrompt: "How many land in state A?" },
+          }),
+        ),
+      );
+      const r = await generateConcept("neural networks", offTopic, offTopicSource);
+      expect(r.ok).toBe(true);
+      if (r.ok) {
+        expect(r.concept.components.some((c) => c.type === "sim")).toBe(false);
+        const types = r.concept.components.map((c) => c.type);
+        expect(types).toEqual(["explainer", "quiz", "flashcards"]);
+      }
+    }));
+
+  it("keeps the sim when the concept is about what the template simulates", () =>
+    withLlmEnv(async () => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(okResponse(GOOD_GEN)));
+      const r = await generateConcept("quantum superposition", CONCEPT, SOURCE);
+      expect(r.ok).toBe(true);
+      if (r.ok) expect(r.concept.components.some((c) => c.type === "sim")).toBe(true);
+    }));
+
+  it("keeps a bayes-update sim on a belief-updating concept (owner request: tailor to Bayes)", () =>
+    withLlmEnv(async () => {
+      const bayes = {
+        id: "posterior",
+        title: "Prior and posterior",
+        summary: "The posterior updates the prior with the likelihood of the evidence.",
+      };
+      const bayesSource: SourceResult = {
+        ...SOURCE,
+        topic: "Bayes' theorem",
+        claims: [
+          {
+            id: "claim-1",
+            text: "The posterior divides the sensitivity times the prior by the evidence.",
+            passageIds: ["src-1-p1"],
+            sourceIds: ["src-1"],
+            status: "supported",
+          },
+        ],
+      };
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue(
+          okResponse({
+            explainer: "A positive test for a rare condition is often a false alarm.",
+            quiz: [],
+            flashcards: [],
+            sim: {
+              template: "bayes-update",
+              values: { prior: 0.01, sensitivity: 0.9, falsePositive: 0.05 },
+              predictPrompt: "Of 100 people who test positive, how many actually have it?",
+            },
+          }),
+        ),
+      );
+      const r = await generateConcept("Bayes' theorem", bayes, bayesSource);
+      expect(r.ok).toBe(true);
+      if (r.ok) {
+        const sim = r.concept.components.find((c) => c.type === "sim");
+        expect(sim?.type === "sim" ? sim.template : null).toBe("bayes-update");
+      }
+    }));
+
   it("keeps one question per concept even when the model sends more", () =>
     withLlmEnv(async () => {
       vi.stubGlobal(

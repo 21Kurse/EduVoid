@@ -185,3 +185,72 @@ export function doubleSlitPath(
   }
   return out;
 }
+
+/* ------------------------------------------------------------------------- *
+ * Bayes-update template (owner request, Oct 10: tailor the app to Bayes and
+ * make the hand-built sims match). Deterministic and exact — no RNG: the
+ * frequency-grid visual draws a population of `population` people, so the
+ * counts must always add up to the population.
+ * ------------------------------------------------------------------------- */
+
+/** Ranges every Bayes-template value is clamped to (the sliders use the same). */
+export const BAYES_PRIOR_MIN = 0.01;
+export const BAYES_PRIOR_MAX = 0.6;
+export const BAYES_SENSITIVITY_MIN = 0.5;
+export const BAYES_SENSITIVITY_MAX = 0.99;
+export const BAYES_FP_MIN = 0.01;
+export const BAYES_FP_MAX = 0.5;
+
+/**
+ * Posterior P(A|B) = P(B|A)P(A) / [P(B|A)P(A) + P(B|¬A)P(¬A)] — the exact
+ * quantity the lesson is about. Clamped so a degenerate model output can
+ * never produce NaN or divide by zero.
+ */
+export function bayesPosterior(prior: number, sensitivity: number, falsePositive: number): number {
+  const p = clamp(Number.isFinite(prior) ? prior : 0.01, BAYES_PRIOR_MIN, BAYES_PRIOR_MAX);
+  const s = clamp(Number.isFinite(sensitivity) ? sensitivity : 0.9, BAYES_SENSITIVITY_MIN, BAYES_SENSITIVITY_MAX);
+  const f = clamp(Number.isFinite(falsePositive) ? falsePositive : 0.05, BAYES_FP_MIN, BAYES_FP_MAX);
+  const denom = s * p + f * (1 - p);
+  return denom > 0 ? (s * p) / denom : 0;
+}
+
+export type BayesCounts = {
+  /** has the condition AND tests positive */
+  tp: number;
+  /** has the condition, missed by the test */
+  fn: number;
+  /** healthy, but flags positive (false alarm) */
+  fp: number;
+  /** healthy and tests negative */
+  tn: number;
+  /** everyone who tests positive (tp + fp) */
+  positives: number;
+  /** share of positive results that are real, from the counts themselves */
+  posterior: number;
+};
+
+/**
+ * Integer counts for a population of `population` people — the numbers the
+ * frequency grid draws. Grouped in a fixed order (tp, fn, fp, tn) so the
+ * same inputs always produce the same picture, and the counts always sum to
+ * the population exactly.
+ */
+export function bayesCounts(
+  prior: number,
+  sensitivity: number,
+  falsePositive: number,
+  population = 1000,
+): BayesCounts {
+  const n = Math.max(100, Math.round(Number.isFinite(population) ? population : 1000));
+  const p = clamp(Number.isFinite(prior) ? prior : 0.01, BAYES_PRIOR_MIN, BAYES_PRIOR_MAX);
+  const s = clamp(Number.isFinite(sensitivity) ? sensitivity : 0.9, BAYES_SENSITIVITY_MIN, BAYES_SENSITIVITY_MAX);
+  const f = clamp(Number.isFinite(falsePositive) ? falsePositive : 0.05, BAYES_FP_MIN, BAYES_FP_MAX);
+  const sick = Math.round(p * n);
+  const tp = Math.min(sick, Math.round(sick * s));
+  const fn = sick - tp;
+  const healthy = n - sick;
+  const fp = Math.round(healthy * f);
+  const tn = healthy - fp;
+  const positives = tp + fp;
+  return { tp, fn, fp, tn, positives, posterior: positives > 0 ? tp / positives : 0 };
+}

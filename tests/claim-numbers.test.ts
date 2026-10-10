@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   explainerIsClean,
   numberClaims,
+  paragraphize,
   postProcessExplainer,
 } from "../lib/claim-numbers";
 
@@ -61,5 +62,48 @@ describe("postProcessExplainer (G3 finding 2)", () => {
     expect(explainerIsClean(r.markdown)).toBe(true);
     expect(r.markdown).toContain("[3](#claim-claim-a-3)");
     expect(r.resolved).toBe(1);
+  });
+});
+
+const WALL =
+  "Light arrives as discrete packets called photons. Each photon carries energy proportional to its frequency. " +
+  "When a photon hits a metal surface it can transfer that energy to one electron. The electron escapes only if " +
+  "the energy exceeds the work function of the metal. Extra energy becomes kinetic energy of the ejected electron. " +
+  "Brighter light means more photons rather than more energetic ones.";
+
+describe("paragraphize (readability pass)", () => {
+  it("breaks a long single-block explainer into short paragraphs", () => {
+    const out = paragraphize(WALL);
+    const paragraphs = out.split("\n\n");
+    expect(paragraphs.length).toBeGreaterThan(2);
+    for (const p of paragraphs) expect(p.length).toBeGreaterThan(10);
+    // Only whitespace moved: the words and their order are untouched.
+    expect(out.replace(/\s+/g, " ")).toBe(WALL.replace(/\s+/g, " "));
+  });
+
+  it("leaves structure the model wrote of its own alone", () => {
+    expect(paragraphize("First paragraph.\n\nSecond paragraph.")).toBe("First paragraph.\n\nSecond paragraph.");
+    expect(paragraphize(WALL.replace(" ", "\n"))).toContain("\n");
+    expect(paragraphize("# Heading\n" + WALL)).toContain("# Heading\n" + WALL.slice(0, 20));
+  });
+
+  it("leaves short explainers alone — one clean paragraph is fine", () => {
+    const short = "Photons carry energy proportional to frequency. That is the whole idea.";
+    expect(paragraphize(short)).toBe(short);
+  });
+
+  it("does not split after an abbreviation", () => {
+    const text =
+      "Energy is quantised, i.e. it comes in lumps. A photon transfers that lump to one electron in the metal. " +
+      "If the lump is smaller than the work function nothing is ejected at all. Bright light of low frequency " +
+      "still ejects nothing, which the wave picture cannot explain.";
+    const out = paragraphize(text);
+    expect(out).toContain("i.e. it comes in lumps.");
+  });
+
+  it("applies to a generated explainer through postProcessExplainer", () => {
+    const r = postProcessExplainer(`${WALL} [[claim-a-1]]`, numberClaims(claims));
+    expect(r.markdown).toContain("[1](#claim-claim-a-1)");
+    expect(r.markdown.split("\n\n").length).toBeGreaterThan(2);
   });
 });

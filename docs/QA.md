@@ -2,7 +2,8 @@
 
 Answers to the six questions in `AGENTS.md` §15.4, from real project facts. Every number here
 comes from `PROGRESS.md`, `DECISIONS.md`, the G1 spike or the probe logs — nothing is invented.
-Replace `[FILL IN AFTER SESSIONS]` with real participant numbers after the Oct 8 sessions.
+The in-app pre/post runner was removed on Oct 10 (owner decision): the external instrument in
+`data/eval/` is run by hand and **no participant study is claimed anywhere in these docs**.
 
 ## 1. What did you cut, and why?
 
@@ -15,9 +16,9 @@ was.
   wrapper" claim on camera, and a level input adds a second screen to the one-question home. Every
   lesson currently plans at `beginner`.
 - **Eval harness (a made-up domain with invented rules, answered by a fresh agent)** — optional per
-  §13.11 and it lost to the live pipeline in the Oct 4-5 window. The pre/post test mode is the
-  shipped evidence mechanism instead; the content-sufficiency check is the one thing I would build
-  next.
+  §13.11 and it lost to the live pipeline in the Oct 4-5 window. The external pre/post question set
+  in `data/eval/` is the evidence mechanism instead, administered by hand (the in-app runner was
+  removed on Oct 10); the content-sufficiency check is the one thing I would build next.
 - **Socratic mode** — cut for scope; explain-back covers the same "produce, don't recognise" idea
   with one grader call.
 - **Kept at all costs, per the spec:** the verifier, the adaptive loop, the mastery mindmap and the
@@ -95,8 +96,9 @@ right, and you cannot see which sentence came from where.
   planted 10 factual errors and the chosen model caught **10/10**; live runs show badges like
   "verified against 8 sources · 53/55 claims supported".)
 - **It produces artifacts, not prose.** A mindmap with mastery state, parameter-driven sims with a
-  locked predict step, quizzes whose misses regenerate the concept in a *different modality* with a
-  one-line reason, and an explain-back grader that names the claim you failed to convey.
+  locked predict step (shipped only where a hand-built template genuinely fits the concept), quizzes
+  whose misses regenerate the concept in a *different modality*, and an explain-back grader that
+  names the claim you failed to convey.
 - **It shows the work.** The agent-activity panel lists sources found, claims extracted, claims
   rejected and which stage is running — the "not just a wrapper" evidence on screen.
 - **The output is bounded and inspectable.** Generated content fills a fixed component library
@@ -130,8 +132,9 @@ Two, in this order:
 
 ## Small print for the video Q&A (if asked cold)
 
-- **Sample size:** `[FILL IN AFTER SESSIONS]` participants, run on the owner's device, pre/post
-  external questions, CSV in `data/`. It is a small demonstration, not a controlled study.
+- **Sample size:** none claimed. The pre/post instrument ships in `data/eval/` (10 external items
+  with keys and provenance) for anyone to run by hand; this build reports engineering evidence, not
+  a learning study.
 - **Where the eval questions come from:** `data/eval/questions.json` — 10 external items (5 pre / 5
   post), 4 verbatim from Wikiversity (CC BY-SA 4.0) and 6 adapted from MIT OCW 8.04 solutions and
   LibreTexts (CC BY-NC-SA 4.0), all fetched 2026-10-08, all keys listed for owner verification in

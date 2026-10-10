@@ -236,3 +236,71 @@ Run against the same routes the UI calls on :3200 (`POST /api/generate` read as 
 - **`GATE_REACHED.md` written** ("READY FOR OWNER TESTING"): freeze state, the verified-evidence summary, the `maxDuration` report with its stated assumption, the scan result, and the seven owner-only tasks in order (verify adapted keys → Vercel env vars + redeploy → incognito test → participant sessions and fill-ins → rehearse/record → cold-viewer review → submit by 09:00 EDT Oct 10), followed by the limitations to keep in front of the owner.
 - **Verified:** `npm run check` exit 0 (214/214, 28 files); repo tagged `freeze-candidate` and the tag pushed.
 - **Owner notes:** everything from here is bug fixes only. If a session reveals a content error in the eval key table or a demo-path crash, that is the sanctioned reason to touch code again.
+
+## Freeze-period P6 — owner feedback round (2026-10-10)
+
+- **Four owner-reported UI defects fixed** (bug fixes after the freeze, as sanctioned in P5):
+  1. **Home button.** A top-left `EduVoid` wordmark (`components/home-button.tsx`, rendered by `app/layout.tsx`) returns to the question screen. The lesson is a *phase* of `/`, so a `Link` to `/` is a no-op there — on the home route the click dispatches `HOME_EVENT` and `components/learning-app.tsx` resets to the home phase; on `/test` it navigates normally.
+  2. **No announcement line after adapting.** The sentence naming the new modality ("here it is as a hands-on simulation", "a quick quiz") is gone from both success paths (manual "I don't get this" and the quiz-miss auto-regeneration). `adaptReason()` and `LOCAL_FALLBACK_REASON` were deleted; the banner that remains is the spinner while the call is in flight and a reserved amber notice for real failures. Logged as a §13.7 deviation in `DECISIONS.md`.
+  3. **Answers reset on regeneration.** `patchConcept` (the single place a concept's components are replaced) bumps a per-concept revision that keys each widget, so quiz picks, committed predictions, flipped cards and explain-back drafts are cleared against content that no longer exists; the click bumps it immediately, so the reset does not depend on the network call.
+  4. **Prediction prompts only where a template fits.** The generator's sim now has to pass the existing deterministic fit signal (`fitsLocalTemplate`, `lib/local-adapt.ts`) against the concept's own text; the prompt says the same ("MOST concepts must have NO sim"), and the adaptive loop skips the `sim` modality when no template fits, adapting to flashcards/quiz instead of failing.
+- **Verified on the real surface (dev server, live run on the demo topic):** home button returns to the question screen from a running lesson and from `/test`; after a quiz answer + "I don't get this", the answer is cleared immediately (options re-enabled, only the spinner on screen) and no announcement banner appears once the regeneration lands (the concept visibly becomes explainer+quiz+flashcards+**sim**, with the sim's prediction on a fitting question); the activity panel logs `Adapting "quantum-state" → sim` / `Adapted "quantum-state" as sim`.
+- **Verified by test:** the off-topic case (`neural networks` + a force-fitted `two-state-prob` sim) now drops the sim and keeps explainer/quiz/flashcards; the modality cycle skips `sim` when nothing fits. `npm run check` exit 0 — **218/218 tests across 28 files** (was 214).
+- **Owner notes:** this round consumed live generation calls through the *owner's* dev server (rate-limit budget is per-IP, 6 generation calls / 10 min); the provider also returned 429s during the session, so a concept can legitimately show the "Couldn't generate this concept" retry state. Docs (`README`, `docs/DEVPOST.md`, `docs/DEMO.md`, `docs/QA.md`) were re-worded where they described the removed announcement sentence.
+
+## Freeze-period P7 — owner feedback round 2 (2026-10-10)
+
+- **Test mode deleted (owner decision).** Removed `app/test/page.tsx`, `components/test-mode.tsx`,
+  `components/eval-question.tsx`, `lib/eval.ts`, `lib/eval-store.ts`, `tests/eval.test.ts` and the
+  home-screen link. Kept the instrument: `data/eval/questions.json` + `data/eval/procedure.md` +
+  `docs/eval-candidates.md` (the question set is now run by hand). Docs updated so nothing claims the
+  app administers pre/post or that participant results exist — `README.md`, `docs/DEVPOST.md`,
+  `docs/DEMO.md` (evidence beat rewritten to engineering evidence), `docs/QA.md`, `BLOCKERS.md`,
+  `GATE_REACHED.md` (task 4 cancelled, P1 noted as superseded), `data/eval/procedure.md` §6.
+- **Concepts now generate one at a time in plan order** (`lib/concept-scheduler.ts` rewritten: one
+  in-flight request, plan order, next starts when the previous finishes; an opened concept jumps the
+  queue and the interrupted one returns later in order; cached concepts never disturb the queue).
+  `tests/concept-scheduler.test.ts` replaced with ordered-queue tests.
+- **Explain-back asks a different question per concept** (seven tasks — own words, teach a beginner,
+  your own example, predict a case, separate it from a look-alike, find a mistake, one sentence),
+  rotated by the concept's POSITION in the lesson (a hash of the concept id collided in a live run
+  and gave two concepts the same task), shown in the label/helper/placeholder and passed to the
+  grader (`lib/explain-back.ts`, `components/explain-back.tsx`, `app/api/explain-back/route.ts`).
+  New tests cover task variety, determinism, fallback and the grader prompt.
+- **Generator writes more, simpler, with a worked example only when one is needed** (`GEN_SYSTEM`
+  style block: 4-7 short paragraphs, ~250-450 words, blank line between paragraphs, define terms on
+  first use, one concrete picture, one takeaway; `maxTokens` 2000 → 3200; explainer cap 4000 → 8000
+  chars). Measured on a live `photoelectric effect` run: explainers ~115-207 words (mean ≈150) versus
+  62-123 words (mean 87) in the cached run under the old prompt.
+- **Wall-of-text repair.** That same run showed the model returning each explanation as ONE block —
+  the longest 1,317 chars / 12 sentences in a single paragraph. New `paragraphize()` in
+  `lib/claim-numbers.ts` (pure, deterministic, inside `postProcessExplainer`) splits such a block
+  into short paragraphs, and only such a block: existing paragraphs, lists, headings and code fences
+  are untouched, abbreviations never end a paragraph, and no word changes. Checked against that exact
+  model output: 1,317 chars → 4 paragraphs, words preserved.
+- **Verified:** `npm run check` exit 0 — typecheck, lint, **212/212 tests across 27 files**, production
+  build. `next typegen` was needed once after deleting the route (a stale generated
+  `.next/types/validator.ts` still referenced `app/test/page.js`; regenerating types is the fix, not a
+  typecheck suppression). One real defect found and fixed on the way: `components/explain-back.tsx`
+  read `Date.now()` in component scope, which the React purity rule rejects — the client clock was
+  replaced by the server's own `latencyMs`.
+- **Live verification (dev server, topic `photoelectric effect`, after the provider recovered):** the
+  activity panel showed exactly the requested sequence — `Generated "light-interaction"` →
+  `Generating "electron-ejection"…` → `Generated "electron-ejection"` → … → `Generated "photon-theory"`,
+  never two concepts generating at once, in plan order; the five concepts carried five DIFFERENT
+  explain-back tasks (own words / teaching a beginner / your own example / predicting a case /
+  separating it from a look-alike); the home screen renders with no test-mode link and the `EduVoid`
+  button is present. One regeneration from "I don't get this" still showed only the spinner and no
+  announcement banner, and its reset-on-click behaviour held.
+- **Owner notes:** the deleted feature was the participant-evidence path, so the demo video must not
+  promise participant results; `docs/DEMO.md` now narrates the engineering evidence instead. During
+  this round the provider returned HTTP 429 for a stretch, so several runs showed "Generating this
+  concept…" for a long time; the dev server in `.next/dev/logs/next-development.log` has the detail.
+
+## Freeze-period P8 — live demo-topic replacement (2026-10-10)
+
+- **Owner feedback:** a live `french revolution` run produced a mindmap the owner judged inaccurate. Reproduced at the plan stage today (scratch probe against the live source stage + planner, since deleted): for history the planner can only linearize — Estates-General of 1789 → Storming of the Bastille → Declaration of the Rights of Man → Reign of Terror → Rise of Napoleon — and its "prerequisite" edges are event order, not understanding dependencies. The facts were fine; the graph's semantics are what read wrong, and no polish fixes a narrative topic under this architecture.
+- **Candidate comparison (same scratch probe, live):** `Bayes' theorem` → a textbook dependency chain (conditional → joint → marginal → Bayes → prior/posterior); `photosynthesis` → mostly plausible, but the middle edge (chlorophyll → CO₂ and water) is weak; `the French Revolution` → chronology. Math topics give the most defensible graph.
+- **Full pipeline probe on `Bayes' theorem` (current tree, live NIM + Tavily, `probe:generate`):** setup **23.0 s** (sources 1.2 s, skeleton **3.6 s**, claims 8.7 s, verified 14.1 s) · 51 claims, **41 verified / 10 flagged**, degraded=false · first concept `conditional-probability` ok in **3.1 s** · second 14.6 s · `PIPELINE PROBE: PASS`. (10 flagged is the highest flagged ratio in recent runs — noted, the verifier did its job; rehearsal will show the real numbers.)
+- **Docs updated so every script matches the pick:** `docs/DEMO.md` (live-beat row + topic table; French Revolution marked avoid-on-camera), `docs/DEMO-SCRIPT.md` Beat 8, `GATE_REACHED.md` owner task 3. Main demo topic unchanged (`quantum superposition and measurement` — the cached run, the two sim templates and the polish target; `Bayes' theorem` was already the spec's §7 fallback topic).
+- **Deliberately not done:** no planner-prompt change under the freeze (the chronology-edge weakness joins the post-submission candidates), and the scratch probe script was deleted to keep the tree clean.

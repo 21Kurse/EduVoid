@@ -1,8 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   buildExplainBackPrompt,
+  explainTaskById,
+  EXPLAIN_TASKS,
   gradeExplanation,
   GRADER_SYSTEM,
+  pickExplainTask,
   summarizeExplainBack,
   type ExplainBackClaim,
 } from "../lib/explain-back";
@@ -61,6 +64,44 @@ describe("buildExplainBackPrompt", () => {
     expect(GRADER_SYSTEM).toMatch(/data to grade/i);
     expect(GRADER_SYSTEM).toMatch(/Do not add facts/i);
     expect(GRADER_SYSTEM).toMatch(/covered[\s\S]*partial[\s\S]*missed/);
+  });
+
+  it("tells the grader which explain-back task the learner was given", () => {
+    const task = EXPLAIN_TASKS.find((t) => t.id === "spot-error")!;
+    const prompt = buildExplainBackPrompt({ ...INPUT, taskId: task.id });
+    expect(prompt).toContain(task.id);
+    expect(prompt).toContain(task.graderNote);
+    // The default task is used when the client sends nothing.
+    expect(buildExplainBackPrompt(INPUT)).toContain(EXPLAIN_TASKS[0]!.graderNote);
+  });
+});
+
+describe("explain-back tasks (different for every concept)", () => {
+  it("offers several distinct tasks and gives each concept a stable one", () => {
+    expect(EXPLAIN_TASKS.length).toBeGreaterThanOrEqual(5);
+    const ids = new Set(EXPLAIN_TASKS.map((t) => t.id));
+    expect(ids.size).toBe(EXPLAIN_TASKS.length); // no duplicate task ids
+    for (const t of EXPLAIN_TASKS) {
+      expect(t.label.length).toBeGreaterThan(0);
+      expect(t.helper.length).toBeGreaterThan(0);
+      expect(t.graderNote.length).toBeGreaterThan(0);
+      expect(t.placeholder("The Born rule")).toContain("The Born rule");
+    }
+    // Deterministic per concept id…
+    expect(pickExplainTask("measurement")).toBe(pickExplainTask("measurement"));
+    // …stable within a lesson (same order, same task)…
+    const lesson = ["quantum-state", "superposition", "measurement", "probabilistic-outcome", "state-collapse"];
+    const first = lesson.map((id, i) => pickExplainTask(id, i, "quantum superposition").id);
+    const again = lesson.map((id, i) => pickExplainTask(id, i, "quantum superposition").id);
+    expect(again).toEqual(first);
+    // …and DIFFERENT for every concept of that lesson, up to the task count.
+    expect(new Set(first).size).toBe(Math.min(lesson.length, EXPLAIN_TASKS.length));
+  });
+
+  it("falls back to the first task for a missing or unknown id", () => {
+    expect(explainTaskById(undefined)).toBe(EXPLAIN_TASKS[0]);
+    expect(explainTaskById("not-a-task")).toBe(EXPLAIN_TASKS[0]);
+    expect(explainTaskById("own-words").id).toBe("own-words");
   });
 });
 

@@ -8,13 +8,45 @@
  *  - Only for the demo topic; any other topic gets the normal error state.
  *  - The UI must label it exactly "cached run" and never present it as live.
  */
-import raw from "../data/cached/qm-superposition.json";
+import bayesRaw from "../data/cached/bayes-theorem.json";
+import qmRaw from "../data/cached/qm-superposition.json";
 import { curriculumSpecLooseSchema, type CurriculumSpec } from "./spec";
 import { normalizeQuizComponents } from "./quiz-dedupe";
 import { normalizeSimComponents } from "./sim-templates";
 import type { Contradiction, ExtractedClaim } from "./source";
 
-export const DEMO_TOPIC = "quantum superposition and measurement";
+/**
+ * Demo-safe runs, PRIMARY FIRST (owner request, Oct 10: the app is tailored
+ * to Bayes' theorem for now, so that is the topic the video scripts around
+ * and the one whose capture has to exist). The quantum run is kept: it is a
+ * real capture, and a judge who types it deserves the same safety net.
+ */
+export type DemoRun = {
+  topic: string;
+  /** Path in the repo, for error messages and docs. */
+  file: string;
+  /** Does a normalized typed topic belong to this run? */
+  matches: (normalized: string) => boolean;
+  raw: unknown;
+};
+
+export const DEMO_RUNS: DemoRun[] = [
+  {
+    topic: "Bayes' theorem",
+    file: "data/cached/bayes-theorem.json",
+    matches: (n) => n.includes("bayes"),
+    raw: bayesRaw,
+  },
+  {
+    topic: "quantum superposition and measurement",
+    file: "data/cached/qm-superposition.json",
+    matches: (n) => n.includes("superposition"),
+    raw: qmRaw,
+  },
+];
+
+/** The topic the demo path is tailored to (first registry entry). */
+export const DEMO_TOPIC = DEMO_RUNS[0]!.topic;
 
 /**
  * The exact UI label for the demo-safe run. Never reworded to sound live
@@ -46,14 +78,19 @@ function normalizeTopic(t: string): string {
 }
 
 /**
- * Is this the demo topic? Generous enough for "quantum superposition",
- * "superposition and measurement", etc. — the cached content is only about
- * superposition, so nothing else may claim it.
+ * The cached run for a typed topic, or null. Matching is generous about
+ * phrasing ("Bayes theorem", "Bayes' Theorem", "bayes rule") and strict
+ * about subject: a run is only offered for the topic it was captured for.
  */
-export function isDemoTopic(topic: string): boolean {
+export function demoRunFor(topic: string): DemoRun | null {
   const n = normalizeTopic(topic);
-  if (!n) return false;
-  return n.includes("superposition") || n === normalizeTopic(DEMO_TOPIC);
+  if (!n) return null;
+  return DEMO_RUNS.find((r) => r.matches(n) || n === normalizeTopic(r.topic)) ?? null;
+}
+
+/** Is this one of the captured demo topics? */
+export function isDemoTopic(topic: string): boolean {
+  return demoRunFor(topic) !== null;
 }
 
 function num(v: unknown): number {
@@ -114,12 +151,18 @@ export function parseCachedRun(data: unknown): CachedLesson | null {
   };
 }
 
-let memo: CachedLesson | null | undefined;
+const memo = new Map<string, CachedLesson | null>();
 
-/** The cached lesson, parsed once. Null means the cache is unusable. */
-export function getCachedLesson(): CachedLesson | null {
-  if (memo === undefined) memo = parseCachedRun(raw);
-  return memo;
+/**
+ * The cached lesson for a topic (defaults to the primary demo topic), parsed
+ * once per run. Null means that capture is unusable — the caller renders the
+ * normal error state instead of a broken lesson.
+ */
+export function getCachedLesson(topic: string = DEMO_TOPIC): CachedLesson | null {
+  const run = demoRunFor(topic);
+  if (!run) return null;
+  if (!memo.has(run.file)) memo.set(run.file, parseCachedRun(run.raw));
+  return memo.get(run.file) ?? null;
 }
 
 /**
@@ -149,5 +192,5 @@ export function cachedLessonView(lesson: CachedLesson) {
 
 /** Test helper. */
 export function resetCachedLessonCache(): void {
-  memo = undefined;
+  memo.clear();
 }

@@ -16,7 +16,7 @@ import type { SourceResult } from "../lib/source";
 
 /**
  * Regression guard (freeze-period P2): a judge on an unrelated topic must
- * never see a "coming soon" sim. Only the two hand-built templates exist, so
+ * never see a "coming soon" sim. Only the three hand-built templates exist, so
  * every path that can carry a sim — live generation, adaptation, the cached
  * demo run, the hero fallback — must drop or coerce a reserved id instead of
  * rendering it as a placeholder.
@@ -46,8 +46,8 @@ const QUIZ: Component = {
 };
 
 describe("sim template gate", () => {
-  it("knows exactly the two hand-built templates", () => {
-    expect([...IMPLEMENTED_SIM_TEMPLATES]).toEqual(["two-state-prob", "double-slit"]);
+  it("knows exactly the three hand-built templates", () => {
+    expect([...IMPLEMENTED_SIM_TEMPLATES]).toEqual(["two-state-prob", "double-slit", "bayes-update"]);
     expect(SIM_TEMPLATES.filter((t) => !isImplementedSimTemplate(t))).toEqual(RESERVED);
     for (const t of IMPLEMENTED_SIM_TEMPLATES) expect(isImplementedSimTemplate(t)).toBe(true);
     for (const t of RESERVED) {

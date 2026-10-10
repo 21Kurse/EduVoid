@@ -1,0 +1,1677 @@
+{
+  "topic": "Bayes' theorem",
+  "capturedAt": "2026-10-10T14:12:37.439Z",
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "note": "Captured from a real live pipeline run. Used only when live generation fails; always labeled \"cached run\".",
+  "spec": {
+    "topic": "Bayes' theorem",
+    "level": "beginner",
+    "concepts": [
+      {
+        "id": "conditional-probability",
+        "title": "Conditional Probability",
+        "summary": "Probability of event A given that event B has occurred.",
+        "claims": [
+          {
+            "id": "claim-bayes-theorem-1",
+            "text": "Bayes' theorem was developed in the 1700s by English mathematician Thomas Bayes.",
+            "passageIds": [
+              "src-1-p1",
+              "src-1-p2"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-2",
+            "text": "Bayes' theorem is a central principle in probability theory.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-3",
+            "text": "Bayes' theorem helps estimate the likelihood of an event based on prior knowledge of related events.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-4",
+            "text": "Bayes' theorem allows calculation of the probability of a specific outcome given that another event has already occurred.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-5",
+            "text": "Probability theory is a branch of mathematics that examines the likelihood that certain events will occur.",
+            "passageIds": [
+              "src-1-p1",
+              "src-1-p2"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-6",
+            "text": "Probability theorists use Bayes' theorem to examine situations with possible outcomes.",
+            "passageIds": [
+              "src-1-p2"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-7",
+            "text": "Probability theorists use Bayes' theorem to calculate how likely it is that one particular outcome will happen.",
+            "passageIds": [
+              "src-1-p2"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-8",
+            "text": "Bayes' theorem gives a mathematical rule for inverting conditional probabilities.",
+            "passageIds": [
+              "src-2-p1"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-9",
+            "text": "Bayes' theorem allows the probability of a cause to be found given its effect.",
+            "passageIds": [
+              "src-2-p1"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-10",
+            "text": "Bayes' theorem is named after Thomas Bayes, a minister, statistician, and philosopher.",
+            "passageIds": [
+              "src-2-p1"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          }
+        ],
+        "components": [
+          {
+            "type": "explainer",
+            "markdown": "Conditional probability measures how likely event A is when we know event B has already happened. It answers questions like: given that a test is positive, what is the chance the person actually has the disease?\n\nThis concept builds on basic probability by focusing on reduced sample spaces where B is true. We write it as P(A|B), read as 'probability of A given B'.\n\nThe vertical bar means 'given' and signals we are restricting attention to cases where B occurred. To compute P(A|B), we look at how often both A and B happen together, relative to how often B happens.\n\nThis idea is essential for understanding evidence, testing, and updating beliefs."
+          },
+          {
+            "type": "quiz",
+            "questions": [
+              {
+                "id": "conditional-probability-q1",
+                "prompt": "What does P(A|B) represent in probability theory?",
+                "options": [
+                  "The probability that both A and B occur",
+                  "The probability of A occurring without any condition",
+                  "The probability of A given that B has already occurred",
+                  "The probability that B occurs given A"
+                ],
+                "answer": 2,
+                "explanation": "P(A|B) is the conditional probability of A given B, meaning we calculate the likelihood of A under the assumption that B has already happened.",
+                "passageIds": [
+                  "src-1-p1",
+                  "src-1-p2"
+                ]
+              }
+            ]
+          },
+          {
+            "type": "flashcards",
+            "cards": [
+              {
+                "front": "What is the symbol for conditional probability of A given B?",
+                "back": "P(A|B)"
+              },
+              {
+                "front": "What does the vertical bar in P(A|B) mean?",
+                "back": "It means 'given', indicating that B is assumed to have occurred."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "joint-probability",
+        "title": "Joint Probability",
+        "summary": "Probability that both events A and B occur together.",
+        "claims": [
+          {
+            "id": "claim-bayes-theorem-1",
+            "text": "Bayes' theorem was developed in the 1700s by English mathematician Thomas Bayes.",
+            "passageIds": [
+              "src-1-p1",
+              "src-1-p2"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-2",
+            "text": "Bayes' theorem is a central principle in probability theory.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-5",
+            "text": "Probability theory is a branch of mathematics that examines the likelihood that certain events will occur.",
+            "passageIds": [
+              "src-1-p1",
+              "src-1-p2"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-8",
+            "text": "Bayes' theorem gives a mathematical rule for inverting conditional probabilities.",
+            "passageIds": [
+              "src-2-p1"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          }
+        ],
+        "components": [
+          {
+            "type": "explainer",
+            "markdown": "Joint probability refers to the likelihood that two events, A and B, both occur at the same time. It is denoted as P(A and B) or P(A ∩ B), representing the overlap where both conditions are satisfied.\n\nThis concept is foundational because it allows us to quantify how often two things happen together, which is essential before examining how one affects the other. For instance, if we want to know the chance that it rains and you carry an umbrella, we look at the joint probability of both events occurring.\n\nUnderstanding joint probability helps build intuition for conditional probability, where we assess the likelihood of one event given that another has already happened. It also underpins key rules like the multiplication rule, which states that P(A and B) = P(A) × P(B|A), showing how joint probability connects to conditional and marginal probabilities.\n\nBy starting with joint probability, we establish a basis for more complex ideas like Bayes' theorem, which relies on reversing conditional relationships using joint and marginal probabilities."
+          },
+          {
+            "type": "quiz",
+            "questions": [
+              {
+                "id": "joint-probability-q1",
+                "prompt": "What does joint probability P(A and B) represent?",
+                "options": [
+                  "The probability that event A occurs or event B occurs",
+                  "The probability that both events A and B occur together",
+                  "The probability that event A occurs given that B has occurred",
+                  "The probability that neither A nor B occurs"
+                ],
+                "answer": 1,
+                "explanation": "Joint probability specifically measures the likelihood that both events happen at the same time, not one or the other, nor a conditional scenario.",
+                "passageIds": [
+                  "src-1-p1",
+                  "src-1-p2"
+                ]
+              }
+            ]
+          },
+          {
+            "type": "flashcards",
+            "cards": [
+              {
+                "front": "What is joint probability?",
+                "back": "The probability that two events A and B both occur together, denoted P(A and B) or P(A ∩ B)."
+              },
+              {
+                "front": "How is joint probability related to conditional probability?",
+                "back": "Joint probability can be expressed as P(A and B) = P(A) × P(B|A), linking it to conditional and marginal probabilities."
+              }
+            ]
+          },
+          {
+            "type": "sim",
+            "template": "bayes-update",
+            "params": {
+              "values": {
+                "prior": 0.3,
+                "sensitivity": 0.8,
+                "falsePositive": 0.2
+              }
+            },
+            "predictPrompt": "If a test has 80% sensitivity and 20% false positive rate, and the prior probability of a condition is 30%, what is the posterior probability of the condition given a positive test result?"
+          }
+        ]
+      },
+      {
+        "id": "marginal-probability",
+        "title": "Marginal Probability",
+        "summary": "Total probability of an event across all possible conditions.",
+        "claims": [
+          {
+            "id": "claim-bayes-theorem-1",
+            "text": "Bayes' theorem was developed in the 1700s by English mathematician Thomas Bayes.",
+            "passageIds": [
+              "src-1-p1",
+              "src-1-p2"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-2",
+            "text": "Bayes' theorem is a central principle in probability theory.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-3",
+            "text": "Bayes' theorem helps estimate the likelihood of an event based on prior knowledge of related events.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-5",
+            "text": "Probability theory is a branch of mathematics that examines the likelihood that certain events will occur.",
+            "passageIds": [
+              "src-1-p1",
+              "src-1-p2"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-6",
+            "text": "Probability theorists use Bayes' theorem to examine situations with possible outcomes.",
+            "passageIds": [
+              "src-1-p2"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-8",
+            "text": "Bayes' theorem gives a mathematical rule for inverting conditional probabilities.",
+            "passageIds": [
+              "src-2-p1"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-9",
+            "text": "Bayes' theorem allows the probability of a cause to be found given its effect.",
+            "passageIds": [
+              "src-2-p1"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          }
+        ],
+        "components": [
+          {
+            "type": "explainer",
+            "markdown": "Marginal probability is the total probability of an event occurring across all possible conditions or scenarios. It sums the probabilities of the event under each condition, weighted by how likely each condition is. This concept is essential when we do not know which condition occurred but want the overall chance of the event.\n\nFor example, if we want the probability of a positive test result, we must consider both those with and without the disease, weighting each by their prevalence. Marginal probability appears in the denominator of Bayes' theorem, where it normalizes the updated belief. It ensures probabilities sum to one across all outcomes.\n\nWe calculate it by looping through all mutually exclusive and exhaustive conditions, multiplying the chance of each condition by the chance of the event given that condition, and adding the results. This gives the unconditional or total probability of the event. Understanding marginal probability helps avoid confusion when flipping conditional probabilities.\n\nIt grounds Bayesian reasoning in the law of total probability. The key idea is: to find the overall chance of an event, average its chances under all possible scenarios, weighted by how likely each scenario is."
+          },
+          {
+            "type": "quiz",
+            "questions": [
+              {
+                "id": "marginal-probability-q1",
+                "prompt": "What is the marginal probability of event A when the sample space is partitioned into conditions B and not-B?",
+                "options": [
+                  "P(A|B) + P(A|not-B)",
+                  "P(A|B)P(B) + P(A|not-B)P(not-B)",
+                  "P(B|A) + P(not-B|A)",
+                  "P(A and B) + P(A and not-B)"
+                ],
+                "answer": 1,
+                "explanation": "The marginal probability of A is found by summing over all conditions: the probability of A given B times the probability of B, plus the probability of A given not-B times the probability of not-B. This is the law of total probability.",
+                "passageIds": [
+                  "src-1-p1",
+                  "src-1-p2"
+                ]
+              }
+            ]
+          },
+          {
+            "type": "flashcards",
+            "cards": [
+              {
+                "front": "What is marginal probability?",
+                "back": "The total probability of an event across all possible conditions, calculated by summing the conditional probabilities weighted by the likelihood of each condition."
+              },
+              {
+                "front": "Why is marginal probability important in Bayes' theorem?",
+                "back": "It appears in the denominator and normalizes the posterior probability, ensuring it sums to one by representing the total evidence across all hypotheses."
+              }
+            ]
+          },
+          {
+            "type": "sim",
+            "template": "bayes-update",
+            "params": {
+              "values": {
+                "prior": 0.01,
+                "sensitivity": 0.95,
+                "falsePositive": 0.05
+              }
+            },
+            "predictPrompt": "What is the marginal probability of a positive test result, i.e., the denominator in Bayes' theorem, given a 1% disease prevalence, 95% test sensitivity, and 5% false positive rate?"
+          }
+        ]
+      },
+      {
+        "id": "bayes-theorem",
+        "title": "Bayes' Theorem",
+        "summary": "Formula to update probability of A given B using prior and likelihood.",
+        "claims": [
+          {
+            "id": "claim-bayes-theorem-1",
+            "text": "Bayes' theorem was developed in the 1700s by English mathematician Thomas Bayes.",
+            "passageIds": [
+              "src-1-p1",
+              "src-1-p2"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-2",
+            "text": "Bayes' theorem is a central principle in probability theory.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-3",
+            "text": "Bayes' theorem helps estimate the likelihood of an event based on prior knowledge of related events.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-4",
+            "text": "Bayes' theorem allows calculation of the probability of a specific outcome given that another event has already occurred.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-5",
+            "text": "Probability theory is a branch of mathematics that examines the likelihood that certain events will occur.",
+            "passageIds": [
+              "src-1-p1",
+              "src-1-p2"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-6",
+            "text": "Probability theorists use Bayes' theorem to examine situations with possible outcomes.",
+            "passageIds": [
+              "src-1-p2"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-7",
+            "text": "Probability theorists use Bayes' theorem to calculate how likely it is that one particular outcome will happen.",
+            "passageIds": [
+              "src-1-p2"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-8",
+            "text": "Bayes' theorem gives a mathematical rule for inverting conditional probabilities.",
+            "passageIds": [
+              "src-2-p1"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-9",
+            "text": "Bayes' theorem allows the probability of a cause to be found given its effect.",
+            "passageIds": [
+              "src-2-p1"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-10",
+            "text": "Bayes' theorem is named after Thomas Bayes, a minister, statistician, and philosopher.",
+            "passageIds": [
+              "src-2-p1"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          }
+        ],
+        "components": [
+          {
+            "type": "explainer",
+            "markdown": "Bayes' theorem provides a way to update the probability of an event A when new evidence B is observed, using the prior probability of A and the likelihood of B given A. It formalizes how we revise beliefs in light of new data, turning conditional probabilities around: from P(B|A) to P(A|B).\n\nThis is especially useful when directly computing P(A|B) is difficult, but P(B|A) and the marginal P(B) are more accessible. The theorem is foundational in statistics, machine learning, and decision-making under uncertainty.\n\nIt relies on the law of total probability to normalize the updated belief so that probabilities sum to one. First articulated by Thomas Bayes in the 1700s, it remains a cornerstone of probabilistic reasoning.\n\nThe core idea is that our initial belief (prior) is adjusted by how surprising the evidence is under that belief (likelihood), relative to how expected the evidence is overall (evidence)."
+          },
+          {
+            "type": "quiz",
+            "questions": [
+              {
+                "id": "bayes-theorem-q1",
+                "prompt": "According to Bayes' theorem, what is the expression for the posterior probability P(A|B) in terms of the prior P(A), likelihood P(B|A), and evidence P(B)?",
+                "options": [
+                  "P(A|B) = P(A) + P(B|A) / P(B)",
+                  "P(A|B) = P(B|A) * P(A) / P(B)",
+                  "P(A|B) = P(A) * P(B) / P(B|A)",
+                  "P(A|B) = P(B|A) / (P(A) * P(B))"
+                ],
+                "answer": 1,
+                "explanation": "Bayes' theorem states that P(A|B) = [P(B|A) * P(A)] / P(B), where the posterior is proportional to the likelihood times the prior, normalized by the evidence.",
+                "passageIds": [
+                  "src-1-p1",
+                  "src-1-p2"
+                ]
+              }
+            ]
+          },
+          {
+            "type": "flashcards",
+            "cards": [
+              {
+                "front": "What does Bayes' theorem allow us to compute?",
+                "back": "The probability of a cause (A) given an observed effect (B), i.e., P(A|B), using prior P(A), likelihood P(B|A), and evidence P(B)."
+              },
+              {
+                "front": "Who is Bayes' theorem named after?",
+                "back": "Thomas Bayes, an 18th-century English mathematician, minister, and philosopher."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "prior-posterior",
+        "title": "Prior and Posterior Probability",
+        "summary": "Prior is initial belief; posterior is updated belief after evidence.",
+        "claims": [
+          {
+            "id": "claim-bayes-theorem-2",
+            "text": "Bayes' theorem is a central principle in probability theory.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-3",
+            "text": "Bayes' theorem helps estimate the likelihood of an event based on prior knowledge of related events.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-4",
+            "text": "Bayes' theorem allows calculation of the probability of a specific outcome given that another event has already occurred.",
+            "passageIds": [
+              "src-1-p1"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-6",
+            "text": "Probability theorists use Bayes' theorem to examine situations with possible outcomes.",
+            "passageIds": [
+              "src-1-p2"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-7",
+            "text": "Probability theorists use Bayes' theorem to calculate how likely it is that one particular outcome will happen.",
+            "passageIds": [
+              "src-1-p2"
+            ],
+            "sourceIds": [
+              "src-1"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-8",
+            "text": "Bayes' theorem gives a mathematical rule for inverting conditional probabilities.",
+            "passageIds": [
+              "src-2-p1"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          },
+          {
+            "id": "claim-bayes-theorem-9",
+            "text": "Bayes' theorem allows the probability of a cause to be found given its effect.",
+            "passageIds": [
+              "src-2-p1"
+            ],
+            "sourceIds": [
+              "src-2"
+            ],
+            "status": "supported"
+          }
+        ],
+        "components": [
+          {
+            "type": "explainer",
+            "markdown": "Prior probability is the initial belief about an event before seeing new evidence, based on existing knowledge. [2](#claim-claim-bayes-theorem-3) Posterior probability is the updated belief after incorporating evidence, calculated using Bayes' theorem. [3](#claim-claim-bayes-theorem-4) Bayes' theorem provides a mathematical rule to invert conditional probabilities, allowing us to compute the probability of a cause given an observed effect. [6](#claim-claim-bayes-theorem-8) [7](#claim-claim-bayes-theorem-9) It relates the likelihood of evidence under different hypotheses to update our beliefs rationally. [4](#claim-claim-bayes-theorem-6) The prior represents what we know initially; the posterior reflects what we know after learning from data. [1](#claim-claim-bayes-theorem-2) This updating process is central to probabilistic reasoning and inference. [5](#claim-claim-bayes-theorem-7)"
+          },
+          {
+            "type": "quiz",
+            "questions": [
+              {
+                "id": "prior-posterior-q1",
+                "prompt": "What is the posterior probability in the context of Bayes' theorem?",
+                "options": [
+                  "The initial belief before any evidence is observed",
+                  "The probability of observing the evidence",
+                  "The updated belief after incorporating new evidence",
+                  "The likelihood of the evidence given the hypothesis"
+                ],
+                "answer": 2,
+                "explanation": "The posterior probability is the revised probability of a hypothesis after taking into account new evidence, which is the core output of Bayes' theorem.",
+                "passageIds": [
+                  "src-1-p1",
+                  "src-1-p2"
+                ]
+              }
+            ]
+          },
+          {
+            "type": "flashcards",
+            "cards": [
+              {
+                "front": "What is prior probability?",
+                "back": "The initial belief about an event before seeing new evidence."
+              },
+              {
+                "front": "What does Bayes' theorem allow us to calculate?",
+                "back": "The probability of a cause given an observed effect, by inverting conditional probabilities."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "edges": [
+      {
+        "from": "conditional-probability",
+        "to": "joint-probability"
+      },
+      {
+        "from": "joint-probability",
+        "to": "marginal-probability"
+      },
+      {
+        "from": "marginal-probability",
+        "to": "bayes-theorem"
+      },
+      {
+        "from": "bayes-theorem",
+        "to": "prior-posterior"
+      }
+    ],
+    "sources": [
+      {
+        "id": "src-1",
+        "title": "Bayes' theorem | Science | Research Starters | EBSCOhost",
+        "url": "https://www.ebsco.com/research-starters/science/bayes-theorem",
+        "authority": "other",
+        "passages": [
+          {
+            "id": "src-1-p1",
+            "label": "extracted",
+            "text": "Bayes' theorem, developed in the 1700s by English mathematician Thomas Bayes, is a central principle in probability theory that helps to estimate the likelihood of an event based on prior knowledge of related events. This theorem allows mathematicians to calculate the probability of a specific outcome, given that another event has already occurred, using a conditional probability framework. The foundational equation P(A|B) represents the probability of event A occurring given that event B is [...] ## Full article Bayes’ theorem, developed in the 1700s by English mathematician Thomas Bayes, is a fundamental concept in the field of probability theory. Probability theory is a branch of mathematics that examines the likelihood that certain events will occur."
+          },
+          {
+            "id": "src-1-p2",
+            "label": "extracted",
+            "text": "Probability theorists use this theorem to examine a situation with possible outcomes and try to calculate how likely it is that one particular outcome will happen. ### Brief History [...] ## Full article Bayes’ theorem, developed in the 1700s by English mathematician Thomas Bayes, is a fundamental concept in the field of probability theory. Probability theory is a branch of mathematics that examines the likelihood that certain events will occur. Probability theorists use this theorem to examine a situation with possible outcomes and try to calculate how likely it is that one particular outcome will happen. ### Brief History"
+          }
+        ]
+      },
+      {
+        "id": "src-2",
+        "title": "Bayes' theorem - Wikipedia",
+        "url": "https://en.wikipedia.org/wiki/Bayes%27_theorem",
+        "authority": "explainer",
+        "passages": [
+          {
+            "id": "src-2-p1",
+            "label": "extracted",
+            "text": "In probability theory, Bayes' theorem (alternatively Bayes' law or Bayes' rule), named after Thomas Bayes (/beɪz/), gives a mathematical rule for inverting conditional probabilities, allowing the probability of a cause to be found given its effect. For example, with Bayes' theorem, the probability that a patient has a disease given that they tested positive for that disease can be found using the probability that the test yields a positive result when the disease is present. The theorem was [...] Bayes' theorem is named after Thomas Bayes, a minister, statistician, and philosopher. Bayes used conditional probability to provide an algorithm (his Proposition 9) that uses evidence to calculate limits on an unknown parameter. His work was published in 1763 as An Essay Towards Solving a Problem in the Doctrine of Chances."
+          },
+          {
+            "id": "src-2-p2",
+            "label": "extracted",
+            "text": "Bayes studied how to compute a distribution for the probability parameter of a binomial distribution (in modern terminology). After Bayes's death, his family gave his [...] P ( A | B ) P ( B ) = P ( B | A ) P ( A ) , {\\displaystyle P(A\\vert B)P(B)=P(B\\vert A)P(A),} {\\displaystyle P(A\\vert B)P(B)=P(B\\vert A)P(A),}and dividing both sides by P ( B ) {\\displaystyle P(B)} {\\displaystyle P(B)} gives Bayes' theorem: P ( A | B ) = P ( B | A ) P ( A ) P ( B ) , if P ( B ) ≠ 0. {\\displaystyle P(A\\vert B)={\\frac {P(B\\vert A)P(A)}{P(B)}},{\\text{ if }}P(B)\\neq 0.} {\\displaystyle P(A\\vert B)={\\frac {P(B\\vert A)P(A)}{P(B)}},{\\text{ if }}P(B)\\neq 0.}"
+          }
+        ]
+      },
+      {
+        "id": "src-3",
+        "title": "Bayes' Theorem - GeeksforGeeks",
+        "url": "https://www.geeksforgeeks.org/maths/bayes-theorem",
+        "authority": "other",
+        "passages": [
+          {
+            "id": "src-3-p1",
+            "label": "extracted",
+            "text": "Bayes' theorem (also known as the Bayes Rule or Bayes Law) is used to determine the conditional probability of event A when event B has already occurred. The general statement of Bayes’ theorem is “The conditional probability of an event A, given the occurrence of another event B, is equal to the product of the probability of B, given A, and the probability of A divided by the probability of event B.” i.e. [...] geeksforgeeks search icon Interview Prep Number System and Arithmetic Algebra Set Theory Probability Statistics Geometry Calculus Logarithms Mensuration Matrices Trigonometry Mathematics # Bayes' Theorem Last Updated : 10 Jul, 2026 Bayes' Theorem is a mathematical formula used to determine the conditional probability of an event based on prior knowledge and new evidence."
+          },
+          {
+            "id": "src-3-p2",
+            "label": "extracted",
+            "text": "[...] > P(E\\_i \\mid A) = \\frac{P(E\\_i) \\cdot P(A \\mid E\\_i)}{\\sum\\_{k=1}^{n} P(E\\_k) \\cdot P(A \\mid E\\_k)} Bayes’ theorem is also known as the formula for the probability of “causes”. As we know, the Ei‘s are a partition of the sample space S, and at any given time, only one of the events Ei occurs. Thus, we conclude that the Bayes theorem formula gives the probability of a particular Ei, given that event A has occurred. ## Terms Related to Bayes' Theorem"
+          }
+        ]
+      },
+      {
+        "id": "src-4",
+        "title": "Bayes' Theorem -- from Wolfram MathWorld",
+        "url": "https://mathworld.wolfram.com/BayesTheorem.html",
+        "authority": "other",
+        "passages": [
+          {
+            "id": "src-4-p1",
+            "label": "extracted",
+            "text": "# Bayes' Theorem Bayes' theorem, also called Bayes' rule, expresses a conditional probability in terms of its reverse and the corresponding marginal probabilities. Let A and B_j be sets. Conditional probability requires that | | | (1) | where intersection denotes intersection (\"and\"), and also that | | | (2) | Therefore, | | | (3) | Now, let | | | (4) | so A_i is an event in S and A_i intersection A_j=emptyset for i!=j, then | | | (5) | | | | (6) | [...] Bayes' Theorem ## Cite this as: Weisstein, Eric W. \"Bayes' Theorem.\" From MathWorld--A Wolfram Resource. ## Subject classifications [...] | | | (6) | But this can be written | | | (7) | so | | | (8) | (Papoulis 1984, pp. 38-39)."
+          },
+          {
+            "id": "src-4-p2",
+            "label": "extracted",
+            "text": "## See also Bayesian Analysis, Bayesian Inference, Bayesian Probability, Conditional Probability, Inclusion-Exclusion Principle, Independent Statistics, Posterior Probability, Total Probability Theorem ## Explore with Wolfram|Alpha WolframAlpha More things to try: bayes' theorem Bode plot of s/(1-s) sampling period .02 domain of sqrt(sin(x)) ## References"
+          }
+        ]
+      },
+      {
+        "id": "src-5",
+        "title": "Bayes' Theorem - The Simplest Case",
+        "url": "https://www.youtube.com/watch?v=XQoLVl31ZfQ",
+        "authority": "other",
+        "passages": [
+          {
+            "id": "src-5-p1",
+            "label": "extracted",
+            "text": "Bayes' Theorem is an incredibly powerful theorem in probability that allows us to relate P(A|B) to P(B|A). This is helpful because we often have an asymmetry where one of these conditional probabilities is easy to compute and the other is not. It let's us treat compute how to update our probabilities given new information. The formula: P(A|B) = P(B|A)P(A)/P(B) [...] ### Transcript [0:00] In this video we're going to see an incredibly powerful theorem... ...in the context of probability, called \"Bayes' theorem\". [0:08] And Bayes' theorem provides the... the basis for something called Bayesian inference,... ...and it is a really enormous deal,... [0:14] ...that really changed how we think about probabilities,... ...and a lot of statistics in general. Now, I will in this video just illustrate the very simplest example, and in the next video... [...] [1:41] ...given B, is equal to, well,..."
+          },
+          {
+            "id": "src-5-p2",
+            "label": "extracted",
+            "text": "...the probability of the intersection, but I'm going to rewrite that as the probability of... ...B, given A,... [1:51] ...multiplied by the probability of A,... ...and then, all divided out by the probability of B, as I have... [1:58] ...down on the bottom, right here. So, what I want you to note about this formula. This is going to be Bayes' theorem, right here."
+          }
+        ]
+      },
+      {
+        "id": "src-6",
+        "title": "A Gentle Introduction to Bayes Theorem for Machine Learning - MachineLearningMastery.com",
+        "url": "https://www.machinelearningmastery.com/bayes-theorem-for-machine-learning",
+        "authority": "other",
+        "passages": [
+          {
+            "id": "src-6-p1",
+            "label": "extracted",
+            "text": "This alternate calculation of the conditional probability is referred to as Bayes Rule or Bayes Theorem, named for Reverend Thomas Bayes, who is credited with first describing it. It is grammatically correct to refer to it as Bayes’ Theorem (with the apostrophe), but it is common to omit the apostrophe for simplicity. Bayes Theorem: Principled way of calculating a conditional probability without the joint probability. [...] What is a Hypothesis in Machine Learning? Bayes Theorem provides a probabilistic model to describe the relationship between data (D) and a hypothesis (h); for example: P(h|D) = P(D|h) \\ P(h) / P(D) [...] P(class | X1, X2, …, Xn) = P(X1|class) \\ P(X2|class) \\ … \\ P(Xn|class) \\ P(class) This simplification of Bayes Theorem is common and widely used for classification predictive modeling problems and is generally referred to as Naive Bayes."
+          },
+          {
+            "id": "src-6-p2",
+            "label": "extracted",
+            "text": "The word “naive” is French and typically has a diaeresis (umlaut) over the “i”, which is commonly left out for simplicity, and “Bayes” is capitalized as it is named for Reverend Thomas Bayes."
+          }
+        ]
+      },
+      {
+        "id": "src-7",
+        "title": "An Intuitive (and Short) Explanation of Bayes’ Theorem – BetterExplained",
+        "url": "https://betterexplained.com/articles/an-intuitive-and-short-explanation-of-bayes-theorem",
+        "authority": "other",
+        "passages": [
+          {
+            "id": "src-7-p1",
+            "label": "extracted",
+            "text": "Bayes’ Theorem lets us look at the skewed test results and correct for errors, recreating the original population and finding the real chance of a true positive result. ## Bayesian Spam Filtering One clever application of Bayes’ Theorem is in spam filtering. We have Event A: The message is spam. Test X: The message contains certain words (X) Plugged into a more readable formula (from Wikipedia): [...] Bayes’ theorem converts the results from your test into the real probability of the event. For example, you can: [...] Pr(H|E) = Chance of having cancer (H) given a positive test (E). This is what we want to know: How likely is it to have cancer with a positive result? In our case it was 7.8%. Pr(E|H) = Chance of a positive test (E) given that you had cancer (H). This is the chance of a true positive, 80% in our case. Pr(H) = Chance of having cancer (1%)."
+          }
+        ]
+      },
+      {
+        "id": "src-8",
+        "title": "Bayes theorem, the geometry of changing beliefs",
+        "url": "https://www.youtube.com/watch?v=HZGCoVF3YvM&vl=en",
+        "authority": "other",
+        "passages": [
+          {
+            "id": "src-8-p1",
+            "label": "extracted",
+            "text": "[7:03] Now notice the total number of people here, 210, that gets cancelled out, and of course it should, that was just an arbitrary choice made for the sake of illustration. [7:11] This leaves us finally with a more abstract representation purely in terms of probabilities, and this, my friends, is Bayes' theorem. [7:20] More often, you see this denominator written simply as P of E, the total probability of seeing the evidence, which in our example would be the 24 out of 210. [...] [4:42] Now understanding one example is one thing, but see if you can take a minute to generalize everything we just did and write it all down as a formula."
+          },
+          {
+            "id": "src-8-p2",
+            "label": "extracted",
+            "text": "[4:52] The general situation where Bayes' theorem is relevant is when you have some hypothesis, like Steve is a librarian, and you see some new evidence, [5:00] say this verbal description of Steve as a meek and tidy soul, and you want to know the probability that your hypothesis holds given that the evidence is true. [...] [4:00] So even if you think that a librarian is 4 times as likely as a farmer to fit this description, that's not enough to overcome the fact that there are way more farmers. [4:09] The upshot, and this is the key mantra underlying Bayes' theorem, is that new evidence does not completely determine your beliefs in a vacuum. [4:17] It should update prior beliefs."
+          }
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "src-1",
+      "title": "Bayes' theorem | Science | Research Starters | EBSCOhost",
+      "url": "https://www.ebsco.com/research-starters/science/bayes-theorem",
+      "authority": "other",
+      "passages": [
+        {
+          "id": "src-1-p1",
+          "label": "extracted",
+          "text": "Bayes' theorem, developed in the 1700s by English mathematician Thomas Bayes, is a central principle in probability theory that helps to estimate the likelihood of an event based on prior knowledge of related events. This theorem allows mathematicians to calculate the probability of a specific outcome, given that another event has already occurred, using a conditional probability framework. The foundational equation P(A|B) represents the probability of event A occurring given that event B is [...] ## Full article Bayes’ theorem, developed in the 1700s by English mathematician Thomas Bayes, is a fundamental concept in the field of probability theory. Probability theory is a branch of mathematics that examines the likelihood that certain events will occur."
+        },
+        {
+          "id": "src-1-p2",
+          "label": "extracted",
+          "text": "Probability theorists use this theorem to examine a situation with possible outcomes and try to calculate how likely it is that one particular outcome will happen. ### Brief History [...] ## Full article Bayes’ theorem, developed in the 1700s by English mathematician Thomas Bayes, is a fundamental concept in the field of probability theory. Probability theory is a branch of mathematics that examines the likelihood that certain events will occur. Probability theorists use this theorem to examine a situation with possible outcomes and try to calculate how likely it is that one particular outcome will happen. ### Brief History"
+        }
+      ]
+    },
+    {
+      "id": "src-2",
+      "title": "Bayes' theorem - Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Bayes%27_theorem",
+      "authority": "explainer",
+      "passages": [
+        {
+          "id": "src-2-p1",
+          "label": "extracted",
+          "text": "In probability theory, Bayes' theorem (alternatively Bayes' law or Bayes' rule), named after Thomas Bayes (/beɪz/), gives a mathematical rule for inverting conditional probabilities, allowing the probability of a cause to be found given its effect. For example, with Bayes' theorem, the probability that a patient has a disease given that they tested positive for that disease can be found using the probability that the test yields a positive result when the disease is present. The theorem was [...] Bayes' theorem is named after Thomas Bayes, a minister, statistician, and philosopher. Bayes used conditional probability to provide an algorithm (his Proposition 9) that uses evidence to calculate limits on an unknown parameter. His work was published in 1763 as An Essay Towards Solving a Problem in the Doctrine of Chances."
+        },
+        {
+          "id": "src-2-p2",
+          "label": "extracted",
+          "text": "Bayes studied how to compute a distribution for the probability parameter of a binomial distribution (in modern terminology). After Bayes's death, his family gave his [...] P ( A | B ) P ( B ) = P ( B | A ) P ( A ) , {\\displaystyle P(A\\vert B)P(B)=P(B\\vert A)P(A),} {\\displaystyle P(A\\vert B)P(B)=P(B\\vert A)P(A),}and dividing both sides by P ( B ) {\\displaystyle P(B)} {\\displaystyle P(B)} gives Bayes' theorem: P ( A | B ) = P ( B | A ) P ( A ) P ( B ) , if P ( B ) ≠ 0. {\\displaystyle P(A\\vert B)={\\frac {P(B\\vert A)P(A)}{P(B)}},{\\text{ if }}P(B)\\neq 0.} {\\displaystyle P(A\\vert B)={\\frac {P(B\\vert A)P(A)}{P(B)}},{\\text{ if }}P(B)\\neq 0.}"
+        }
+      ]
+    },
+    {
+      "id": "src-3",
+      "title": "Bayes' Theorem - GeeksforGeeks",
+      "url": "https://www.geeksforgeeks.org/maths/bayes-theorem",
+      "authority": "other",
+      "passages": [
+        {
+          "id": "src-3-p1",
+          "label": "extracted",
+          "text": "Bayes' theorem (also known as the Bayes Rule or Bayes Law) is used to determine the conditional probability of event A when event B has already occurred. The general statement of Bayes’ theorem is “The conditional probability of an event A, given the occurrence of another event B, is equal to the product of the probability of B, given A, and the probability of A divided by the probability of event B.” i.e. [...] geeksforgeeks search icon Interview Prep Number System and Arithmetic Algebra Set Theory Probability Statistics Geometry Calculus Logarithms Mensuration Matrices Trigonometry Mathematics # Bayes' Theorem Last Updated : 10 Jul, 2026 Bayes' Theorem is a mathematical formula used to determine the conditional probability of an event based on prior knowledge and new evidence."
+        },
+        {
+          "id": "src-3-p2",
+          "label": "extracted",
+          "text": "[...] > P(E\\_i \\mid A) = \\frac{P(E\\_i) \\cdot P(A \\mid E\\_i)}{\\sum\\_{k=1}^{n} P(E\\_k) \\cdot P(A \\mid E\\_k)} Bayes’ theorem is also known as the formula for the probability of “causes”. As we know, the Ei‘s are a partition of the sample space S, and at any given time, only one of the events Ei occurs. Thus, we conclude that the Bayes theorem formula gives the probability of a particular Ei, given that event A has occurred. ## Terms Related to Bayes' Theorem"
+        }
+      ]
+    },
+    {
+      "id": "src-4",
+      "title": "Bayes' Theorem -- from Wolfram MathWorld",
+      "url": "https://mathworld.wolfram.com/BayesTheorem.html",
+      "authority": "other",
+      "passages": [
+        {
+          "id": "src-4-p1",
+          "label": "extracted",
+          "text": "# Bayes' Theorem Bayes' theorem, also called Bayes' rule, expresses a conditional probability in terms of its reverse and the corresponding marginal probabilities. Let A and B_j be sets. Conditional probability requires that | | | (1) | where intersection denotes intersection (\"and\"), and also that | | | (2) | Therefore, | | | (3) | Now, let | | | (4) | so A_i is an event in S and A_i intersection A_j=emptyset for i!=j, then | | | (5) | | | | (6) | [...] Bayes' Theorem ## Cite this as: Weisstein, Eric W. \"Bayes' Theorem.\" From MathWorld--A Wolfram Resource. ## Subject classifications [...] | | | (6) | But this can be written | | | (7) | so | | | (8) | (Papoulis 1984, pp. 38-39)."
+        },
+        {
+          "id": "src-4-p2",
+          "label": "extracted",
+          "text": "## See also Bayesian Analysis, Bayesian Inference, Bayesian Probability, Conditional Probability, Inclusion-Exclusion Principle, Independent Statistics, Posterior Probability, Total Probability Theorem ## Explore with Wolfram|Alpha WolframAlpha More things to try: bayes' theorem Bode plot of s/(1-s) sampling period .02 domain of sqrt(sin(x)) ## References"
+        }
+      ]
+    },
+    {
+      "id": "src-5",
+      "title": "Bayes' Theorem - The Simplest Case",
+      "url": "https://www.youtube.com/watch?v=XQoLVl31ZfQ",
+      "authority": "other",
+      "passages": [
+        {
+          "id": "src-5-p1",
+          "label": "extracted",
+          "text": "Bayes' Theorem is an incredibly powerful theorem in probability that allows us to relate P(A|B) to P(B|A). This is helpful because we often have an asymmetry where one of these conditional probabilities is easy to compute and the other is not. It let's us treat compute how to update our probabilities given new information. The formula: P(A|B) = P(B|A)P(A)/P(B) [...] ### Transcript [0:00] In this video we're going to see an incredibly powerful theorem... ...in the context of probability, called \"Bayes' theorem\". [0:08] And Bayes' theorem provides the... the basis for something called Bayesian inference,... ...and it is a really enormous deal,... [0:14] ...that really changed how we think about probabilities,... ...and a lot of statistics in general. Now, I will in this video just illustrate the very simplest example, and in the next video... [...] [1:41] ...given B, is equal to, well,..."
+        },
+        {
+          "id": "src-5-p2",
+          "label": "extracted",
+          "text": "...the probability of the intersection, but I'm going to rewrite that as the probability of... ...B, given A,... [1:51] ...multiplied by the probability of A,... ...and then, all divided out by the probability of B, as I have... [1:58] ...down on the bottom, right here. So, what I want you to note about this formula. This is going to be Bayes' theorem, right here."
+        }
+      ]
+    },
+    {
+      "id": "src-6",
+      "title": "A Gentle Introduction to Bayes Theorem for Machine Learning - MachineLearningMastery.com",
+      "url": "https://www.machinelearningmastery.com/bayes-theorem-for-machine-learning",
+      "authority": "other",
+      "passages": [
+        {
+          "id": "src-6-p1",
+          "label": "extracted",
+          "text": "This alternate calculation of the conditional probability is referred to as Bayes Rule or Bayes Theorem, named for Reverend Thomas Bayes, who is credited with first describing it. It is grammatically correct to refer to it as Bayes’ Theorem (with the apostrophe), but it is common to omit the apostrophe for simplicity. Bayes Theorem: Principled way of calculating a conditional probability without the joint probability. [...] What is a Hypothesis in Machine Learning? Bayes Theorem provides a probabilistic model to describe the relationship between data (D) and a hypothesis (h); for example: P(h|D) = P(D|h) \\ P(h) / P(D) [...] P(class | X1, X2, …, Xn) = P(X1|class) \\ P(X2|class) \\ … \\ P(Xn|class) \\ P(class) This simplification of Bayes Theorem is common and widely used for classification predictive modeling problems and is generally referred to as Naive Bayes."
+        },
+        {
+          "id": "src-6-p2",
+          "label": "extracted",
+          "text": "The word “naive” is French and typically has a diaeresis (umlaut) over the “i”, which is commonly left out for simplicity, and “Bayes” is capitalized as it is named for Reverend Thomas Bayes."
+        }
+      ]
+    },
+    {
+      "id": "src-7",
+      "title": "An Intuitive (and Short) Explanation of Bayes’ Theorem – BetterExplained",
+      "url": "https://betterexplained.com/articles/an-intuitive-and-short-explanation-of-bayes-theorem",
+      "authority": "other",
+      "passages": [
+        {
+          "id": "src-7-p1",
+          "label": "extracted",
+          "text": "Bayes’ Theorem lets us look at the skewed test results and correct for errors, recreating the original population and finding the real chance of a true positive result. ## Bayesian Spam Filtering One clever application of Bayes’ Theorem is in spam filtering. We have Event A: The message is spam. Test X: The message contains certain words (X) Plugged into a more readable formula (from Wikipedia): [...] Bayes’ theorem converts the results from your test into the real probability of the event. For example, you can: [...] Pr(H|E) = Chance of having cancer (H) given a positive test (E). This is what we want to know: How likely is it to have cancer with a positive result? In our case it was 7.8%. Pr(E|H) = Chance of a positive test (E) given that you had cancer (H). This is the chance of a true positive, 80% in our case. Pr(H) = Chance of having cancer (1%)."
+        }
+      ]
+    },
+    {
+      "id": "src-8",
+      "title": "Bayes theorem, the geometry of changing beliefs",
+      "url": "https://www.youtube.com/watch?v=HZGCoVF3YvM&vl=en",
+      "authority": "other",
+      "passages": [
+        {
+          "id": "src-8-p1",
+          "label": "extracted",
+          "text": "[7:03] Now notice the total number of people here, 210, that gets cancelled out, and of course it should, that was just an arbitrary choice made for the sake of illustration. [7:11] This leaves us finally with a more abstract representation purely in terms of probabilities, and this, my friends, is Bayes' theorem. [7:20] More often, you see this denominator written simply as P of E, the total probability of seeing the evidence, which in our example would be the 24 out of 210. [...] [4:42] Now understanding one example is one thing, but see if you can take a minute to generalize everything we just did and write it all down as a formula."
+        },
+        {
+          "id": "src-8-p2",
+          "label": "extracted",
+          "text": "[4:52] The general situation where Bayes' theorem is relevant is when you have some hypothesis, like Steve is a librarian, and you see some new evidence, [5:00] say this verbal description of Steve as a meek and tidy soul, and you want to know the probability that your hypothesis holds given that the evidence is true. [...] [4:00] So even if you think that a librarian is 4 times as likely as a farmer to fit this description, that's not enough to overcome the fact that there are way more farmers. [4:09] The upshot, and this is the key mantra underlying Bayes' theorem, is that new evidence does not completely determine your beliefs in a vacuum. [4:17] It should update prior beliefs."
+        }
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "text": "Bayes' theorem was developed in the 1700s by English mathematician Thomas Bayes.",
+      "passageIds": [
+        "src-1-p1",
+        "src-1-p2"
+      ],
+      "sourceIds": [
+        "src-1"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-1"
+    },
+    {
+      "text": "Bayes' theorem is a central principle in probability theory.",
+      "passageIds": [
+        "src-1-p1"
+      ],
+      "sourceIds": [
+        "src-1"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-2"
+    },
+    {
+      "text": "Bayes' theorem helps estimate the likelihood of an event based on prior knowledge of related events.",
+      "passageIds": [
+        "src-1-p1"
+      ],
+      "sourceIds": [
+        "src-1"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-3"
+    },
+    {
+      "text": "Bayes' theorem allows calculation of the probability of a specific outcome given that another event has already occurred.",
+      "passageIds": [
+        "src-1-p1"
+      ],
+      "sourceIds": [
+        "src-1"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-4"
+    },
+    {
+      "text": "Probability theory is a branch of mathematics that examines the likelihood that certain events will occur.",
+      "passageIds": [
+        "src-1-p1",
+        "src-1-p2"
+      ],
+      "sourceIds": [
+        "src-1"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-5"
+    },
+    {
+      "text": "Probability theorists use Bayes' theorem to examine situations with possible outcomes.",
+      "passageIds": [
+        "src-1-p2"
+      ],
+      "sourceIds": [
+        "src-1"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-6"
+    },
+    {
+      "text": "Probability theorists use Bayes' theorem to calculate how likely it is that one particular outcome will happen.",
+      "passageIds": [
+        "src-1-p2"
+      ],
+      "sourceIds": [
+        "src-1"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-7"
+    },
+    {
+      "text": "Bayes' theorem gives a mathematical rule for inverting conditional probabilities.",
+      "passageIds": [
+        "src-2-p1"
+      ],
+      "sourceIds": [
+        "src-2"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-8"
+    },
+    {
+      "text": "Bayes' theorem allows the probability of a cause to be found given its effect.",
+      "passageIds": [
+        "src-2-p1"
+      ],
+      "sourceIds": [
+        "src-2"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-9"
+    },
+    {
+      "text": "Bayes' theorem is named after Thomas Bayes, a minister, statistician, and philosopher.",
+      "passageIds": [
+        "src-2-p1"
+      ],
+      "sourceIds": [
+        "src-2"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-10"
+    },
+    {
+      "text": "Bayes studied how to compute a distribution for the probability parameter of a binomial distribution.",
+      "passageIds": [
+        "src-2-p2"
+      ],
+      "sourceIds": [
+        "src-2"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-13"
+    },
+    {
+      "text": "Bayes' theorem can be expressed as P(A|B) = P(B|A) * P(A) / P(B), if P(B) ≠ 0.",
+      "passageIds": [
+        "src-2-p2"
+      ],
+      "sourceIds": [
+        "src-2"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-14"
+    },
+    {
+      "text": "Bayes' theorem is used to determine the conditional probability of event A when event B has already occurred.",
+      "passageIds": [
+        "src-3-p1"
+      ],
+      "sourceIds": [
+        "src-3"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-15"
+    },
+    {
+      "text": "Bayes' theorem is also known as Bayes Rule or Bayes Law.",
+      "passageIds": [
+        "src-3-p1"
+      ],
+      "sourceIds": [
+        "src-3"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-16"
+    },
+    {
+      "text": "The conditional probability of event A given event B equals the product of the probability of B given A and the probability of A, divided by the probability of B.",
+      "passageIds": [
+        "src-3-p1"
+      ],
+      "sourceIds": [
+        "src-3"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-17"
+    },
+    {
+      "text": "Bayes' theorem is also known as the formula for the probability of 'causes'.",
+      "passageIds": [
+        "src-3-p2"
+      ],
+      "sourceIds": [
+        "src-3"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-19"
+    },
+    {
+      "text": "The Ei's are a partition of the sample space S, and at any given time, only one of the events Ei occurs.",
+      "passageIds": [
+        "src-3-p2"
+      ],
+      "sourceIds": [
+        "src-3"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-20"
+    },
+    {
+      "text": "Bayes' theorem gives the probability of a particular Ei given that event A has occurred.",
+      "passageIds": [
+        "src-3-p2"
+      ],
+      "sourceIds": [
+        "src-3"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-21"
+    },
+    {
+      "text": "Bayes' theorem expresses a conditional probability in terms of its reverse and the corresponding marginal probabilities.",
+      "passageIds": [
+        "src-4-p1"
+      ],
+      "sourceIds": [
+        "src-4"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-22"
+    },
+    {
+      "text": "Bayes' theorem can be written in the form P(A|B) = [P(B|A) * P(A)] / P(B).",
+      "passageIds": [
+        "src-4-p1"
+      ],
+      "sourceIds": [
+        "src-4"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-25"
+    },
+    {
+      "text": "Bayes' theorem is also known as Bayes' rule.",
+      "passageIds": [
+        "src-4-p1"
+      ],
+      "sourceIds": [
+        "src-4"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-26"
+    },
+    {
+      "text": "Related topics include Bayesian Analysis, Bayesian Inference, Bayesian Probability, Conditional Probability, Inclusion-Exclusion Principle, Independent Statistics, Posterior Probability, and Total Probability Theorem.",
+      "passageIds": [
+        "src-4-p2"
+      ],
+      "sourceIds": [
+        "src-4"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-27"
+    },
+    {
+      "text": "Bayes' theorem can be explored using Wolfram|Alpha.",
+      "passageIds": [
+        "src-4-p2"
+      ],
+      "sourceIds": [
+        "src-4"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-28"
+    },
+    {
+      "text": "The reference for Bayes' theorem includes Papoulis 1984, pp. 38-39.",
+      "passageIds": [
+        "src-4-p1"
+      ],
+      "sourceIds": [
+        "src-4"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-29"
+    },
+    {
+      "text": "Bayes' Theorem relates the conditional probability P(A|B) to P(B|A).",
+      "passageIds": [
+        "src-5-p1"
+      ],
+      "sourceIds": [
+        "src-5"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-30"
+    },
+    {
+      "text": "Bayes' Theorem is useful when one conditional probability is easy to compute and the other is not.",
+      "passageIds": [
+        "src-5-p1"
+      ],
+      "sourceIds": [
+        "src-5"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-31"
+    },
+    {
+      "text": "Bayes' Theorem allows updating probabilities given new information.",
+      "passageIds": [
+        "src-5-p1"
+      ],
+      "sourceIds": [
+        "src-5"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-32"
+    },
+    {
+      "text": "The formula for Bayes' Theorem is P(A|B) = P(B|A)P(A)/P(B).",
+      "passageIds": [
+        "src-5-p1",
+        "src-5-p2"
+      ],
+      "sourceIds": [
+        "src-5"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-33"
+    },
+    {
+      "text": "Bayes' Theorem provides the basis for Bayesian inference.",
+      "passageIds": [
+        "src-5-p1"
+      ],
+      "sourceIds": [
+        "src-5"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-34"
+    },
+    {
+      "text": "Bayes' Theorem has significantly changed how we think about probabilities and statistics.",
+      "passageIds": [
+        "src-5-p1"
+      ],
+      "sourceIds": [
+        "src-5"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-35"
+    },
+    {
+      "text": "The probability of the intersection can be rewritten as P(B|A) multiplied by P(A).",
+      "passageIds": [
+        "src-5-p2"
+      ],
+      "sourceIds": [
+        "src-5"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-36"
+    },
+    {
+      "text": "In Bayes' Theorem, the result is obtained by dividing P(B|A)P(A) by P(B).",
+      "passageIds": [
+        "src-5-p2"
+      ],
+      "sourceIds": [
+        "src-5"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-37"
+    },
+    {
+      "text": "Bayes Theorem is also known as Bayes Rule and is named for Reverend Thomas Bayes.",
+      "passageIds": [
+        "src-6-p1"
+      ],
+      "sourceIds": [
+        "src-6"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-38"
+    },
+    {
+      "text": "It is grammatically correct to refer to Bayes Theorem as Bayes’ Theorem with an apostrophe, but the apostrophe is often omitted for simplicity.",
+      "passageIds": [
+        "src-6-p1"
+      ],
+      "sourceIds": [
+        "src-6"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-39"
+    },
+    {
+      "text": "Bayes Theorem provides a principled way to calculate conditional probability without requiring the joint probability.",
+      "passageIds": [
+        "src-6-p1"
+      ],
+      "sourceIds": [
+        "src-6"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-40"
+    },
+    {
+      "text": "In machine learning, Bayes Theorem models the relationship between data (D) and a hypothesis (h) using the formula P(h|D) = P(D|h) * P(h) / P(D).",
+      "passageIds": [
+        "src-6-p1"
+      ],
+      "sourceIds": [
+        "src-6"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-41"
+    },
+    {
+      "text": "The word 'naive' is French and typically includes a diaeresis (umlaut) over the 'i', which is commonly omitted for simplicity.",
+      "passageIds": [
+        "src-6-p2"
+      ],
+      "sourceIds": [
+        "src-6"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-44"
+    },
+    {
+      "text": "'Bayes' is capitalized because it is named for Reverend Thomas Bayes.",
+      "passageIds": [
+        "src-6-p2"
+      ],
+      "sourceIds": [
+        "src-6"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-45"
+    },
+    {
+      "text": "Bayes’ Theorem can be used to correct skewed test results and find the real probability of a true positive.",
+      "passageIds": [
+        "src-7-p1"
+      ],
+      "sourceIds": [
+        "src-7"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-46"
+    },
+    {
+      "text": "One application of Bayes’ Theorem is in spam filtering, where it calculates the probability that a message is spam given certain words.",
+      "passageIds": [
+        "src-7-p1"
+      ],
+      "sourceIds": [
+        "src-7"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-47"
+    },
+    {
+      "text": "In medical testing, Pr(H|E) represents the probability of having cancer given a positive test result.",
+      "passageIds": [
+        "src-7-p1"
+      ],
+      "sourceIds": [
+        "src-7"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-48"
+    },
+    {
+      "text": "In the example, Pr(H|E) is 7.8%, meaning there is a 7.8% chance of having cancer given a positive test.",
+      "passageIds": [
+        "src-7-p1"
+      ],
+      "sourceIds": [
+        "src-7"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-49"
+    },
+    {
+      "text": "Bayes’ Theorem converts test results into the real probability of an event, such as having cancer after a positive test.",
+      "passageIds": [
+        "src-7-p1"
+      ],
+      "sourceIds": [
+        "src-7"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-53"
+    },
+    {
+      "text": "The total number of people (210) in the example is an arbitrary choice made for illustration and gets cancelled out in the calculation.",
+      "passageIds": [
+        "src-8-p1"
+      ],
+      "sourceIds": [
+        "src-8"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-54"
+    },
+    {
+      "text": "After cancelling the arbitrary total, the representation becomes purely in terms of probabilities, which is Bayes' theorem.",
+      "passageIds": [
+        "src-8-p1"
+      ],
+      "sourceIds": [
+        "src-8"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-55"
+    },
+    {
+      "text": "The denominator in Bayes' theorem is often written as P(E), the total probability of seeing the evidence.",
+      "passageIds": [
+        "src-8-p1"
+      ],
+      "sourceIds": [
+        "src-8"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-56"
+    },
+    {
+      "text": "In the example, P(E) corresponds to 24 out of 210.",
+      "passageIds": [
+        "src-8-p1"
+      ],
+      "sourceIds": [
+        "src-8"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-57"
+    },
+    {
+      "text": "Bayes' theorem is relevant when evaluating a hypothesis (e.g., Steve is a librarian) given new evidence (e.g., a verbal description).",
+      "passageIds": [
+        "src-8-p2"
+      ],
+      "sourceIds": [
+        "src-8"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-58"
+    },
+    {
+      "text": "Even if a librarian is 4 times as likely as a farmer to fit a description, the prior probability (more farmers) must still be considered.",
+      "passageIds": [
+        "src-8-p2"
+      ],
+      "sourceIds": [
+        "src-8"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-59"
+    },
+    {
+      "text": "New evidence does not completely determine beliefs in a vacuum but should update prior beliefs.",
+      "passageIds": [
+        "src-8-p2"
+      ],
+      "sourceIds": [
+        "src-8"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-60"
+    },
+    {
+      "text": "Understanding one example is insufficient; one should generalize and write down the formula for Bayes' theorem.",
+      "passageIds": [
+        "src-8-p1"
+      ],
+      "sourceIds": [
+        "src-8"
+      ],
+      "status": "supported",
+      "id": "claim-bayes-theorem-61"
+    }
+  ],
+  "passages": [
+    {
+      "id": "src-1-p1",
+      "text": "Bayes' theorem, developed in the 1700s by English mathematician Thomas Bayes, is a central principle in probability theory that helps to estimate the likelihood of an event based on prior knowledge of related events. This theorem allows mathematicians to calculate the probability of a specific outcome, given that another event has already occurred, using a conditional probability framework. The foundational equation P(A|B) represents the probability of event A occurring given that event B is [...] ## Full article Bayes’ theorem, developed in the 1700s by English mathematician Thomas Bayes, is a fundamental concept in the field of probability theory. Probability theory is a branch of mathematics that examines the likelihood that certain events will occur.",
+      "url": "https://www.ebsco.com/research-starters/science/bayes-theorem",
+      "sourceId": "src-1"
+    },
+    {
+      "id": "src-1-p2",
+      "text": "Probability theorists use this theorem to examine a situation with possible outcomes and try to calculate how likely it is that one particular outcome will happen. ### Brief History [...] ## Full article Bayes’ theorem, developed in the 1700s by English mathematician Thomas Bayes, is a fundamental concept in the field of probability theory. Probability theory is a branch of mathematics that examines the likelihood that certain events will occur. Probability theorists use this theorem to examine a situation with possible outcomes and try to calculate how likely it is that one particular outcome will happen. ### Brief History",
+      "url": "https://www.ebsco.com/research-starters/science/bayes-theorem",
+      "sourceId": "src-1"
+    },
+    {
+      "id": "src-2-p1",
+      "text": "In probability theory, Bayes' theorem (alternatively Bayes' law or Bayes' rule), named after Thomas Bayes (/beɪz/), gives a mathematical rule for inverting conditional probabilities, allowing the probability of a cause to be found given its effect. For example, with Bayes' theorem, the probability that a patient has a disease given that they tested positive for that disease can be found using the probability that the test yields a positive result when the disease is present. The theorem was [...] Bayes' theorem is named after Thomas Bayes, a minister, statistician, and philosopher. Bayes used conditional probability to provide an algorithm (his Proposition 9) that uses evidence to calculate limits on an unknown parameter. His work was published in 1763 as An Essay Towards Solving a Problem in the Doctrine of Chances.",
+      "url": "https://en.wikipedia.org/wiki/Bayes%27_theorem",
+      "sourceId": "src-2"
+    },
+    {
+      "id": "src-2-p2",
+      "text": "Bayes studied how to compute a distribution for the probability parameter of a binomial distribution (in modern terminology). After Bayes's death, his family gave his [...] P ( A | B ) P ( B ) = P ( B | A ) P ( A ) , {\\displaystyle P(A\\vert B)P(B)=P(B\\vert A)P(A),} {\\displaystyle P(A\\vert B)P(B)=P(B\\vert A)P(A),}and dividing both sides by P ( B ) {\\displaystyle P(B)} {\\displaystyle P(B)} gives Bayes' theorem: P ( A | B ) = P ( B | A ) P ( A ) P ( B ) , if P ( B ) ≠ 0. {\\displaystyle P(A\\vert B)={\\frac {P(B\\vert A)P(A)}{P(B)}},{\\text{ if }}P(B)\\neq 0.} {\\displaystyle P(A\\vert B)={\\frac {P(B\\vert A)P(A)}{P(B)}},{\\text{ if }}P(B)\\neq 0.}",
+      "url": "https://en.wikipedia.org/wiki/Bayes%27_theorem",
+      "sourceId": "src-2"
+    },
+    {
+      "id": "src-3-p1",
+      "text": "Bayes' theorem (also known as the Bayes Rule or Bayes Law) is used to determine the conditional probability of event A when event B has already occurred. The general statement of Bayes’ theorem is “The conditional probability of an event A, given the occurrence of another event B, is equal to the product of the probability of B, given A, and the probability of A divided by the probability of event B.” i.e. [...] geeksforgeeks search icon Interview Prep Number System and Arithmetic Algebra Set Theory Probability Statistics Geometry Calculus Logarithms Mensuration Matrices Trigonometry Mathematics # Bayes' Theorem Last Updated : 10 Jul, 2026 Bayes' Theorem is a mathematical formula used to determine the conditional probability of an event based on prior knowledge and new evidence.",
+      "url": "https://www.geeksforgeeks.org/maths/bayes-theorem",
+      "sourceId": "src-3"
+    },
+    {
+      "id": "src-3-p2",
+      "text": "[...] > P(E\\_i \\mid A) = \\frac{P(E\\_i) \\cdot P(A \\mid E\\_i)}{\\sum\\_{k=1}^{n} P(E\\_k) \\cdot P(A \\mid E\\_k)} Bayes’ theorem is also known as the formula for the probability of “causes”. As we know, the Ei‘s are a partition of the sample space S, and at any given time, only one of the events Ei occurs. Thus, we conclude that the Bayes theorem formula gives the probability of a particular Ei, given that event A has occurred. ## Terms Related to Bayes' Theorem",
+      "url": "https://www.geeksforgeeks.org/maths/bayes-theorem",
+      "sourceId": "src-3"
+    },
+    {
+      "id": "src-4-p1",
+      "text": "# Bayes' Theorem Bayes' theorem, also called Bayes' rule, expresses a conditional probability in terms of its reverse and the corresponding marginal probabilities. Let A and B_j be sets. Conditional probability requires that | | | (1) | where intersection denotes intersection (\"and\"), and also that | | | (2) | Therefore, | | | (3) | Now, let | | | (4) | so A_i is an event in S and A_i intersection A_j=emptyset for i!=j, then | | | (5) | | | | (6) | [...] Bayes' Theorem ## Cite this as: Weisstein, Eric W. \"Bayes' Theorem.\" From MathWorld--A Wolfram Resource. ## Subject classifications [...] | | | (6) | But this can be written | | | (7) | so | | | (8) | (Papoulis 1984, pp. 38-39).",
+      "url": "https://mathworld.wolfram.com/BayesTheorem.html",
+      "sourceId": "src-4"
+    },
+    {
+      "id": "src-4-p2",
+      "text": "## See also Bayesian Analysis, Bayesian Inference, Bayesian Probability, Conditional Probability, Inclusion-Exclusion Principle, Independent Statistics, Posterior Probability, Total Probability Theorem ## Explore with Wolfram|Alpha WolframAlpha More things to try: bayes' theorem Bode plot of s/(1-s) sampling period .02 domain of sqrt(sin(x)) ## References",
+      "url": "https://mathworld.wolfram.com/BayesTheorem.html",
+      "sourceId": "src-4"
+    },
+    {
+      "id": "src-5-p1",
+      "text": "Bayes' Theorem is an incredibly powerful theorem in probability that allows us to relate P(A|B) to P(B|A). This is helpful because we often have an asymmetry where one of these conditional probabilities is easy to compute and the other is not. It let's us treat compute how to update our probabilities given new information. The formula: P(A|B) = P(B|A)P(A)/P(B) [...] ### Transcript [0:00] In this video we're going to see an incredibly powerful theorem... ...in the context of probability, called \"Bayes' theorem\". [0:08] And Bayes' theorem provides the... the basis for something called Bayesian inference,... ...and it is a really enormous deal,... [0:14] ...that really changed how we think about probabilities,... ...and a lot of statistics in general. Now, I will in this video just illustrate the very simplest example, and in the next video... [...] [1:41] ...given B, is equal to, well,...",
+      "url": "https://www.youtube.com/watch?v=XQoLVl31ZfQ",
+      "sourceId": "src-5"
+    },
+    {
+      "id": "src-5-p2",
+      "text": "...the probability of the intersection, but I'm going to rewrite that as the probability of... ...B, given A,... [1:51] ...multiplied by the probability of A,... ...and then, all divided out by the probability of B, as I have... [1:58] ...down on the bottom, right here. So, what I want you to note about this formula. This is going to be Bayes' theorem, right here.",
+      "url": "https://www.youtube.com/watch?v=XQoLVl31ZfQ",
+      "sourceId": "src-5"
+    },
+    {
+      "id": "src-6-p1",
+      "text": "This alternate calculation of the conditional probability is referred to as Bayes Rule or Bayes Theorem, named for Reverend Thomas Bayes, who is credited with first describing it. It is grammatically correct to refer to it as Bayes’ Theorem (with the apostrophe), but it is common to omit the apostrophe for simplicity. Bayes Theorem: Principled way of calculating a conditional probability without the joint probability. [...] What is a Hypothesis in Machine Learning? Bayes Theorem provides a probabilistic model to describe the relationship between data (D) and a hypothesis (h); for example: P(h|D) = P(D|h) \\ P(h) / P(D) [...] P(class | X1, X2, …, Xn) = P(X1|class) \\ P(X2|class) \\ … \\ P(Xn|class) \\ P(class) This simplification of Bayes Theorem is common and widely used for classification predictive modeling problems and is generally referred to as Naive Bayes.",
+      "url": "https://www.machinelearningmastery.com/bayes-theorem-for-machine-learning",
+      "sourceId": "src-6"
+    },
+    {
+      "id": "src-6-p2",
+      "text": "The word “naive” is French and typically has a diaeresis (umlaut) over the “i”, which is commonly left out for simplicity, and “Bayes” is capitalized as it is named for Reverend Thomas Bayes.",
+      "url": "https://www.machinelearningmastery.com/bayes-theorem-for-machine-learning",
+      "sourceId": "src-6"
+    },
+    {
+      "id": "src-7-p1",
+      "text": "Bayes’ Theorem lets us look at the skewed test results and correct for errors, recreating the original population and finding the real chance of a true positive result. ## Bayesian Spam Filtering One clever application of Bayes’ Theorem is in spam filtering. We have Event A: The message is spam. Test X: The message contains certain words (X) Plugged into a more readable formula (from Wikipedia): [...] Bayes’ theorem converts the results from your test into the real probability of the event. For example, you can: [...] Pr(H|E) = Chance of having cancer (H) given a positive test (E). This is what we want to know: How likely is it to have cancer with a positive result? In our case it was 7.8%. Pr(E|H) = Chance of a positive test (E) given that you had cancer (H). This is the chance of a true positive, 80% in our case. Pr(H) = Chance of having cancer (1%).",
+      "url": "https://betterexplained.com/articles/an-intuitive-and-short-explanation-of-bayes-theorem",
+      "sourceId": "src-7"
+    },
+    {
+      "id": "src-8-p1",
+      "text": "[7:03] Now notice the total number of people here, 210, that gets cancelled out, and of course it should, that was just an arbitrary choice made for the sake of illustration. [7:11] This leaves us finally with a more abstract representation purely in terms of probabilities, and this, my friends, is Bayes' theorem. [7:20] More often, you see this denominator written simply as P of E, the total probability of seeing the evidence, which in our example would be the 24 out of 210. [...] [4:42] Now understanding one example is one thing, but see if you can take a minute to generalize everything we just did and write it all down as a formula.",
+      "url": "https://www.youtube.com/watch?v=HZGCoVF3YvM&vl=en",
+      "sourceId": "src-8"
+    },
+    {
+      "id": "src-8-p2",
+      "text": "[4:52] The general situation where Bayes' theorem is relevant is when you have some hypothesis, like Steve is a librarian, and you see some new evidence, [5:00] say this verbal description of Steve as a meek and tidy soul, and you want to know the probability that your hypothesis holds given that the evidence is true. [...] [4:00] So even if you think that a librarian is 4 times as likely as a farmer to fit this description, that's not enough to overcome the fact that there are way more farmers. [4:09] The upshot, and this is the key mantra underlying Bayes' theorem, is that new evidence does not completely determine your beliefs in a vacuum. [4:17] It should update prior beliefs.",
+      "url": "https://www.youtube.com/watch?v=HZGCoVF3YvM&vl=en",
+      "sourceId": "src-8"
+    }
+  ],
+  "contradictions": [],
+  "verify": {
+    "supported": 51,
+    "total": 61,
+    "sources": 8,
+    "flagged": 10,
+    "degraded": false
+  },
+  "hero": {
+    "conceptId": "conditional-probability",
+    "ok": true,
+    "code": "<div style=\"font-family:system-ui;padding:12px;color:#18181b;background:#fff;border-radius:8px;\"><canvas width=600 height=240 style=\"width:100%;height:auto;background:#fafafa;border-radius:6px\"></canvas><div style=\"margin-top:8px;font-size:14px\">Prior P(A): <input type=range min=0 max=100 value=20 style=\"width:100px;accent-color:#7c3aed\"></div><div style=\"margin-top:8px;font-size:14px\">Sensitivity P(B|A): <input type=range min=0 max=100 value=90 style=\"width:100px;accent-color:#7c3aed\"></div><div style=\"margin-top:8px;font-size:14px\">False positive P(B|¬A): <input type=range min=0 max=100 value=10 style=\"width:100px;accent-color:#7c3aed\"></div><script>const c=document.querySelector('canvas'),x=c.getContext('2d');let prior=0.2,sens=0.9,fpos=0.1,raf=null;const draw=()=>{x.clearRect(0,0,c.width,c.height);x.fillStyle='#e4e4e7';x.fillRect(0,0,c.width,c.height);const w=c.width*0.4,h=c.height*0.6;x.fillStyle='#7c3aed33';x.fillRect(c.width*0.3,c.height*0.2,w,h);x.fillStyle='#f59e0b33';x.fillRect(c.width*0.3,c.height*0.2,w* sens,h);x.fillStyle='#7c3aed';x.font='18px system-ui';x.fillText(`P(A)=${(prior*100).toFixed(0)}%`,10,25);x.fillText(`P(B|A)=${(sens*100).toFixed(0)}%`,10,50);x.fillText(`P(B|¬A)=${(fpos*100).toFixed(0)}%`,10,75);const num=prior*sens;const den=prior*sens+(1-prior)*fpos;const post=den?num/den:0;x.fillStyle='#18181b';x.font='22px system-ui';x.fillText(`P(A|B)=${(post*100).toFixed(1)}%`,c.width/2-40,c.height/2+10);};const update=()=>{prior=+document.querySelectorAll('input[type=range]')[0].value/100;sens=+document.querySelectorAll('input[type=range]')[1].value/100;fpos=+document.querySelectorAll('input[type=range]')[2].value/100;if(raf)cancelAnimationFrame(raf);raf=requestAnimationFrame(draw);};document.querySelectorAll('input[type=range]').forEach(i=>i.addEventListener('input',update));draw();</script></div>",
+    "fallback": {
+      "template": "bayes-update",
+      "values": {
+        "prior": 0.2,
+        "sensitivity": 0.9,
+        "falsePositive": 0.1
+      },
+      "predictPrompt": "What is P(A|B) given these values?"
+    }
+  }
+}

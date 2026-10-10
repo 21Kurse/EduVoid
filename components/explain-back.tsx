@@ -12,6 +12,7 @@ import {
   EXPLAIN_BACK_MAX_CHARS,
   EXPLAIN_BACK_MIN_CHARS,
   EXPLAIN_BACK_MAX_CLAIMS,
+  pickExplainTask,
   type ExplainBackSummary,
 } from "@/lib/explain-back";
 
@@ -30,6 +31,8 @@ export function ExplainBack({
   summary,
   claims,
   onGraded,
+  conceptIndex = 0,
+  lessonSeed = "",
 }: {
   topic: string;
   conceptId: string;
@@ -37,13 +40,26 @@ export function ExplainBack({
   summary: string;
   claims: Claim[];
   onGraded: (conceptId: string, coverage: { covered: number; partial: number; total: number }) => void;
+  /** Position of this concept in the lesson: rotates the task so no two
+   * concepts in one lesson ask for the same kind of explanation. */
+  conceptIndex?: number;
+  /** Lesson topic, so the rotation is stable within a lesson. */
+  lessonSeed?: string;
 }) {
   const supported = claims.filter((c) => c.status === "supported").slice(0, EXPLAIN_BACK_MAX_CLAIMS);
+  // Owner request (Oct 10): every concept asks for a different KIND of
+  // explanation (own words / teach a beginner / your own example / predict a
+  // case / separate it from a look-alike / find a mistake / one sentence).
+  // Deterministic per concept id, so the task is stable across reloads and
+  // differs between concepts in the same lesson.
+  const task = pickExplainTask(conceptId, conceptIndex, lessonSeed);
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [grading, setGrading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ExplainBackSummary | null>(null);
+  /** Grading time reported by the server (no client clock read: the query
+   * has to stay pure, and the server measures the call it made anyway). */
   const [tookMs, setTookMs] = useState<number | null>(null);
 
   // Nothing to grade against (no verified claims on this concept): show nothing
@@ -57,7 +73,6 @@ export function ExplainBack({
     setError(null);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), GRADE_TIMEOUT_MS);
-    const t0 = Date.now();
     try {
       const res = await fetch("/api/explain-back", {
         method: "POST",
@@ -68,12 +83,14 @@ export function ExplainBack({
           conceptTitle,
           summary,
           explanation: text.trim(),
+          taskId: task.id,
           claims: supported.map((c) => ({ id: c.id, text: c.text })),
         }),
       });
       const body = (await res.json().catch(() => ({}))) as {
         ok?: boolean;
         summary?: ExplainBackSummary;
+        latencyMs?: number;
         detail?: string;
         error?: string;
       };
@@ -85,7 +102,7 @@ export function ExplainBack({
         return;
       }
       setResult(body.summary);
-      setTookMs(Date.now() - t0);
+      setTookMs(typeof body.latencyMs === "number" ? body.latencyMs : null);
       onGraded(conceptId, {
         covered: body.summary.covered,
         partial: body.summary.partial,
@@ -115,8 +132,8 @@ export function ExplainBack({
         className="flex w-full items-center gap-2 text-left"
       >
         <span className="text-[14px] font-medium text-zinc-900">Explain it back</span>
-        <span className="text-[11px] text-zinc-400">
-          in your own words · checked against {supported.length} verified claim
+        <span className="text-[11px] text-zinc-400" data-testid="explain-task">
+          {task.label} · checked against {supported.length} verified claim
           {supported.length === 1 ? "" : "s"}
         </span>
         <span className="ml-auto text-zinc-400">{open ? "▾" : "▸"}</span>
@@ -124,16 +141,16 @@ export function ExplainBack({
 
       {open && (
         <div className="mt-3">
-          <p className="mb-2 text-[12px] text-zinc-500">
-            No polish needed — a couple of sentences as if you were telling a friend. The grader
-            tells you which verified ideas came through and which one didn&apos;t.
+          <p className="mb-2 text-[12px] text-zinc-500" data-testid="explain-helper">
+            {task.helper} The grader tells you which verified ideas came through and which one
+            didn&apos;t.
           </p>
           <textarea
             data-testid="explain-input"
             value={text}
             onChange={(e) => setText(e.target.value.slice(0, EXPLAIN_BACK_MAX_CHARS))}
             rows={4}
-            placeholder={`Explain “${conceptTitle}” in your own words…`}
+            placeholder={task.placeholder(conceptTitle)}
             aria-label={`Your explanation of ${conceptTitle}`}
             className="w-full resize-y rounded-lg border border-border-subtle px-3 py-2 text-[13px] leading-relaxed text-zinc-800 outline-none focus:border-violet-400"
           />

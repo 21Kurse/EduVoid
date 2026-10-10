@@ -20,6 +20,7 @@ import { useAdaptive } from "@/lib/use-adaptive";
 import { LessonHeader, LessonMap } from "./lesson-map";
 import { ConceptPanel } from "./concept-panel";
 import { ClaimsPanel } from "./claims-panel";
+import { FinalCheck } from "./final-check";
 import { buildActivityFeed, type ActivityFeed } from "./activity-panel";
 import type { ConceptStatus } from "./concept-status";
 import type { HeroFallback } from "./hero-sim";
@@ -40,6 +41,10 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
   const [highlightClaim, setHighlightClaim] = useState<string | null>(null);
   const [cachedAt, setCachedAt] = useState<string | null>(null);
   const [refused, setRefused] = useState<string | null>(null);
+  // Bumped whenever a concept's components are replaced, so the widgets under
+  // it remount and stale answers (quiz picks, committed predictions) cannot
+  // outlive the content they were given against.
+  const [revisions, setRevisions] = useState<Record<string, number>>({});
   const { state, selectConcept } = useLearningState();
   const specRef = useRef<CurriculumSpec | null>(null);
 
@@ -71,6 +76,9 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
       const next = { ...merged, concepts };
       specRef.current = next;
       setSpec(next);
+      if (patch.components) {
+        setRevisions((r) => ({ ...r, [conceptId]: (r[conceptId] ?? 0) + 1 }));
+      }
     },
     [push],
   );
@@ -108,7 +116,7 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
     (detail: string) => {
       if (fellBackRef.current) return;
       fellBackRef.current = true;
-      const lesson = isDemoTopic(topic) ? getCachedLesson() : null;
+      const lesson = isDemoTopic(topic) ? getCachedLesson(topic) : null;
       if (lesson) {
         applyCachedLesson(lesson);
         return;
@@ -274,13 +282,28 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
       renderedQuizPrompts((specRef.current?.concepts ?? []).filter((c) => c.id !== conceptId)),
     [],
   );
-  const { onAnswered, onDontGet, onExplained, adaptations, adapting } = useAdaptive({
+  const { onAnswered, onDontGet, onExplained, notices, adapting } = useAdaptive({
     topic,
     getConcept,
     onRegenerated,
     push,
     avoidPromptsFor,
   });
+
+  /**
+   * "I don't get this" clears the answers on screen at the moment of the click
+   * (owner feedback, Oct 10), not only when the regeneration lands: whatever
+   * happens to the network call, the learner's quiz pick / committed prediction
+   * is dropped. A successful regeneration bumps the same counter again through
+   * patchConcept, which is harmless.
+   */
+  const onRegenerate = useCallback(
+    (conceptId: string) => {
+      setRevisions((r) => ({ ...r, [conceptId]: (r[conceptId] ?? 0) + 1 }));
+      onDontGet(conceptId);
+    },
+    [onDontGet],
+  );
 
   const feed: ActivityFeed = useMemo(
     () =>
@@ -289,6 +312,19 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
   );
 
   const selectedConcept = spec?.concepts.find((c) => c.id === state.selectedConceptId) ?? null;
+  // Closing question set (owner request, Oct 10): offered once the lesson has
+  // generated content, written from the concepts' own verified claims, and
+  // answered through the same mastery/adaptive path as an inline quiz.
+  const finalCheckNode =
+    spec && spec.concepts.some((c) => c.components.length > 0) ? (
+      <FinalCheck
+        topic={spec.topic}
+        concepts={spec.concepts}
+        askedPrompts={renderedQuizPrompts(spec.concepts)}
+        onAnswered={onAnswered}
+        onOpenConcept={onSelect}
+      />
+    ) : null;
   const claimsFor = (variant: "panel" | "inline") =>
     spec && selectedConcept ? (
       <ClaimsPanel claims={selectedConcept.claims} allClaims={claims} contradictions={contradictions} passages={passages} sources={sources} highlightClaim={highlightClaim} variant={variant} />
@@ -312,13 +348,15 @@ export function LiveLesson({ topic, onFail }: { topic: string; onFail: (detail: 
                 verify={verify}
                 hero={hero}
                 onAnswered={onAnswered}
-                onDontGet={onDontGet}
+                onDontGet={onRegenerate}
                 onExplained={onExplained}
-                adaptation={
-                  state.selectedConceptId ? (adaptations[state.selectedConceptId] ?? null) : null
+                notice={
+                  state.selectedConceptId ? (notices[state.selectedConceptId] ?? null) : null
                 }
                 adapting={state.selectedConceptId ? (adapting[state.selectedConceptId] ?? false) : false}
+                revision={state.selectedConceptId ? (revisions[state.selectedConceptId] ?? 0) : 0}
                 claimsNode={claimsFor("inline")}
+                finalCheckNode={finalCheckNode}
                 onCite={setHighlightClaim}
                 onRetry={onRetry}
               />

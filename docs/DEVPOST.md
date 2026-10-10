@@ -1,8 +1,9 @@
 # Devpost submission (D3)
 
 Text for the Devpost form, mapped to the rubric-to-evidence table in `AGENTS.md` §15.5. Numbers
-come from `PROGRESS.md`, `DECISIONS.md` and the spike logs. Participant data is not collected yet;
-every place it belongs is marked `[FILL IN AFTER SESSIONS]`.
+come from `PROGRESS.md`, `DECISIONS.md` and the spike logs. No participant data is collected or
+claimed: the external pre/post instrument ships in `data/eval/` to be run by hand, and the evidence
+below is engineering evidence.
 
 ## Inspiration / problem
 
@@ -27,13 +28,14 @@ graph, and stream an interactive learning app into the browser:
   **which-path detector** toggle in the double-slit experiment that stops fringes from building,
 - **cited explanations** where every statement is clickable down to the passage, contradictions
   shown as "sources disagree",
-- **quizzes and flashcards**, and a **test mode** (`/test`) that runs pre-test → learning session →
-  post-test and exports per-participant CSV.
+- **quizzes and flashcards**, plus an **external pre/post instrument** committed in `data/eval/`
+  (10 items, provenance and keys included) that the app deliberately does not generate or
+  administer.
 
-Miss a quiz question and the concept **regenerates in a different modality** with a one-line reason
-("You missed this, so here it is as a simulation") — and the node recolours as mastery changes.
-Explain-back lets the learner write the idea in their own words; the grader compares them against
-the verified claims and names the gap.
+Miss a quiz question and the concept **regenerates in a different modality** — the panel is rebuilt
+with new content, answers given against the old content are cleared with it, and the node recolours
+as mastery changes. Explain-back lets the learner write the idea in their own words; the grader
+compares them against the verified claims and names the gap.
 
 ## How this answers the AI + Education prompt
 
@@ -43,9 +45,9 @@ mechanic, not a slogan:
 
 | Prompt idea | Shipped mechanic | In the demo script |
 |---|---|---|
-| **Understand concepts** | Every explanatory statement is generated from claims the verifier judged against the passage they cite; unsupported claims never reach the screen. A missed quiz question **regenerates the concept in a different modality** with a one-line reason, instead of repeating the explanation that already failed. | 0:52–1:10 (verified badge), 1:10–1:30 (citations, one rejected claim), 2:15–2:35 (modality switch) |
+| **Understand concepts** | Every explanatory statement is generated from claims the verifier judged against the passage they cite; unsupported claims never reach the screen. A missed quiz question **regenerates the concept in a different modality** (new content on screen, not a re-worded repeat of what already failed). | 0:52–1:10 (verified badge), 1:10–1:30 (citations, one rejected claim), 2:15–2:35 (modality switch) |
 | **Make connections** | The planner emits a prerequisite graph, which streams as a mindmap whose node colour is the learner's mastery — the topic's structure and the learner's gaps are visible at once. | 0:35–0:52 (skeleton), 2:15–2:35 (node recolours after a miss) |
-| **Apply what they learn** | Predict-then-reveal simulations require a committed prediction before anything runs; the sim lab then lets the learner manipulate the experiment, including a which-path detector that visibly stops fringes from building. Explain-back makes the learner *produce* the idea, graded against that concept's verified claims. The external pre/post instrument carries one explicit application/transfer item per part. | 1:30–1:55 (prediction), 1:55–2:15 (sim lab), 2:15–2:35 (explain-back), 2:50–3:10 (pre/post evidence) |
+| **Apply what they learn** | Predict-then-reveal simulations (shipped only for concepts a hand-built template genuinely fits, never force-fitted) require a committed prediction before anything runs; the sim lab then lets the learner manipulate the experiment, including a which-path detector that visibly stops fringes from building. Explain-back makes the learner *produce* the idea in a form that **changes from concept to concept** (own words, teaching a beginner, an example of their own, a predicted case, separating it from a look-alike, finding a mistake, one sentence), graded against that concept's verified claims. | 1:30–1:55 (prediction), 1:55–2:15 (sim lab), 2:15–2:35 (explain-back) |
 
 The anti-memorization claim is mechanical: recognition (multiple choice) is only one of the three
 interactions, and a failure moves the learner to a different representation rather than repeating
@@ -62,8 +64,9 @@ engineering claims *are* checkable without the physics:
 - **The citation chain is clickable end to end:** inline marker → claim row → the passage text →
   the source link (`[authority] title ↗`). "Sources disagree" is rendered as its own state, never a
   silent average.
-- **The engineering surface:** `npm run check` (typecheck + eslint + **214 tests across 28 files** +
-  production build, exit 0 at the Oct 8 closeout) is the single gate used at every green checkpoint;
+- **The engineering surface:** `npm run check` (typecheck + eslint + **217 tests across 27 files** +
+  production build, exit 0) is the single gate used at every green checkpoint — re-measured 2026-10-10
+  on the tree being shipped;
   per-IP rate limits guard every
   route that spends money (6 generation / 10 min, 40 concept / 10 min, 20 explain-back / 10 min);
   every failure path renders a visible state (concept retry, honest error, or the cached run
@@ -134,15 +137,17 @@ allowed.
   - `data/eval/questions.json` — the pre/post instrument: **4 items verbatim** from a CC BY-SA 4.0
     Wikiversity question bank and **6 adapted** into multiple choice from CC BY-NC-SA 4.0 MIT OCW
     published solutions and a LibreTexts textbook section. The app's own pipeline never generates
-    these questions; the adapted keys are listed for verification in `BLOCKERS.md`.
+    these questions, and since Oct 10 the app does not administer them either — the instrument is
+    run by hand. The adapted keys are listed for verification in `BLOCKERS.md`.
   - `fixtures/qm-superposition.json` — a test-only fixture, labelled wherever it appears.
 
 ## Impact
 
-- **Real-user evidence.** Pre/post sessions on external exam questions (never generated by the
-  app): **n = [FILL IN AFTER SESSIONS]**, per-participant CSVs and the procedure in `data/`.
-  Pre-test mean **[FILL IN AFTER SESSIONS]**, post-test mean **[FILL IN AFTER SESSIONS]**, with at
-  least one participant who did not improve, included honestly.
+- **Evidence, stated honestly.** No participant study was run and none is claimed: the external
+  pre/post instrument ships in `data/eval/` (10 items, keys, provenance) for anyone to administer by
+  hand. What this build does show is engineering evidence — the verifier catching 10/10 planted
+  factual errors in the spike, 217 tests green, five unseen topics run end-to-end on 2026-10-08, and
+  per-stage latency logs.
 - **Why the demo topic.** Quantum superposition and measurement visualises well, has abundant
   open sources, and is exactly the kind of topic where a plausible-but-wrong study guide costs a
   student real marks.
@@ -157,10 +162,10 @@ allowed.
 
 | Criterion | Where the evidence is |
 |---|---|
-| Real-world impact | Persona above; `data/` pre/post results and procedure; limitations stated in `README.md` |
+| Real-world impact | Persona above; the external pre/post instrument and its procedure in `data/`; limitations stated in `README.md` (including that no participant study is claimed) |
 | Technical implementation and AI use | Multi-stage pipeline with passage-level verification, lazy per-concept generation, adaptive loop, sandboxed hero sim, spike numbers (10/10 verifier, 10/10 JSON, 5.1 s median) |
 | Innovation | Generated interactive components + source-grounded verification + *visible* adaptation (quiz miss → different modality with a reason), explain-back grading against verified claims |
-| Execution and completeness | Deployed link working on arbitrary topics, 214 tests green, five unseen topics run end-to-end on 2026-10-08, commit history from the hackathon window |
+| Execution and completeness | Deployed link working on arbitrary topics, 217 tests green, five unseen topics run end-to-end on 2026-10-08, commit history from the hackathon window |
 | Presentation | 3-minute script (`docs/DEMO.md`), architecture diagram in `README.md`, this document, `docs/QA.md` |
 
 ## Submission checklist
@@ -168,7 +173,6 @@ allowed.
 - [x] Public repo with README (problem, users, architecture diagram, how to run, limitations) — verified public 2026-10-08.
 - [x] Docs answer the track prompt explicitly (`docs/DEVPOST.md`, `README.md`, `docs/DEMO.md`).
 - [ ] Deployed Vercel link that works on arbitrary topics — tested in incognito.
-- [ ] 2-4 minute video: problem, live walkthrough, real-participant results (`docs/DEMO.md`); posted publicly online (rules).
-- [ ] `data/` in the repo: external quiz, per-participant scores, procedure.
+- [ ] 2-4 minute video: problem, live walkthrough, verification evidence (`docs/DEMO.md`); posted publicly online (rules).
+- [ ] `data/` in the repo: the external quiz and its procedure (no participant scores are claimed).
 - [ ] `DECISIONS.md` with the model spike, deviations and the cut list.
-- [ ] Sample size stated honestly; `[FILL IN AFTER SESSIONS]` markers all replaced.

@@ -15,6 +15,7 @@ import {
   dedupeQuizItems,
 } from "./quiz-dedupe.ts";
 import { MODALITY_HINT, modalityFeedback, usableModality } from "./modality.ts";
+import { fitsLocalTemplate } from "./local-adapt.ts";
 import { HERO_MESSAGES_SYSTEM, heroSimSchema, validateHeroCode, type HeroSimSpec } from "./hero-sim.ts";
 import { isImplementedSimTemplate } from "./sim-templates.ts";
 
@@ -50,7 +51,7 @@ const genSchema = z.object({
 
 /** Exported for tests: the quiz rule lives in the prompt and in code. */
 export const GEN_SYSTEM =
-  'You write study content for ONE concept. Output ONLY JSON of shape {"explainer":string,"grounding":[string],"quiz":[{"prompt":string,"options":[string],"answer":number,"explanation":string}],"flashcards":[{"front":string,"back":string}],"sim":optional({"template":"two-state-prob"|"double-slit","values":{string:number},"predictPrompt":string})}. Ground every statement in the cited claims given to you (paraphrase; quotes under 15 words). Use $...$ for inline math. Exactly ONE quiz question whenever this concept teaches a testable fact (a definition, a rule, a number to predict) — phrase it about THAT fact, not about the topic in general; output "quiz":[] only when nothing in the concept can be tested. Never ask the generic "what happens when it is measured" / "why do outcomes vary" style question — other concepts in this lesson already cover it. 1-2 flashcards. If a concrete numeric simulation of this concept fits one of the listed templates, include "sim" with 2-4 numeric values (two-state-prob: p in 0..1 and n shots; double-slit: slit separation d and wavelength lambda) and a prediction question; otherwise omit it. Cite as you write: after each sentence a claim supports, append the marker [[claim-id]] using the exact id from the claim pool. List every id you used in "grounding". NEVER write claim numbers or ids as prose (no "claim 9", no bare ids); the marker is the only citation form.';
+  'You write study content for ONE concept. Output ONLY JSON of shape {\"explainer\":string,\"grounding\":[string],\"quiz\":[{\"prompt\":string,\"options\":[string],\"answer\":number,\"explanation\":string}],\"flashcards\":[{\"front\":string,\"back\":string}],\"sim\":optional({\"template\":\"two-state-prob\"|\"double-slit\"|\"bayes-update\",\"values\":{string:number},\"predictPrompt\":string})}. Ground every statement in the cited claims given to you (paraphrase; quotes under 15 words). Use $...$ for inline math. Write to build intuition and write enough to do it: 4 to 7 short paragraphs, roughly 250 to 450 words, starting from what the learner already knows, in plain words, defining each technical term the first time it appears, and ending with the single idea to remember. Prefer one concrete picture or analogy over abstraction, and keep one point per sentence, put a blank line between paragraphs, and keep each paragraph to 2 to 4 sentences. Decide whether an example is needed: when the concept involves a procedure, a calculation or a quantity, include ONE worked example with its numbers carried through to the result, under a short heading beginning with the word Example; when the concept is a definition or an idea with nothing to compute, do NOT bolt on a made-up example and never invent numbers. Exactly ONE quiz question whenever this concept teaches a testable fact (a definition, a rule, a number to predict) — phrase it about THAT fact, not about the topic in general; output \"quiz\":[] only when nothing in the concept can be tested. Never ask the generic \"what happens when it is measured\" / \"why do outcomes vary\" style question — other concepts in this lesson already cover it. 1-2 flashcards. MOST concepts must have NO sim: a prediction prompt is not required for every concept. Include \"sim\" ONLY when this concept is itself about two-outcome probabilities or amplitudes, about interference, fringes or diffraction, or about updating a belief from evidence (Bayes, base rates, test accuracy) — then give 2-4 numeric values (two-state-prob: p in 0..1 and n shots; double-slit: slit separation d and wavelength lambda; bayes-update: prior, sensitivity and falsePositive each in 0..1) and ONE prediction question that this concept’s own content answers. A sim with a prediction the concept does not cover is worse than no sim, so omit \"sim\" in every other case. Cite as you write: after each sentence a claim supports, append the marker [[claim-id]] using the exact id from the claim pool. List every id you used in \"grounding\". NEVER write claim numbers or ids as prose (no \"claim 9\", no bare ids); the marker is the only citation form.';
 
 /**
  * T11 (§13.7) + G3 F3: modality hints and enforcement live in modality.ts.
@@ -108,8 +109,11 @@ function buildConcept(
     if (c && !conceptClaims.some((x) => x.id === c.id)) conceptClaims.push(c);
     if (conceptClaims.length >= 10) break;
   }
+  // Owner request (Oct 10): write more and build intuition. The explainer is
+  // deliberately allowed to be long (the prompt asks for 250-450 words); the
+  // cap is a safety net against a runaway generation, not a target.
   const numbered = postProcessExplainer(
-    d.explainer.slice(0, 4000),
+    d.explainer.slice(0, 8000),
     numberClaims(conceptClaims),
   );
 
@@ -153,16 +157,36 @@ function buildConcept(
     components.push({ type: "flashcards", cards });
   }
   // Only the hand-built templates may ship (§13.6). The prompt offers just
-  // those two; a reserved id (`slider-curve` / `vector-field`) is dropped
+  // those three; a reserved id (`slider-curve` / `vector-field`) is dropped
   // entirely — the concept keeps its explainer/quiz/flashcards rather than
   // showing a learner a "coming soon" placeholder.
   if (d.sim && isImplementedSimTemplate(d.sim.template)) {
-    components.push({
-      type: "sim",
-      template: d.sim.template,
-      params: { values: (d.sim.values ?? {}) as Record<string, number | string | boolean> },
-      predictPrompt: d.sim.predictPrompt,
-    });
+    // Owner feedback (Oct 10): prediction questions are not required for
+    // every concept — models force-fit the two-state template onto unrelated
+    // concepts, and the learner then gets a random "commit to a prediction"
+    // gate. The template only ships when it genuinely fits this concept's own
+    // text, using the same deterministic fit signal as the adaptation fallback
+    // and the hero-sim safety net (lib/local-adapt.ts, no model, no randomness).
+    // A dropped sim leaves the explainer/quiz/flashcards untouched.
+    const candidate: Concept = {
+      id: concept.id,
+      title: concept.title,
+      summary: concept.summary,
+      claims: conceptClaims,
+      components,
+    };
+    if (fitsLocalTemplate(d.sim.template, candidate, source.topic)) {
+      components.push({
+        type: "sim",
+        template: d.sim.template,
+        params: { values: (d.sim.values ?? {}) as Record<string, number | string | boolean> },
+        predictPrompt: d.sim.predictPrompt,
+      });
+    } else {
+      console.log(
+        `[generate] dropped '${d.sim.template}' sim for ${concept.id}: the template does not fit this concept`,
+      );
+    }
   }
   return { id: concept.id, title: concept.title, summary: concept.summary, claims: conceptClaims, components };
 }
@@ -191,7 +215,8 @@ export async function generateConcept(
       messages: [{ role: "user", content: c }],
       schema: genSchema,
       temperature: 0.4,
-      maxTokens: 2000,
+      // Raised with the longer explainer (owner request: write more).
+      maxTokens: 3200,
       timeoutMs: opts.timeoutMs ?? 60_000,
       signal: opts.signal,
       rateLimit: { baseMs: 1500, maxRetries: 2 },
@@ -252,7 +277,7 @@ export async function generateHeroSim(
       },
     ],
     schema: heroSimSchema,
-    maxTokens: 1400,
+    maxTokens: 2200,
     timeoutMs: opts.timeoutMs,
     signal: opts.signal,
     rateLimit: opts.rateLimit,

@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  bayesCounts,
+  bayesPosterior,
   binomialSpread,
   doubleSlitPath,
   envelopeCurve,
@@ -145,5 +147,43 @@ describe("double-slit single-shot path (lab)", () => {
     const outer = shareIn(xs, 4, 8);
     expect(central).toBeGreaterThan(outer);
     expect(central).toBeGreaterThan(0.2);
+  });
+});
+
+describe("bayes-update sim", () => {
+  it("computes the textbook posterior for the classic rare-condition test", () => {
+    // 1% prevalence, 90% sensitivity, 5% false positives -> about 15.4%.
+    expect(bayesPosterior(0.01, 0.9, 0.05)).toBeCloseTo(0.1538, 3);
+  });
+
+  it("a rarer condition lowers the posterior (the base-rate effect)", () => {
+    expect(bayesPosterior(0.01, 0.9, 0.05)).toBeLessThan(bayesPosterior(0.1, 0.9, 0.05));
+    expect(bayesPosterior(0.1, 0.9, 0.05)).toBeCloseTo(0.6667, 3);
+  });
+
+  it("clamps degenerate inputs to the template ranges — never NaN", () => {
+    const p = bayesPosterior(0, 1, 0);
+    expect(Number.isFinite(p)).toBe(true);
+    expect(p).toBeGreaterThan(0);
+    expect(p).toBeLessThan(1);
+    expect(bayesPosterior(Number.NaN, Number.NaN, Number.NaN)).toBeCloseTo(
+      bayesPosterior(0.01, 0.9, 0.05),
+      6,
+    );
+  });
+
+  it("frequency-grid counts sum to the population exactly", () => {
+    const c = bayesCounts(0.01, 0.9, 0.05, 1000);
+    expect(c.tp + c.fn + c.fp + c.tn).toBe(1000);
+    expect(c).toEqual({ tp: 9, fn: 1, fp: 50, tn: 940, positives: 59, posterior: 9 / 59 });
+    // The dot picture and the formula agree to well under a percentage point.
+    expect(c.posterior).toBeCloseTo(bayesPosterior(0.01, 0.9, 0.05), 1);
+  });
+
+  it("is deterministic and falls back to the defaults for non-finite inputs", () => {
+    expect(bayesCounts(0.02, 0.8, 0.1, 1000)).toEqual(bayesCounts(0.02, 0.8, 0.1, 1000));
+    expect(bayesCounts(Number.NaN, Number.NaN, Number.NaN, 1000)).toEqual(
+      bayesCounts(0.01, 0.9, 0.05, 1000),
+    );
   });
 });

@@ -21,14 +21,29 @@ function harness(): Harness {
 
 const flush = () => new Promise<void>((r) => setTimeout(r, 0));
 
-describe("concept scheduler (G3 finding 4)", () => {
-  it("opening one concept triggers exactly its request plus the next prefetch", async () => {
+describe("concept scheduler (ordered, one at a time)", () => {
+  it("starts the opened concept alone — never in parallel with the next one", async () => {
     const h = harness();
     const s = createConceptScheduler({ order: ["a", "b", "c"], hasConcept: () => false, request: h.request });
     s.open("a");
     await flush();
+    expect(h.requests).toEqual(["a"]);
+    expect(s.pendingCount()).toBe(1);
+    s.dispose();
+  });
+
+  it("continues in plan order once a concept finishes: first, then second, then third", async () => {
+    const h = harness();
+    const s = createConceptScheduler({ order: ["a", "b", "c"], hasConcept: () => false, request: h.request });
+    s.open("a");
+    await flush();
+    h.pending.get("a")?.(true);
+    await flush();
     expect(h.requests).toEqual(["a", "b"]);
-    expect(s.pendingCount()).toBe(2);
+    h.pending.get("b")?.(true);
+    await flush();
+    expect(h.requests).toEqual(["a", "b", "c"]);
+    expect(s.pendingCount()).toBe(1);
     s.dispose();
   });
 
@@ -36,35 +51,38 @@ describe("concept scheduler (G3 finding 4)", () => {
     const h = harness();
     const done = new Set(["a"]);
     const s = createConceptScheduler({ order: ["a", "b"], hasConcept: (id) => done.has(id), request: h.request });
-    s.open("a"); // cached -> no request for a
+    s.open("a"); // cached -> the priority is satisfied, the queue continues
     await flush();
-    expect(h.requests).toEqual(["b"]); // only the prefetch
-    s.open("a"); // revisit: everything cached
+    expect(h.requests).toEqual(["b"]);
+    s.open("a"); // revisit: everything cached, nothing happens
     await flush();
     expect(h.requests).toEqual(["b"]);
     s.dispose();
   });
 
-  it("switching concepts aborts in-flight work it switched away from", async () => {
+  it("makes an opened concept jump the queue, aborting the concept it interrupted", async () => {
     const h = harness();
     const s = createConceptScheduler({ order: ["a", "b", "c", "d"], hasConcept: () => false, request: h.request });
     s.open("a");
     await flush();
-    expect(h.requests).toEqual(["a", "b"]);
     s.open("c");
     await flush();
-    expect(h.aborted.sort()).toEqual(["a", "b"]);
-    expect(h.requests).toEqual(["a", "b", "c", "d"]);
+    expect(h.aborted).toEqual(["a"]);
+    expect(h.requests).toEqual(["a", "c"]);
+    expect(s.pendingCount()).toBe(1);
     s.dispose();
   });
 
-  it("keeps in-flight concurrency at 2", async () => {
+  it("picks the interrupted concept back up, still in plan order", async () => {
     const h = harness();
-    const s = createConceptScheduler({ order: ["a", "b", "c", "d", "e"], hasConcept: () => false, request: h.request });
+    const s = createConceptScheduler({ order: ["a", "b", "c"], hasConcept: () => false, request: h.request });
     s.open("a");
-    s.open("c"); // aborts a/b, starts c + d
     await flush();
-    expect(s.pendingCount()).toBe(2);
+    s.open("c"); // aborts a, runs c
+    await flush();
+    h.pending.get("c")?.(true);
+    await flush();
+    expect(h.requests).toEqual(["a", "c", "a"]);
     s.dispose();
   });
 
@@ -81,16 +99,17 @@ describe("concept scheduler (G3 finding 4)", () => {
     s.dispose();
   });
 
-  it("dispose aborts everything", async () => {
+  it("dispose aborts everything and stops the queue", async () => {
     const h = harness();
     const s = createConceptScheduler({ order: ["a", "b"], hasConcept: () => false, request: h.request });
     s.open("a");
     await flush();
     s.dispose();
-    expect(h.aborted.sort()).toEqual(["a", "b"]);
+    expect(h.aborted).toEqual(["a"]);
     const spy = vi.fn();
     s.open("a");
     expect(spy).not.toHaveBeenCalled();
     expect(s.pendingCount()).toBe(0);
+    expect(h.requests).toEqual(["a"]);
   });
 });

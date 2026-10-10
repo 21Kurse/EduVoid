@@ -53,8 +53,10 @@ use subject to attribution + non-commercial + share-alike.
 - **External quiz questions**: supplied and shipped (10 items, 5+5 paired). See the verification table
   above and `data/eval/procedure.md`. No placeholder remains.
 - **Vercel env vars + redeploy** and **plan check for `maxDuration`** — see `GATE_REACHED.md`.
-- **Test participants**: none run yet; `data/` participant scores are pending, and every place they
-  belong is marked `[FILL IN AFTER SESSIONS]` in `docs/DEMO.md`, `docs/DEVPOST.md` and `README.md`.
+- **Test participants**: not required any more. The in-app pre/post runner was deleted on Oct 10
+  (owner decision), so the app collects no participant scores and the docs claim none: the external
+  instrument in `data/eval/` is administered by hand if you want it. Nothing is marked
+  `[FILL IN AFTER SESSIONS]` in the current docs.
 
 ## Post-freeze candidates (log-only)
 

@@ -8,20 +8,24 @@
  *
  * Owner feedback (Oct 8): clicking "I don't get this" used to print a promise
  * ("here it is as a simulation") and then nothing visibly changed — when the
- * provider answered 502, the only trace was a failure sentence. Now:
+ * provider answered 502, the only trace was a failure sentence. So:
  *  1. a spinner state is exposed while the regeneration is in flight,
- *  2. the one-line reason is shown only once the new presentation is on
- *     screen (never as a promise),
- *  3. on failure or timeout a deterministic template sim is built locally
+ *  2. on failure or timeout a deterministic template sim is built locally
  *     (§13.6 hand-built templates, no model call), so the click always
  *     delivers a visibly different modality,
- *  4. if not even a template fits, the honest failure message says so.
+ *  3. if not even a template fits, the honest failure message says so.
+ *
+ * Owner feedback (Oct 10): the sentence that announced the delivered modality
+ * ("here it is as a hands-on simulation", "a quick quiz") is gone. The new
+ * presentation itself is the signal that something changed — the announcement
+ * read as random chatter above a concept that had already visibly changed.
+ * The banner that remains is reserved for real failures, and the delivered
+ * modality is still logged in the agent-activity panel (§13.10).
  */
 import { useCallback, useRef, useState } from "react";
 import { retryConcept } from "./live-client";
-import { LOCAL_FALLBACK_REASON, localSimAdaptation } from "./local-adapt";
+import { localSimAdaptation, pickLocalTemplate } from "./local-adapt";
 import {
-  adaptReason,
   applyMasteryEvent,
   deliveredModality,
   nextModality,
@@ -57,10 +61,11 @@ export function useAdaptive({
   onDontGet: (conceptId: string) => void;
   /** Explain-back (§5 item 4) moved the mastery state — rules stay in lib/mastery.ts. */
   onExplained: (conceptId: string, coverage: ExplainCoverage) => void;
-  adaptations: Record<string, string>;
+  /** Failure notices only — one per concept, cleared by the next attempt. */
+  notices: Record<string, string>;
   adapting: Record<string, boolean>;
 } {
-  const [adaptations, setAdaptations] = useState<Record<string, string>>({});
+  const [notices, setNotices] = useState<Record<string, string>>({});
   const [adapting, setAdapting] = useState<Record<string, boolean>>({});
   const adaptingRef = useRef<Set<string>>(new Set());
 
@@ -71,17 +76,17 @@ export function useAdaptive({
     }));
   }, []);
 
-  const explain = useCallback((conceptId: string, message: string) => {
-    setAdaptations((a) => ({ ...a, [conceptId]: message }));
+  const notify = useCallback((conceptId: string, message: string) => {
+    setNotices((a) => ({ ...a, [conceptId]: message }));
   }, []);
 
   const regenerate = useCallback(
-    (concept: Concept, missed: boolean) => {
+    (concept: Concept) => {
       if (adaptingRef.current.has(concept.id)) return;
       adaptingRef.current.add(concept.id);
       setAdapting((a) => ({ ...a, [concept.id]: true }));
-      // Drop the previous explanation: it described content we are replacing.
-      setAdaptations((a) => {
+      // Drop the previous notice: it described content we are replacing.
+      setNotices((a) => {
         if (!(concept.id in a)) return a;
         const next = { ...a };
         delete next[concept.id];
@@ -89,7 +94,11 @@ export function useAdaptive({
       });
 
       const history = readLearningState().concepts[concept.id]?.modalityHistory ?? [];
-      const modality: Modality = nextModality(history);
+      // No hand-built template fits this concept → never ask for the "sim"
+      // modality (a prediction prompt the concept cannot answer is exactly
+      // what the owner flagged on Oct 10). The cycle simply skips it.
+      const skip = pickLocalTemplate(concept, topic) ? [] : (["sim"] as const);
+      const modality: Modality = nextModality(history, skip);
       // What was on screen before the call, so the reason line can name what
       // the learner actually sees afterwards (see deliveredModality).
       const before = concept.components;
@@ -104,13 +113,12 @@ export function useAdaptive({
         if (local) {
           onRegenerated(concept.id, local, concept.claims);
           record(concept.id, { type: "regenerated", modality: "sim" });
-          explain(concept.id, LOCAL_FALLBACK_REASON);
           push(`Built a template simulation for “${concept.id}” locally (${detail})`);
           return;
         }
         // §12 + G3 F3: visible, HONEST failure — say what happened and keep
         // the original content shown.
-        explain(
+        notify(
           concept.id,
           `Couldn't regenerate this one (${detail.slice(0, 140)}) — showing the original content.`,
         );
@@ -130,7 +138,6 @@ export function useAdaptive({
             onRegenerated(concept.id, r.components, r.claims);
             record(concept.id, { type: "regenerated", modality });
             const delivered = deliveredModality(before, r.components, modality);
-            explain(concept.id, adaptReason(delivered, missed));
             push(
               delivered === modality
                 ? `Adapted “${concept.id}” as ${modality}`
@@ -159,7 +166,7 @@ export function useAdaptive({
         }
       })();
     },
-    [topic, record, onRegenerated, push, explain, avoidPromptsFor],
+    [topic, record, onRegenerated, push, notify, avoidPromptsFor],
   );
 
   const onAnswered = useCallback(
@@ -172,7 +179,7 @@ export function useAdaptive({
       const concept = getConcept(conceptId);
       if (!concept) return;
       const history = readLearningState().concepts[conceptId]?.modalityHistory ?? [];
-      if (history.length === 0) regenerate(concept, true);
+      if (history.length === 0) regenerate(concept);
     },
     [record, getConcept, regenerate],
   );
@@ -182,7 +189,7 @@ export function useAdaptive({
       const concept = getConcept(conceptId);
       if (!concept) return;
       record(conceptId, { type: "dont-get" });
-      regenerate(concept, false);
+      regenerate(concept);
     },
     [record, getConcept, regenerate],
   );
@@ -194,5 +201,5 @@ export function useAdaptive({
     [record],
   );
 
-  return { onAnswered, onDontGet, onExplained, adaptations, adapting };
+  return { onAnswered, onDontGet, onExplained, notices, adapting };
 }

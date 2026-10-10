@@ -33,7 +33,7 @@ export function usableModality(components: Components, modality: string): boolea
 export function modalityFeedback(modality: string): string {
   const need =
     modality === "sim"
-      ? "a 'sim' object with a fitting template (two-state-prob or double-slit), 2-4 numeric values, and a prediction question"
+      ? "a 'sim' object with a fitting template (two-state-prob, double-slit or bayes-update), 2-4 numeric values, and a prediction question"
       : modality === "flashcards"
         ? "a 'flashcards' array with 2-4 {front, back} cards"
         : "a 'quiz' array with 2-3 questions";

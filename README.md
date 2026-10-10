@@ -24,11 +24,11 @@ EduVoid's answer is not "ask an LLM to write a study guide". It is an agent pipe
 2. Agents search the web, rank sources by authority, extract atomic claims, and **cross-check** them against the passages they cite.
 3. A planner produces a concept graph (prerequisites included) that renders immediately as a **skeleton mindmap**.
 4. Each concept is generated on demand from the verified claims — an explanation, quizzes, flashcards, and a parameter-driven simulation.
-5. Simulations **predict, then reveal**: you commit to a prediction before anything runs, then unlock an **explore lab** — sliders for the preparation or geometry, single-shot firing to build the statistics yourself, and (in the double-slit) a **which-path detector** toggle that visibly stops fringes from building.
+5. Simulations **predict, then reveal** — only for concepts a hand-built template actually fits, so the prediction step appears where there is something to predict rather than on every concept. You commit to a prediction before anything runs, then unlock an **explore lab** — sliders for the preparation or geometry, single-shot firing to build the statistics yourself, and (in the double-slit) a **which-path detector** toggle that visibly stops fringes from building.
 6. Citations are clickable; contradictions are surfaced as "sources disagree".
-7. Miss a quiz question and the concept **regenerates in a different modality** with a one-line reason ("You missed this, so here it is as a simulation") — the node recolors as mastery changes. If the live regeneration fails, a hand-built template sim takes over when one genuinely fits the concept (no fabricated experiments).
+7. Miss a quiz question and the concept **regenerates in a different modality**: the panel is rebuilt with new content, any answer you already gave is cleared with it, the node recolors as mastery changes, and the agent-activity panel logs what was delivered. If the live regeneration fails, a hand-built template sim takes over when one genuinely fits the concept (no fabricated experiments).
 8. **Explain-back:** write the concept in your own words; the grader compares your text against that concept's verified claims one by one and names the claim you left out. Mastery moves from the result.
-9. A built-in **test mode** (`/test`) runs a pre-test → learning session → post-test on **external** exam questions and exports per-participant scores as CSV.
+9. A **pre/post instrument** ships in the repo ([`data/eval/questions.json`](data/eval/questions.json)): 10 external exam items (5 pre / 5 post) with their provenance and answer keys, run by hand. The app itself does not administer a test — see [Data and the demo-safe run](#data-and-the-demo-safe-run).
 
 ## How this answers the AI + Education prompt
 
@@ -156,34 +156,34 @@ npm run capture:demo   # re-capture the demo-safe cached run from the real pipel
 - **Abort on disconnect:** a closed tab cancels the in-flight model call instead of running it to completion.
 - **Spend cap:** set at the provider (see the deploy checklist).
 
-## Test mode, data, and the demo-safe run
+## Data and the demo-safe run
 
-- **Test mode** (`/test`) loads pre/post questions from [`data/eval/questions.json`](data/eval/questions.json). These are **external** questions — the app's own pipeline never generates them, and eval questions are kept separate in code from the in-app quizzes. Results are stored per participant in `localStorage` and exported as CSV. The committed instrument is 10 items (5 pre / 5 post): 4 verbatim from a CC BY-SA 4.0 question bank and 6 adapted from CC BY-NC-SA 4.0 course solutions and a textbook section, each keeping the source's own answer as the key with a quoted justification (`data/eval/procedure.md`). All six adapted keys are listed for the owner to verify in [`BLOCKERS.md`](BLOCKERS.md); **participant results: `[FILL IN AFTER SESSIONS]`** (sample size, pre/post means and the raw CSV go in `data/`).
+- **Pre/post instrument (external, run by hand).** [`data/eval/questions.json`](data/eval/questions.json) is the committed instrument: 10 items (5 pre / 5 post), **external** to the app — the pipeline never generates them. 4 are verbatim from a CC BY-SA 4.0 question bank and 6 are adapted from CC BY-NC-SA 4.0 course solutions and a textbook section, each keeping the source's own answer as the key with a quoted justification ([`data/eval/procedure.md`](data/eval/procedure.md)). All six adapted keys are listed for verification in [`BLOCKERS.md`](BLOCKERS.md). **No participant study has been run through the app: the in-app pre/post runner was removed on Oct 10** (owner decision), so the instrument is administered by hand and the app makes no pre/post claim.
 - **Demo-safe cached run:** [`data/cached/qm-superposition.json`](data/cached/qm-superposition.json) is a real pipeline run for the demo topic, captured with `npm run capture:demo`. It is shown **only** when a live request fails and **only** for the demo topic, and is always labeled **"cached run"** in the UI. It is never presented as live and is never the default path.
 - **Fixtures:** [`fixtures/qm-superposition.json`](fixtures/qm-superposition.json) is a fixture used by tests; fixtures are labeled wherever they appear.
 
 ## Honest limitations
 
-- **Latency.** Five unseen topics on 2026-10-08: setup (sources → claims → verify → hero) 13-24 s and the first concept 2-8 s, because concepts generate lazily on open. Earlier demo-topic runs before those two optimizations were much slower (~90 s+ with all concepts up front); the owner's Oct 5 notes record 35-55 s setup on the demo topic, where the hero sim is still awaited before the stream finishes (logged post-freeze fix).
+- **Latency.** Five unseen topics on 2026-10-08: setup (sources → claims → verify → hero) 13-24 s and the first concept 2-8 s. Since Oct 10 concepts generate **one at a time in plan order** (first, then second, and so on) rather than in parallel, so the first concept is ready as fast as before while the rest fill in behind it; opening a concept jumps that queue. The demo topic's setup is 35-55 s, where the hero sim is still awaited before the stream finishes.
 - **Source quality.** Search uses the provider's built-in content extraction; some pages extract garble (paywalls, JS-rendered content). Extraction failures degrade a single source, not the run.
 - **Verification is entailment, not truth.** The verifier judges a claim only against the passage it cites. A source that is wrong but internally consistent passes, and the badge means "supported by these sources", not "objectively true".
-- **No accounts, no cross-device state.** Learning state and test records live in one browser, by design. Test sessions are run on the owner's device so scores stay in one place.
+- **No accounts, no cross-device state.** Learning state (mastery, modality history) lives in one browser, by design.
 - **Safety check is deterministic and shallow.** It refuses clearly harmful requests (weapons/explosives/dangerous-agent synthesis, illegal drugs, targeted harm) with a friendly message; it is not a general content policy.
 - **Cost controls are basic.** Per-IP rate limiting (6 generation requests / 10 min) plus a provider spend cap — fine for a hackathon demo, not a production multi-tenant design.
-- **Evaluation is a small demonstration, not a controlled study.** Participant numbers (n = `[FILL IN AFTER SESSIONS]`) are reported honestly in `PROGRESS.md` and `data/`; the sample size is tiny and one mixed result is reported as it happened.
+- **No participant results are claimed.** The external pre/post instrument ships in `data/eval/` for anyone to run, but no study has been run and the app does not report one; the evidence in this README is engineering evidence (tests, verifier spike, unseen-topic runs, latency logs).
 - **Ambiguous one-word topics are the weak path.** Unseen-topic testing ("loops") showed the search results can be about a different sense of the word and still pass verification (entailment is per passage), so the lesson is thinly grounded. Type a specific multi-word topic; a claim-relevance gate is the next thing to build.
-- **The eval questions are partly adapted, not all verbatim** — keep that in mind when quoting pre/post gains (`data/eval/procedure.md` §6).
+- **The eval questions are partly adapted, not all verbatim** — keep that in mind if you use the instrument (`data/eval/procedure.md` §6).
 - **This was built during the hackathon window** — see the commit history for the build progression.
 
 ## Repository layout
 
 ```
-app/                     Next.js App Router (/, /test, API routes)
+app/                     Next.js App Router (/, API routes)
 components/              UI: mindmap, concept panel, sims, hero sim, activity panel, notices
 lib/                     pipeline (source/plan/generate/verify), spec schema, LLM + search,
-                         rate limit, safety, cached run, mastery, eval, storage
+                         rate limit, safety, cached run, mastery, scheduler, storage
 scripts/                 model spike, probes, benchmarks, capture:demo
-tests/                   vitest suites (214 tests)
+tests/                   vitest suites (217 tests)
 docs/                    demo script, Q&A prep, Devpost text, eval-candidate research
 data/cached/             the captured demo-safe run (committed)
 data/eval/               external eval questions + procedure and provenance
@@ -196,6 +196,7 @@ Design notes and the build log live at the repo root (`DECISIONS.md`, `PROGRESS.
 
 - [`docs/DEMO.md`](docs/DEMO.md) — the timed video script, the five tested topics and the fallback plan.
 - [`docs/QA.md`](docs/QA.md) — answers to the six judge questions, from real project numbers.
+- [`docs/DEVPOST-FORM.md`](docs/DEVPOST-FORM.md) — the Devpost form fields, paste-ready (Inspiration / What it does / How we built it / Challenges / Accomplishments / What we learned / What's next).
 - [`docs/DEVPOST.md`](docs/DEVPOST.md) — submission text mapped to the judging rubric.
 - [`DECISIONS.md`](DECISIONS.md) — decisions, deviations, model-spike results, cut list.
 - [`PROGRESS.md`](PROGRESS.md) — per-task build log with measured numbers.

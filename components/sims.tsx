@@ -18,6 +18,13 @@
 import { useMemo, useState } from "react";
 import type { Component } from "@/lib/spec";
 import {
+  bayesCounts,
+  BAYES_FP_MAX,
+  BAYES_FP_MIN,
+  BAYES_PRIOR_MAX,
+  BAYES_PRIOR_MIN,
+  BAYES_SENSITIVITY_MAX,
+  BAYES_SENSITIVITY_MIN,
   binomialSpread,
   clamp,
   doubleSlitPath,
@@ -26,6 +33,7 @@ import {
   interferenceCurve,
   twoStateCounts,
   twoStatePath,
+  type BayesCounts,
 } from "@/lib/sim-math";
 
 type SimComponent = Extract<Component, { type: "sim" }>;
@@ -423,9 +431,212 @@ function DoubleSlitSim({ values, prompt, seed }: { values: Record<string, number
   );
 }
 
+/**
+ * Bayes-update template (owner request, Oct 10: tailor the demo to Bayes and
+ * make the sims look good). Predict the answer to a base-rate question, then
+ * reveal the exact frequency picture — 1,000 people drawn dot by dot, with
+ * the real positives and the false alarms visible side by side. The lab then
+ * lets the learner move prior / sensitivity / false-positive rate and watch
+ * the posterior update. Deterministic math only (lib/sim-math.ts), no model
+ * call, no network.
+ */
+const BAYES_POPULATION = 1000;
+
+function BayesGrid({ counts, population = BAYES_POPULATION }: { counts: BayesCounts; population?: number }) {
+  const cols = 25;
+  const dots: React.ReactNode[] = [];
+  for (let i = 0; i < population; i++) {
+    const fill =
+      i < counts.tp
+        ? "#7c3aed"
+        : i < counts.tp + counts.fn
+          ? "#71717a"
+          : i < counts.tp + counts.fn + counts.fp
+            ? "#f59e0b"
+            : "#e4e4e7";
+    dots.push(
+      <circle key={i} cx={4 + (i % cols) * 9.4} cy={4 + Math.floor(i / cols) * 3.9} r={1.25} fill={fill} />,
+    );
+  }
+  const rows = Math.ceil(population / cols);
+  return (
+    <svg
+      viewBox={`0 0 ${(cols - 1) * 9.4 + 8} ${(rows - 1) * 3.9 + 8}`}
+      className="h-auto w-full"
+      data-testid="bayes-grid"
+      role="img"
+      aria-label={`${population} people: ${counts.tp} true positives, ${counts.fn} missed cases, ${counts.fp} false alarms, ${counts.tn} healthy negatives`}
+    >
+      {dots}
+    </svg>
+  );
+}
+
+function BayesLegend() {
+  const items: [string, string][] = [
+    ["#7c3aed", "has it · tests positive"],
+    ["#71717a", "has it · missed"],
+    ["#f59e0b", "healthy · false alarm"],
+    ["#e4e4e7", "healthy · negative"],
+  ];
+  return (
+    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-zinc-500">
+      {items.map(([color, label]) => (
+        <span key={label} className="inline-flex items-center gap-1">
+          <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
+          {label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function BayesUpdateSim({ values, prompt }: { values: Record<string, number | string | boolean>; prompt: string }) {
+  const num = (k: string, dflt: number) => {
+    const v = Number(values[k]);
+    return Number.isFinite(v) ? v : dflt;
+  };
+  const prior = clamp(num("prior", 0.01), BAYES_PRIOR_MIN, BAYES_PRIOR_MAX);
+  const sensitivity = clamp(num("sensitivity", 0.9), BAYES_SENSITIVITY_MIN, BAYES_SENSITIVITY_MAX);
+  const falsePositive = clamp(num("falsePositive", 0.05), BAYES_FP_MIN, BAYES_FP_MAX);
+  const [prediction, setPrediction] = useState("");
+  const [committed, setCommitted] = useState<number | null>(null);
+  // Explore lab (unlocked only after the prediction is committed).
+  const [labPrior, setLabPrior] = useState(prior);
+  const [labSensitivity, setLabSensitivity] = useState(sensitivity);
+  const [labFalsePositive, setLabFalsePositive] = useState(falsePositive);
+
+  const base = useMemo(() => bayesCounts(prior, sensitivity, falsePositive, BAYES_POPULATION), [prior, sensitivity, falsePositive]);
+  const lab = useMemo(
+    () => bayesCounts(labPrior, labSensitivity, labFalsePositive, BAYES_POPULATION),
+    [labPrior, labSensitivity, labFalsePositive],
+  );
+  const pct = (x: number) => `${Math.round(x * 1000) / 10}%`;
+  const valid = prediction !== "" && Number(prediction) >= 0 && Number(prediction) <= 100;
+
+  if (committed === null) {
+    return (
+      <SimShell prompt={prompt}>
+        <p className="mb-2 text-[12px] text-zinc-600">
+          A population of {BAYES_POPULATION.toLocaleString("en-US")} people: {pct(prior)} have the condition. The
+          test catches {pct(sensitivity)} of real cases, and flags {pct(falsePositive)} of healthy people too.
+        </p>
+        <div className="flex gap-2">
+          <input
+            inputMode="numeric"
+            value={prediction}
+            onChange={(e) => setPrediction(e.target.value.replace(/[^0-9]/g, ""))}
+            placeholder="0–100"
+            aria-label="Your prediction: of 100 people who test positive, how many actually have the condition"
+            className="h-9 w-24 rounded-lg border border-border-subtle px-3 text-[13px] outline-none focus:border-violet-400"
+          />
+          <button
+            type="button"
+            disabled={!valid}
+            onClick={() => setCommitted(Number(prediction))}
+            className="h-9 rounded-lg bg-violet-600 px-4 text-[13px] font-medium text-white disabled:opacity-40"
+          >
+            Commit prediction
+          </button>
+        </div>
+        <p className="mt-2 text-[11px] text-zinc-400">
+          Of 100 people who test positive, how many actually have it? The sim stays locked until you commit.
+        </p>
+      </SimShell>
+    );
+  }
+
+  const answer = base.positives > 0 ? Math.round((base.tp / base.positives) * 100) : 0;
+  const off = Math.abs(committed - answer);
+  return (
+    <SimShell prompt={prompt}>
+      <div className="space-y-2" data-testid="sim-outcome">
+        <BayesGrid counts={base} />
+        <BayesLegend />
+        <p className="rounded-lg bg-white px-3 py-2 text-[12px] text-zinc-700">
+          Only <strong>{base.tp}</strong> of the <strong>{base.positives}</strong> positive results are real —{" "}
+          <strong>{answer} out of every 100</strong>. The other {base.fp} are false alarms from healthy people.
+          You predicted <strong>{committed} of 100</strong>;{" "}
+          {off <= 10
+            ? "close to what the full picture says."
+            : "the false alarms swamp the rare true cases — that is the base-rate effect."}
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            setCommitted(null);
+            setPrediction("");
+          }}
+          className="text-[11px] text-violet-700 hover:underline"
+        >
+          Predict again
+        </button>
+      </div>
+
+      <div className="mt-4 border-t border-violet-200 pt-3" data-testid="sim-lab">
+        <p className="text-[12px] font-medium text-zinc-800">Now change the setup</p>
+        <p className="mb-3 mt-0.5 text-[11px] text-zinc-500">
+          Move the rates and watch the {BAYES_POPULATION.toLocaleString("en-US")}-person picture and the posterior
+          update with them.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <LabSlider
+            testId="bayes-slider-prior"
+            label="Prior P(A)"
+            value={labPrior}
+            min={BAYES_PRIOR_MIN}
+            max={BAYES_PRIOR_MAX}
+            step={0.01}
+            display={pct(labPrior)}
+            onChange={setLabPrior}
+          />
+          <LabSlider
+            testId="bayes-slider-sensitivity"
+            label="Sensitivity P(B|A)"
+            value={labSensitivity}
+            min={BAYES_SENSITIVITY_MIN}
+            max={BAYES_SENSITIVITY_MAX}
+            step={0.01}
+            display={pct(labSensitivity)}
+            onChange={setLabSensitivity}
+          />
+          <LabSlider
+            testId="bayes-slider-fp"
+            label="False positives P(B|¬A)"
+            value={labFalsePositive}
+            min={BAYES_FP_MIN}
+            max={BAYES_FP_MAX}
+            step={0.01}
+            display={pct(labFalsePositive)}
+            onChange={setLabFalsePositive}
+          />
+        </div>
+        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="min-w-0 flex-1">
+            <BayesGrid counts={lab} />
+          </div>
+          <div className="shrink-0 rounded-lg bg-white px-4 py-3 text-center">
+            <div className="text-[11px] text-zinc-500">P(A|B) — posterior</div>
+            <div className="text-2xl font-semibold tabular-nums text-violet-700" data-testid="bayes-posterior">
+              {pct(lab.posterior)}
+            </div>
+            <div className="text-[11px] text-zinc-500">
+              {lab.tp} of {lab.positives} positives
+            </div>
+          </div>
+        </div>
+        <p className="mt-2 text-[11px] text-zinc-500">
+          Two ways to raise the posterior: a more accurate test, or a less rare condition.
+        </p>
+      </div>
+    </SimShell>
+  );
+}
+
 export function Sim({ component, seed }: { component: SimComponent; seed: number }) {
   if (component.template === "two-state-prob") return <TwoStateSim values={component.params.values} prompt={component.predictPrompt} seed={seed} />;
   if (component.template === "double-slit") return <DoubleSlitSim values={component.params.values} prompt={component.predictPrompt} seed={seed} />;
+  if (component.template === "bayes-update") return <BayesUpdateSim values={component.params.values} prompt={component.predictPrompt} />;
   return (
     <div className="rounded-xl border border-dashed border-violet-300 bg-violet-50/40 p-4 text-[13px] text-zinc-600" data-testid="sim-placeholder">
       {component.predictPrompt}

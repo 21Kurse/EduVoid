@@ -11,24 +11,28 @@
  *    same sim out. No model call, no randomness.
  *  - Only templates that actually fit the concept's own text are used; an
  *    unrelated topic gets `null` and the honest failure message instead of a
- *    fabricated simulation.
+ *    fabricated simulation. `fitsLocalTemplate` is the ONE fit signal: the
+ *    generator's sim gate, this fallback, the adaptive-loop modality choice
+ *    and the hero-sim safety net all read it, so they can never disagree.
  *  - The sim LEADS the concept, so the change is visible even when the
  *    concept already contained a sim lower down.
+ *  - The learner gets the new presentation, not a sentence announcing it
+ *    (owner feedback, Oct 10): this module used to ship a "here it is as a
+ *    hands-on simulation" line with the fallback; that string is gone.
  */
 import type { Component, Concept } from "./spec";
 
-/** The two templates this module can fill without a model. */
-type LocalSimTemplate = "two-state-prob" | "double-slit";
-
-/** §13.7 one-liner shown when the fallback (not the model) built the new modality. */
-export const LOCAL_FALLBACK_REASON =
-  "Live regeneration was unavailable, so here is the same concept as a hands-on simulation.";
+/** The hand-built templates this module can fill without a model. */
+type LocalSimTemplate = "two-state-prob" | "double-slit" | "bayes-update";
 
 /** Interference-flavoured concepts map to the double-slit template. */
 const INTERFERENCE = /double[-\s]?slit|interfer|fringe|diffract|wavelength|path difference|phase difference/i;
 
 /** Probability/measurement-flavoured concepts map to the two-state template. */
 const TWO_STATE = /probabilit|measure|superposition|qubit|collapse|outcome|amplitude|born|bit\b|spin|random/i;
+
+/** Belief-updating concepts map to the Bayes template (owner request, Oct 10). */
+const BAYES = /bayes|posterior|base[\s-]?rate|false[\s-]?positive|likelihood|sensitivity|conditional[\s-]?probabilit/i;
 
 /** Everything the concept already says about itself — the fit signal. */
 function conceptText(concept: Concept, topic: string): string {
@@ -55,12 +59,15 @@ export function fitsLocalTemplate(
   topic: string,
 ): boolean {
   const text = conceptText(concept, topic);
-  return template === "double-slit" ? INTERFERENCE.test(text) : TWO_STATE.test(text);
+  if (template === "double-slit") return INTERFERENCE.test(text);
+  if (template === "bayes-update") return BAYES.test(text);
+  return TWO_STATE.test(text);
 }
 
 /** Which hand-built template (if any) fits this concept's content. */
 export function pickLocalTemplate(concept: Concept, topic: string): LocalSimTemplate | null {
   if (fitsLocalTemplate("double-slit", concept, topic)) return "double-slit";
+  if (fitsLocalTemplate("bayes-update", concept, topic)) return "bayes-update";
   if (fitsLocalTemplate("two-state-prob", concept, topic)) return "two-state-prob";
   return null;
 }
@@ -70,12 +77,15 @@ const PREDICT_PROMPT: Record<LocalSimTemplate, string> = {
     "Commit to a prediction first: of 50 identical systems prepared the same way, how many land in the first outcome?",
   "double-slit":
     "Commit to a prediction first: which pattern appears on the detector when both slits are open?",
+  "bayes-update":
+    "Commit to a prediction first: out of 100 people who test positive, how many actually have the condition?",
 };
 
 /** Template defaults, matching the clamps in the hand-built sim components. */
 const DEFAULT_VALUES: Record<LocalSimTemplate, Record<string, number>> = {
   "two-state-prob": { p: 0.5, n: 50 },
   "double-slit": { d: 2, lambda: 1 },
+  "bayes-update": { prior: 0.01, sensitivity: 0.9, falsePositive: 0.05 },
 };
 
 /**

@@ -17,6 +17,46 @@ export function numberClaims(claims: Pick<Claim, "id">[]): ClaimNumbers {
   return new Map(claims.map((c, i) => [c.id, i + 1]));
 }
 
+/** Words whose trailing period is not a sentence end. */
+const ABBREVIATION = /\b(?:e\.g|i\.e|vs|etc|cf|ca|Fig|Eq|Dr|Mr|Ms|No|approx|resp)\.$/i;
+
+/**
+ * Readability pass (owner request, Oct 10: write simple, build intuition).
+ * The flash model sometimes returns the whole explanation as one unbroken
+ * block — 700+ characters with no blank line — which renders as a wall of
+ * text. When, and only when, the model gave no structure of its own (no blank
+ * lines, no line breaks, no headings, no code fence) and the text is long
+ * enough to need it, group sentences into short paragraphs.
+ *
+ * Deliberately conservative: existing structure always wins, so an explainer
+ * with paragraphs, lists or headings is returned exactly as written. Pure and
+ * deterministic; it only moves whitespace, never edits words.
+ */
+export function paragraphize(markdown: string): string {
+  const text = markdown.trim();
+  if (text.includes("\n\n") || text.includes("\n")) return markdown;
+  if (text.includes("```") || /^#{1,6}\s/m.test(text)) return markdown;
+  if (text.length < 300) return markdown;
+
+  const sentences = text.split(/(?<=[.!?])\s+(?=[A-Z0-9$])/).filter((s) => s.trim().length > 0);
+  if (sentences.length < 4) return markdown;
+
+  // A split after an abbreviation (e.g. atlases, i.e. ...) is glued back.
+  const merged: string[] = [];
+  for (const s of sentences) {
+    const prev = merged[merged.length - 1];
+    if (prev !== undefined && ABBREVIATION.test(prev)) merged[merged.length - 1] = `${prev} ${s}`;
+    else merged.push(s);
+  }
+
+  const perParagraph = merged.length > 8 ? 3 : 2;
+  const paragraphs: string[] = [];
+  for (let i = 0; i < merged.length; i += perParagraph) {
+    paragraphs.push(merged.slice(i, i + perParagraph).join(" "));
+  }
+  return paragraphs.join("\n\n");
+}
+
 /**
  * Rewrite the explainer markdown:
  * - `[[claim-id]]` markers for claims in `numbers` become
@@ -57,8 +97,10 @@ export function postProcessExplainer(
     return "";
   });
 
-  // Collapse doubled spaces left behind by removals.
+  // Collapse doubled spaces left behind by removals, then break up a wall of
+  // text if the model gave no structure of its own.
   out = out.replace(/[ \t]{2,}/g, " ");
+  out = paragraphize(out);
   return { markdown: out, resolved, stripped };
 }
 

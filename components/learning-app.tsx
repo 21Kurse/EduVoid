@@ -4,8 +4,9 @@
  * App shell: single-question home -> live run (T6 pipeline) with a visible
  * failure state (the demo-safe "cached run" fallback lives inside LiveLesson, §7).
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LiveLesson } from "./live-lesson";
+import { HOME_EVENT } from "./home-button";
 
 type Phase = "home" | "loading" | "learning" | "error";
 
@@ -13,6 +14,17 @@ export function LearningApp() {
   const [phase, setPhase] = useState<Phase>("home");
   const [topic, setTopic] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  // The top-left wordmark asks for the question screen. The lesson lives at "/"
+  // as a phase, so a link to "/" cannot do this on its own (owner request).
+  useEffect(() => {
+    const goHome = () => {
+      setError(null);
+      setPhase("home");
+    };
+    window.addEventListener(HOME_EVENT, goHome);
+    return () => window.removeEventListener(HOME_EVENT, goHome);
+  }, []);
 
   function start(t: string) {
     setTopic(t);
@@ -35,7 +47,7 @@ export function LearningApp() {
               autoFocus
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
-              placeholder="e.g. quantum superposition"
+              placeholder="e.g. Bayes' theorem"
               className="h-12 flex-1 rounded-xl border border-border-subtle px-4 text-[15px] outline-none placeholder:text-zinc-400 focus:border-violet-400"
               aria-label="Topic"
             />
@@ -50,13 +62,6 @@ export function LearningApp() {
           <p className="text-[12px] text-zinc-400">
             Agents search sources, extract claims, plan and generate a verified learning app.
           </p>
-          <a
-            href="/test"
-            className="text-[12px] text-zinc-400 underline decoration-zinc-300 underline-offset-4 transition-colors hover:text-violet-700"
-            data-testid="test-mode-link"
-          >
-            Test mode (pre-test → session → post-test)
-          </a>
         </main>
       </div>
     );

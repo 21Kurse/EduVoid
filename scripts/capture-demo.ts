@@ -26,9 +26,22 @@ function loadEnvLocal(): void {
 }
 
 const OUT_DIR = path.join(process.cwd(), "data", "cached");
-const SETUP_FILE = path.join(OUT_DIR, ".partial-setup.json");
-const CONCEPTS_FILE = path.join(OUT_DIR, ".partial-concepts.json");
-const OUT_FILE = path.join(OUT_DIR, "qm-superposition.json");
+
+/**
+ * Topic-scoped file names (owner request, Oct 10: the app is tailored to
+ * Bayes' theorem for the demo, and a second demo topic needs its own capture
+ * without clobbering the first one). One slug per topic, used for the output
+ * AND the resumable partials so two captures can run side by side.
+ */
+export function slugifyTopic(topic: string): string {
+  return (
+    topic
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 48) || "topic"
+  );
+}
 
 function readJson<T>(file: string): T | null {
   try {
@@ -83,6 +96,11 @@ async function main(): Promise<number> {
   const { runPlanStage } = await import("../lib/plan.ts");
   const { generateConcept, generateHeroSim } = await import("../lib/generate.ts");
   const { curriculumSpecLooseSchema } = await import("../lib/spec.ts");
+
+  const slug = slugifyTopic(topic);
+  const SETUP_FILE = path.join(OUT_DIR, `.partial-setup-${slug}.json`);
+  const CONCEPTS_FILE = path.join(OUT_DIR, `.partial-concepts-${slug}.json`);
+  const OUT_FILE = path.join(OUT_DIR, `${slug}.json`);
 
   const provider = defaultProvider();
   if (!provider) {

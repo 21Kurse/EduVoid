@@ -3,7 +3,7 @@
  * allowlist, and the hero-sim fallback contract — one list so they can
  * never drift apart. Lives alone to avoid a generate ↔ hero-sim cycle.
  *
- * ONLY two templates are hand-built (`IMPLEMENTED_SIM_TEMPLATES`). The other
+ * ONLY three templates are hand-built (`IMPLEMENTED_SIM_TEMPLATES`). The other
  * two ids are reserved: data that predates the hand-built set (the test
  * fixture) still validates against the schema, but NO generation path may
  * ship one — `components/sims.tsx` renders an unimplemented template as a
@@ -13,11 +13,11 @@
  */
 import type { Component } from "./spec.ts";
 
-export const SIM_TEMPLATES = ["two-state-prob", "double-slit", "slider-curve", "vector-field"] as const;
+export const SIM_TEMPLATES = ["two-state-prob", "double-slit", "bayes-update", "slider-curve", "vector-field"] as const;
 export type SimTemplate = (typeof SIM_TEMPLATES)[number];
 
 /** The templates the app can actually render (components/sims.tsx). */
-export const IMPLEMENTED_SIM_TEMPLATES = ["two-state-prob", "double-slit"] as const;
+export const IMPLEMENTED_SIM_TEMPLATES = ["two-state-prob", "double-slit", "bayes-update"] as const;
 export type ImplementedSimTemplate = (typeof IMPLEMENTED_SIM_TEMPLATES)[number];
 
 export function isImplementedSimTemplate(t: string): t is ImplementedSimTemplate {

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  adaptReason,
   applyMasteryEvent,
   deliveredModality,
   masteryLevel,
@@ -80,6 +79,19 @@ describe("modality cycle (adaptive loop)", () => {
     expect(MODALITY_CYCLE).toHaveLength(4);
   });
 
+  it("skips the sim when no hand-built template fits the concept", () => {
+    // Owner feedback (Oct 10): a prediction prompt is not required for every
+    // concept, so a concept that cannot host a template sim adapts to
+    // flashcards (then quiz) instead of being asked for one anyway.
+    const noSim = ["sim"] as const;
+    expect(nextModality([], noSim)).toBe("flashcards");
+    expect(nextModality(["explainer"], noSim)).toBe("flashcards");
+    expect(nextModality(["explainer", "sim", "flashcards"], noSim)).toBe("quiz");
+    expect(nextModality(["explainer", "sim", "flashcards", "quiz"], noSim)).toBe("explainer");
+    // Degenerate case: skipping everything still yields a real modality.
+    expect(nextModality([], ["sim", "flashcards", "quiz"])).toBe("explainer");
+  });
+
   it("the scripted scenario: miss, regenerate as sim, recover (§6 loop)", () => {
     // 1. Learner answers the concept quiz wrongly.
     let s = applyMasteryEvent(undefined, { type: "quiz", correct: false });
@@ -87,7 +99,6 @@ describe("modality cycle (adaptive loop)", () => {
     const modality = nextModality(s.modalityHistory);
     s = applyMasteryEvent(s, { type: "regenerated", modality });
     expect(modality).toBe("sim");
-    expect(adaptReason(modality, true)).toMatch(/missed a question.*simulation/);
     // 3. The regenerated (simulation) version is answered correctly twice.
     s = applyMasteryEvent(s, { type: "quiz", correct: true });
     s = applyMasteryEvent(s, { type: "quiz", correct: true });
@@ -96,7 +107,7 @@ describe("modality cycle (adaptive loop)", () => {
   });
 });
 
-describe("deliveredModality (the reason line must name what actually arrived)", () => {
+describe("deliveredModality (the agent log must name what actually arrived)", () => {
   const explainer = { type: "explainer" };
   const flashcards = { type: "flashcards" };
   const sim = { type: "sim" };

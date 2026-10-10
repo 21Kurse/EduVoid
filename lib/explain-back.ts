@@ -53,19 +53,133 @@ export const GRADER_SYSTEM = [
 
 export type ExplainBackClaim = { id: string; text: string };
 
+/**
+ * One explain-back task (owner request, Oct 10: the feature should be
+ * different for every concept). The form of the ask varies per concept; the
+ * grading rubric does not — every task still ends in the concept's verified
+ * claims being checked, and the task is handed to the grader so the gap and
+ * nudge match what the learner was actually asked to produce.
+ */
+export type ExplainTask = {
+  id: string;
+  /** Label in the collapsed header row. */
+  label: string;
+  /** One line of instruction above the textarea. */
+  helper: string;
+  /** Placeholder for the empty textarea. */
+  placeholder: (conceptTitle: string) => string;
+  /** One sentence for the grader, describing what was asked for. */
+  graderNote: string;
+};
+
+export const EXPLAIN_TASKS: readonly ExplainTask[] = [
+  {
+    id: "own-words",
+    label: "in your own words",
+    helper: "No polish needed — a couple of sentences as if you were telling a friend.",
+    placeholder: (title) => `Explain ${title} in your own words…`,
+    graderNote: "The learner was asked to explain the concept in their own words.",
+  },
+  {
+    id: "teach-simple",
+    label: "as if teaching a beginner",
+    helper: "Plain language, no jargon: teach it as if the reader has never heard of it.",
+    placeholder: (title) => `Teach ${title} to someone who has never studied this…`,
+    graderNote: "The learner was asked to teach the concept in plain language to a beginner.",
+  },
+  {
+    id: "own-example",
+    label: "with your own example",
+    helper: "Give one example of your own — not the one from the lesson — and say what it shows.",
+    placeholder: (title) => `Give an example of ${title} and explain it…`,
+    graderNote: "The learner was asked to explain the concept through an example of their own making.",
+  },
+  {
+    id: "predict",
+    label: "by predicting a case",
+    helper: "Pick a specific case, say what happens, then say why.",
+    placeholder: (title) => `Take one case of ${title} and predict what happens…`,
+    graderNote: "The learner was asked to apply the concept to a specific case and predict the outcome.",
+  },
+  {
+    id: "distinguish",
+    label: "by separating it from a look-alike",
+    helper: "Say what this is NOT — name the idea it is most often confused with and how they differ.",
+    placeholder: (title) => `What is ${title} often confused with, and how are they different?`,
+    graderNote:
+      "The learner was asked to distinguish the concept from the similar idea it is confused with.",
+  },
+  {
+    id: "spot-error",
+    label: "by finding a mistake",
+    helper: "Write one statement about this that would be WRONG, then explain why it fails.",
+    placeholder: (title) => `Write a wrong statement about ${title}, then correct it…`,
+    graderNote:
+      "The learner was asked to write an incorrect statement about the concept and explain why it is wrong.",
+  },
+  {
+    id: "one-sentence",
+    label: "in one sentence",
+    helper: "One sentence only — the shortest version that is still true and complete.",
+    placeholder: (title) => `Say ${title} in one sentence…`,
+    graderNote: "The learner was asked for the shortest complete one-sentence version of the concept.",
+  },
+];
+
+/** Stable 32-bit hash of a string (FNV-1a), used only to rotate the task list. */
+function hashOf(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+/**
+ * Deterministic task choice (owner request, Oct 10: the feature should be
+ * different for every concept). Given the concept's position in the lesson,
+ * the tasks rotate, so every concept in a lesson gets a different one (for
+ * lessons longer than the task list it wraps, which is unavoidable and still
+ * varied). The rotation starts at a fixed offset so the same lesson always
+ * offers the same task per concept, and reloading is never a new exercise.
+ *
+ * Called without an index it still returns a stable choice for that concept
+ * id alone.
+ */
+export function pickExplainTask(
+  conceptId: string,
+  indexInLesson = 0,
+  lessonSeed = "",
+): ExplainTask {
+  const offset = hashOf(lessonSeed || conceptId) % EXPLAIN_TASKS.length;
+  const task = EXPLAIN_TASKS[(offset + indexInLesson) % EXPLAIN_TASKS.length];
+  return task ?? EXPLAIN_TASKS[0]!;
+}
+
+/** The task behind an id sent by the client; unknown ids fall back to the first. */
+export function explainTaskById(id: string | undefined): ExplainTask {
+  return EXPLAIN_TASKS.find((t) => t.id === id) ?? EXPLAIN_TASKS[0]!;
+}
+
 export type ExplainBackInput = {
   topic: string;
   conceptTitle: string;
   summary: string;
   claims: ExplainBackClaim[];
   explanation: string;
+  /** Id of the explain-back task the learner was given (optional). */
+  taskId?: string;
 };
 
 export function buildExplainBackPrompt(input: ExplainBackInput): string {
   const claimLines = input.claims.map((c) => `[${c.id}] ${c.text}`).join("\n");
+  const task = explainTaskById(input.taskId);
   return [
     `Topic: ${input.topic}`,
     `Concept: ${input.conceptTitle} — ${input.summary}`,
+    `Explain-back task given to the learner: ${task.label} (${task.id})`,
+    task.graderNote,
     "",
     "Verified claims (ground truth — grade against these only):",
     claimLines,

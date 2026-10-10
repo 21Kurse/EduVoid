@@ -101,9 +101,11 @@ export function ConceptPanel({
   onAnswered,
   onDontGet,
   onExplained,
-  adaptation = null,
+  notice = null,
   adapting = false,
+  revision = 0,
   claimsNode = null,
+  finalCheckNode = null,
   onCite,
   onRetry,
 }: {
@@ -116,11 +118,25 @@ export function ConceptPanel({
   onDontGet?: (conceptId: string) => void;
   /** Explain-back result → mastery (§5 item 4). */
   onExplained?: (conceptId: string, coverage: ExplainCoverage) => void;
-  adaptation?: string | null;
+  /**
+   * Failure notice for this concept (never a success announcement: the new
+   * presentation is its own evidence — owner feedback, Oct 10).
+   */
+  notice?: string | null;
   /** True while a regeneration is in flight (owner feedback: show progress). */
   adapting?: boolean;
+  /**
+   * Bumped by the parent every time this concept's components are replaced
+   * (generation, regeneration, retry). It keys the interactive widgets, so a
+   * regeneration remounts them and any answer already given — a quiz pick, a
+   * committed sim prediction, a flipped card, an explain-back draft — is
+   * cleared instead of lingering against content that no longer exists.
+   */
+  revision?: number;
   /** Mobile claims section, rendered inline below the explainer (G3 F1). */
   claimsNode?: ReactNode;
+  /** Closing question set for the whole lesson (owner request, Oct 10). */
+  finalCheckNode?: ReactNode;
   onCite?: (claimId: string) => void;
   onRetry?: (concept: { id: string; title: string; summary: string }) => void;
 }) {
@@ -140,9 +156,13 @@ export function ConceptPanel({
               <p className="mt-1 text-[14px] text-zinc-500">{concept.summary}</p>
             </div>
 
-            {(adapting || adaptation) && (
+            {(adapting || notice) && (
               <div
-                className="rounded-xl border border-violet-200 bg-violet-50 px-4 py-2.5 text-[13px] text-violet-800"
+                className={`rounded-xl border px-4 py-2.5 text-[13px] ${
+                  adapting
+                    ? "border-violet-200 bg-violet-50 text-violet-800"
+                    : "border-amber-200 bg-amber-50 text-amber-800"
+                }`}
                 data-testid="adaptation-banner"
                 data-adapting={adapting ? "true" : undefined}
                 aria-live="polite"
@@ -156,7 +176,7 @@ export function ConceptPanel({
                     Regenerating this concept a different way…
                   </span>
                 ) : (
-                  <>↻ {adaptation}</>
+                  notice
                 )}
               </div>
             )}
@@ -229,11 +249,18 @@ export function ConceptPanel({
                     ...(claimsNode ? [<div key={`${i}-claims`} className="lg:hidden">{claimsNode}</div>] : []),
                   ];
                 case "quiz":
-                  return <Quiz key={i} questions={comp.questions} conceptId={concept.id} onAnswered={onAnswered} />;
+                  return (
+                    <Quiz
+                      key={`${i}-r${revision}`}
+                      questions={comp.questions}
+                      conceptId={concept.id}
+                      onAnswered={onAnswered}
+                    />
+                  );
                 case "flashcards":
-                  return <Flashcards key={i} cards={comp.cards} />;
+                  return <Flashcards key={`${i}-r${revision}`} cards={comp.cards} />;
                 case "sim":
-                  return <Sim key={i} component={comp} seed={seedFrom(concept.id)} />;
+                  return <Sim key={`${i}-r${revision}`} component={comp} seed={seedFrom(concept.id)} />;
                 default:
                   return <UnknownComponent key={i} type={(comp as { type?: string }).type ?? "unknown"} />;
               }
@@ -241,14 +268,19 @@ export function ConceptPanel({
 
             {onExplained && (
               <ExplainBack
+                key={`explain-back-r${revision}`}
                 topic={spec.topic}
                 conceptId={concept.id}
                 conceptTitle={concept.title}
                 summary={concept.summary}
                 claims={concept.claims}
                 onGraded={onExplained}
+                conceptIndex={spec.concepts.findIndex((c) => c.id === concept.id)}
+                lessonSeed={spec.topic}
               />
             )}
+
+            {finalCheckNode}
           </>
         )}
       </div>

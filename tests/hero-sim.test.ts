@@ -1,5 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { HERO_READY_TIMEOUT_MS, heroSimSchema, validateHeroCode, wrapHeroCode } from "../lib/hero-sim";
+import {
+  HERO_DEFAULT_HEIGHT,
+  HERO_MAX_HEIGHT,
+  HERO_MIN_HEIGHT,
+  HERO_READY_TIMEOUT_MS,
+  clampHeroHeight,
+  heroSimSchema,
+  validateHeroCode,
+  wrapHeroCode,
+} from "../lib/hero-sim";
 import { generateHeroSim } from "../lib/generate";
 import type { Concept } from "../lib/spec";
 import type { SourceResult } from "../lib/source";
@@ -41,6 +50,23 @@ describe("hero-sim contract", () => {
     expect(doc.indexOf("window.onerror")).toBeLessThan(doc.indexOf("<canvas")); // trap installs before user code
     expect(doc).toContain('type:"hero-sim",status:"ready"');
     expect(doc).toContain('type:"hero-sim",status:"error"');
+  });
+
+  it("reports its real content height so the frame is never clipped", () => {
+    // Owner feedback, Oct 10: a fixed-height frame cut a canvas + sliders
+    // demo off mid-control. The wrapper measures and reports instead.
+    const doc = wrapHeroCode(goodCode);
+    expect(doc).toContain('type:"hero-sim",status:"height"');
+    expect(doc).toContain("ResizeObserver");
+    expect(doc.indexOf("status:\"height\"")).toBeGreaterThan(doc.indexOf("<canvas"));
+  });
+
+  it("clamps reported heights into the frame's range", () => {
+    expect(clampHeroHeight(0)).toBe(HERO_MIN_HEIGHT);
+    expect(clampHeroHeight(120)).toBe(HERO_MIN_HEIGHT);
+    expect(clampHeroHeight(420)).toBe(420);
+    expect(clampHeroHeight(99999)).toBe(HERO_MAX_HEIGHT);
+    expect(clampHeroHeight(Number.NaN)).toBe(HERO_DEFAULT_HEIGHT);
   });
 
   it("exposes a finite ready timeout for the client state machine", () => {

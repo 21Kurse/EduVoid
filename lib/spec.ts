@@ -75,7 +75,7 @@ export const componentSchema = z.discriminatedUnion("type", [
   }),
   z.object({
     type: z.literal("sim"),
-    template: z.enum(["slider-curve", "two-state-prob", "double-slit", "vector-field"]),
+    template: z.enum(["slider-curve", "two-state-prob", "double-slit", "bayes-update", "vector-field"]),
     params: simParamsSchema,
     /** The user must commit to a prediction before the sim runs (§5.2). */
     predictPrompt: z.string().min(1),
